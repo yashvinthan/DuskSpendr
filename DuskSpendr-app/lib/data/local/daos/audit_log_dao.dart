@@ -29,7 +29,7 @@ class AuditLogDao extends DatabaseAccessor<AppDatabase> with _$AuditLogDaoMixin 
       query = query..where((l) => l.createdAt.isSmallerOrEqualValue(to));
     }
     if (type != null) {
-      query = query..where((l) => l.type.equals(type));
+      query = query..where((l) => l.type.equalsValue(type));
     }
 
     query = query..orderBy([(l) => OrderingTerm.desc(l.createdAt)])..limit(limit);

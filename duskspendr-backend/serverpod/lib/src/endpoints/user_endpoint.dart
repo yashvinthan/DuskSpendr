@@ -1,5 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
+import '../util/serverpod_helpers.dart';
+
 /// User profile endpoint for managing user data
 class UserEndpoint extends Endpoint {
   /// Get the current user's profile
@@ -9,7 +11,7 @@ class UserEndpoint extends Endpoint {
       throw AuthenticationException();
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       'SELECT id, phone, email, display_name, avatar_url, preferences, created_at, updated_at '
       'FROM users WHERE id = @userId',
       parameters: {'userId': userId},
@@ -71,7 +73,7 @@ class UserEndpoint extends Endpoint {
 
     updates.add('updated_at = NOW()');
 
-    await session.db.query(
+    await session.query(
       'UPDATE users SET ${updates.join(', ')} WHERE id = @userId',
       parameters: params,
     );
@@ -87,7 +89,7 @@ class UserEndpoint extends Endpoint {
     }
 
     // Soft delete - mark as deleted
-    await session.db.query(
+    await session.query(
       'UPDATE users SET deleted_at = NOW() WHERE id = @userId',
       parameters: {'userId': userId},
     );
@@ -102,7 +104,7 @@ class UserEndpoint extends Endpoint {
       throw AuthenticationException();
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       'SELECT preferences FROM users WHERE id = @userId',
       parameters: {'userId': userId},
     );
@@ -125,7 +127,7 @@ class UserEndpoint extends Endpoint {
       throw AuthenticationException();
     }
 
-    await session.db.query(
+    await session.query(
       'UPDATE users SET preferences = @preferences, updated_at = NOW() WHERE id = @userId',
       parameters: {
         'userId': userId,

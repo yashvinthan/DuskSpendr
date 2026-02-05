@@ -261,8 +261,18 @@ class _OverviewTab extends StatelessWidget {
             color: AppColors.darkCard,
             borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
-          child: const SpendingLineChart(
-            dataPoints: [100, 120, 115, 140, 135, 160, 180, 175, 200],
+          child: SpendingLineChart(
+            points: [
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 8)), value: 100),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 7)), value: 120),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 6)), value: 115),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 5)), value: 140),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 4)), value: 135),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 3)), value: 160),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 2)), value: 180),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 1)), value: 175),
+              LineChartPoint(date: DateTime.now(), value: 200),
+            ],
             height: 200,
             showGradient: true,
           ),

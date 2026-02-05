@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/theme/colors.dart';
-import '../../../../core/theme/typography.dart';
 import '../../../../core/theme/spacing.dart';
 
 /// A primary gradient button with loading state and haptic feedback.
@@ -14,6 +13,7 @@ class PrimaryButton extends StatefulWidget {
   final IconData? icon;
   final double? width;
   final ButtonSize size;
+  final bool isFullWidth;
 
   const PrimaryButton({
     super.key,
@@ -24,6 +24,7 @@ class PrimaryButton extends StatefulWidget {
     this.icon,
     this.width,
     this.size = ButtonSize.medium,
+    this.isFullWidth = true,
   });
 
   @override

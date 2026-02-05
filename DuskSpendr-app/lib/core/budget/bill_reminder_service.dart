@@ -271,20 +271,12 @@ class BillReminderService {
 
   /// Get all active bills
   Future<List<BillReminder>> getActiveBills() async {
-    // Implementation would use BillRemindersDao
-    return [];
+    return _database.billReminderDao.getActive();
   }
 
   /// Get upcoming bills (next 7 days)
   Future<List<BillReminder>> getUpcomingBills({int days = 7}) async {
-    final all = await getActiveBills();
-    final now = DateTime.now();
-    final cutoff = now.add(Duration(days: days));
-
-    return all.where((b) => 
-      b.nextDueDate.isAfter(now) && b.nextDueDate.isBefore(cutoff)
-    ).toList()
-      ..sort((a, b) => a.nextDueDate.compareTo(b.nextDueDate));
+    return _database.billReminderDao.getUpcoming(days: days);
   }
 
   /// Create manual bill reminder
@@ -311,8 +303,7 @@ class BillReminderService {
       createdAt: DateTime.now(),
     );
 
-    // Save to database
-    // await _dao.insert(bill);
+    await _database.billReminderDao.insertBill(bill);
 
     return bill;
   }
@@ -333,13 +324,12 @@ class BillReminderService {
       isAutoLinked: transactionId != null,
     );
 
-    // Update next due date
-    // await _dao.recordPayment(payment);
+    await _database.billReminderDao.recordPayment(payment);
   }
 
   /// Delete bill
   Future<void> deleteBill(String id) async {
-    // await _dao.delete(id);
+    await _database.billReminderDao.deleteBill(id);
   }
 
   /// Get bills for calendar view

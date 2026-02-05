@@ -5,7 +5,6 @@ import '../../../core/theme/spacing.dart';
 import '../../../core/theme/typography.dart';
 import '../../common/widgets/navigation/top_app_bar.dart';
 import '../../common/widgets/cards/glass_card.dart';
-import '../../common/widgets/buttons/primary_button.dart';
 import '../../common/widgets/gamification/streak_counter.dart';
 
 /// Smart Savings Hub
@@ -585,7 +584,7 @@ class _RoundUpsTab extends StatelessWidget {
         ),
         _RoundUpEntry(
           merchant: 'Amazon',
-          amount: 1,542,
+          amount: 1542,
           roundUp: 58,
           date: 'Yesterday',
         ),
@@ -634,7 +633,7 @@ class _RoundUpSettingsCard extends StatelessWidget {
               Switch(
                 value: true,
                 onChanged: (value) {},
-                activeColor: AppColors.dusk500,
+                activeThumbColor: AppColors.dusk500,
               ),
             ],
           ),
@@ -858,7 +857,7 @@ class _RecurringCard extends StatelessWidget {
               Switch(
                 value: isActive,
                 onChanged: (value) {},
-                activeColor: AppColors.success,
+                activeThumbColor: AppColors.success,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ],
@@ -994,3 +993,4 @@ class _SavingOption extends StatelessWidget {
     );
   }
 }
+

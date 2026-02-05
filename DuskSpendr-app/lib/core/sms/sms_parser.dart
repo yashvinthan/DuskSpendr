@@ -51,7 +51,7 @@ class SmsParser {
       if (spamResult.isSpam) {
         stopwatch.stop();
         return SmsParseResult.spam(
-          reason: spamResult.reason,
+          reason: spamResult.reason ?? 'Suspected spam',
           confidence: spamResult.confidence,
           processingTimeMs: stopwatch.elapsedMilliseconds,
         );

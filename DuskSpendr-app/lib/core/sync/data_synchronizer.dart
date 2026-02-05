@@ -23,6 +23,7 @@ import 'sync_upload_service.dart';
 /// Data Synchronizer main class
 class DataSynchronizer {
   final AccountLinkingManager _linkingManager;
+  // ignore: unused_field
   final SmsParser _smsParser;
   final PrivacyEngine _privacyEngine;
   final TransactionDao? _transactionDao;
@@ -573,7 +574,7 @@ class DataSynchronizer {
     for (final item in transactions) {
       final referenceId = _normalizedReferenceId(
         item.referenceId,
-        item.providerId != null && item.providerId.isNotEmpty
+        item.providerId.isNotEmpty
             ? '${provider.name}:${item.providerId}'
             : null,
       );

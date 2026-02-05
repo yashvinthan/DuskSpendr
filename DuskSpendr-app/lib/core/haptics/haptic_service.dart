@@ -1,5 +1,5 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 
 /// SS-195: Haptic Feedback Utility
 /// Consistent haptic feedback patterns across the app

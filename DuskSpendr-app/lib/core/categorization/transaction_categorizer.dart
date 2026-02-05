@@ -11,6 +11,7 @@ import '../../domain/entities/category.dart';
 class TransactionCategorizer {
   final MerchantRecognizer _merchantRecognizer;
   final UserMappingStore _userMappings;
+  // ignore: unused_field
   static const _storage = FlutterSecureStorage();
 
   TransactionCategorizer({

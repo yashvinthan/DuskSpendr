@@ -80,7 +80,7 @@ class _OfflineBannerContent extends StatelessWidget {
         color: isSyncing ? AppColors.info : AppColors.warning,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
+            color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -113,7 +113,7 @@ class _OfflineBannerContent extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(AppRadius.full),
               ),
               child: Text(
@@ -149,7 +149,7 @@ class OfflineDot extends ConsumerWidget {
         color: _getColor(connectivity),
         boxShadow: [
           BoxShadow(
-            color: _getColor(connectivity).withOpacity(0.4),
+            color: _getColor(connectivity).withValues(alpha: 0.4),
             blurRadius: 4,
           ),
         ],
@@ -185,13 +185,13 @@ class OfflineStatusChip extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: connectivity == ConnectivityState.syncing
-            ? AppColors.info.withOpacity(0.2)
-            : AppColors.warning.withOpacity(0.2),
+            ? AppColors.info.withValues(alpha: 0.2)
+            : AppColors.warning.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(AppRadius.full),
         border: Border.all(
           color: connectivity == ConnectivityState.syncing
-              ? AppColors.info.withOpacity(0.4)
-              : AppColors.warning.withOpacity(0.4),
+              ? AppColors.info.withValues(alpha: 0.4)
+              : AppColors.warning.withValues(alpha: 0.4),
         ),
       ),
       child: Row(
@@ -249,7 +249,7 @@ class OfflineOverlay extends ConsumerWidget {
         if (isOffline && !allowInteraction)
           Positioned.fill(
             child: Container(
-              color: AppColors.darkBackground.withOpacity(0.9),
+              color: AppColors.darkBackground.withValues(alpha: 0.9),
               child: offlineWidget ?? const _DefaultOfflineContent(),
             ),
           ),
@@ -273,7 +273,7 @@ class _DefaultOfflineContent extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.1),
+                color: AppColors.warning.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -381,7 +381,7 @@ class SyncStatusIndicator extends ConsumerWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: AppColors.success.withOpacity(0.1),
+            color: AppColors.success.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Icon(Icons.cloud_done, color: AppColors.success, size: 20),
@@ -391,7 +391,7 @@ class SyncStatusIndicator extends ConsumerWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: AppColors.warning.withOpacity(0.1),
+            color: AppColors.warning.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Icon(Icons.cloud_off, color: AppColors.warning, size: 20),
@@ -401,7 +401,7 @@ class SyncStatusIndicator extends ConsumerWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: AppColors.info.withOpacity(0.1),
+            color: AppColors.info.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: const Padding(
@@ -418,11 +418,11 @@ class SyncStatusIndicator extends ConsumerWidget {
   Color _getBorderColor(ConnectivityState state) {
     switch (state) {
       case ConnectivityState.online:
-        return AppColors.success.withOpacity(0.3);
+        return AppColors.success.withValues(alpha: 0.3);
       case ConnectivityState.offline:
-        return AppColors.warning.withOpacity(0.3);
+        return AppColors.warning.withValues(alpha: 0.3);
       case ConnectivityState.syncing:
-        return AppColors.info.withOpacity(0.3);
+        return AppColors.info.withValues(alpha: 0.3);
     }
   }
 
@@ -448,3 +448,4 @@ class SyncStatusIndicator extends ConsumerWidget {
     }
   }
 }
+

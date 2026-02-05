@@ -56,7 +56,7 @@ class WeeklyAllowanceScreen extends StatelessWidget {
                           minHeight: 8,
                           color: AppColors.sunset500,
                           backgroundColor:
-                              AppColors.dusk700.withOpacity(0.4),
+                              AppColors.dusk700.withValues(alpha: 0.4),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
@@ -120,3 +120,4 @@ class _OptionTile extends StatelessWidget {
     );
   }
 }
+

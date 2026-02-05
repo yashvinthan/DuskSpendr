@@ -14,12 +14,15 @@ class AppColors {
   static const dusk700 = Color(0xFF432874);
   static const dusk600 = Color(0xFF5C3D9A);
   static const dusk500 = Color(0xFF6C5CE7); // Aligned with primary
+  static const dusk400 = Color(0xFF8E7CF3);
 
   static const sunset500 = Color(0xFFF97316);
   static const sunset400 = Color(0xFFFB923C);
   static const sunset300 = Color(0xFFFDBA74);
   static const gold500 = Color(0xFFEAB308);
   static const gold400 = Color(0xFFFACC15);
+  static const gold = gold500;
+  static const amber500 = gold500;
 
   // Gradients
   static const gradientDusk = LinearGradient(

@@ -76,7 +76,7 @@ class _EditTransactionScreenState extends ConsumerState<EditTransactionScreen> {
                 ),
                 const SizedBox(height: AppSpacing.md),
                 DropdownButtonFormField<String>(
-                  value: _category,
+                  initialValue: _category,
                   dropdownColor: AppColors.darkSurface,
                   items: const [
                     DropdownMenuItem(value: 'food', child: Text('Food')),

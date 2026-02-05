@@ -149,11 +149,12 @@ class EducationalLesson {
   final String id;
   final FinancialTopic topic;
   final String title;
+  final String subtitle;
   final String description;
   final String thumbnailUrl;
   final int durationMinutes;
   final List<LessonSection> sections;
-  final List<QuizQuestion> quizQuestions;
+  final List<QuizQuestion> quiz;
   final int order; // Order within topic
   final bool isPremium;
 
@@ -161,12 +162,13 @@ class EducationalLesson {
     required this.id,
     required this.topic,
     required this.title,
-    required this.description,
-    required this.thumbnailUrl,
+    this.subtitle = '',
+    this.description = '',
+    this.thumbnailUrl = '',
     required this.durationMinutes,
     required this.sections,
-    required this.quizQuestions,
-    required this.order,
+    this.quiz = const [],
+    this.order = 0,
     this.isPremium = false,
   });
 }
@@ -182,7 +184,7 @@ class LessonSection {
   final Map<String, dynamic>? interactiveData;
 
   const LessonSection({
-    required this.id,
+    this.id = '',
     required this.type,
     required this.title,
     required this.content,
@@ -192,7 +194,16 @@ class LessonSection {
   });
 }
 
-enum LessonSectionType { text, image, video, interactive, example }
+enum LessonSectionType {
+  text,
+  image,
+  video,
+  interactive,
+  example,
+  hook,
+  concept,
+  takeaway
+}
 
 /// Quiz question
 class QuizQuestion {
@@ -203,7 +214,7 @@ class QuizQuestion {
   final String explanation;
 
   const QuizQuestion({
-    required this.id,
+    this.id = '',
     required this.question,
     required this.options,
     required this.correctIndex,

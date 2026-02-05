@@ -218,7 +218,16 @@ enum AccountStatusDb { active, syncing, error, expired, pending }
 
 enum BudgetPeriodDb { daily, weekly, monthly }
 
-enum AuditLogTypeDb { read, write, update, delete, export, sync, backup, restore }
+enum AuditLogTypeDb {
+  read,
+  write,
+  update,
+  delete,
+  export,
+  sync,
+  backup,
+  restore
+}
 
 enum BackupStatusDb { success, failed }
 
@@ -249,8 +258,10 @@ class BillReminders extends Table {
   IntColumn get amountPaisa => integer()();
   IntColumn get frequency => intEnum<BillFrequencyDb>()();
   DateTimeColumn get nextDueDate => dateTime()();
-  IntColumn get reminderDaysBefore => integer().withDefault(const Constant(3))();
-  BoolColumn get isAutoDetected => boolean().withDefault(const Constant(false))();
+  IntColumn get reminderDaysBefore =>
+      integer().withDefault(const Constant(3))();
+  BoolColumn get isAutoDetected =>
+      boolean().withDefault(const Constant(false))();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   TextColumn get linkedAccountId => text().nullable()();
   TextColumn get notes => text().nullable()();
@@ -290,11 +301,14 @@ class Loans extends Table {
   RealColumn get interestRatePercent => real()();
   IntColumn get emiPaisa => integer()();
   IntColumn get tenureMonths => integer()();
+  IntColumn get remainingMonths => integer().nullable()();
   IntColumn get totalPaidPaisa => integer().withDefault(const Constant(0))();
   DateTimeColumn get startDate => dateTime()();
   DateTimeColumn get nextDueDate => dateTime().nullable()();
   DateTimeColumn get lastPaymentDate => dateTime().nullable()();
   TextColumn get lenderName => text().nullable()();
+  TextColumn get linkedAccountId =>
+      text().nullable()(); // Linked bank account for EMI
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   TextColumn get notes => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
@@ -313,7 +327,8 @@ class LoanPayments extends Table {
   IntColumn get principalPaidPaisa => integer()();
   IntColumn get interestPaidPaisa => integer()();
   DateTimeColumn get paidAt => dateTime()();
-  BoolColumn get isExtraPayment => boolean().withDefault(const Constant(false))();
+  BoolColumn get isExtraPayment =>
+      boolean().withDefault(const Constant(false))();
   TextColumn get transactionId => text().nullable()();
 
   @override
@@ -327,7 +342,8 @@ class CreditCards extends Table {
   TextColumn get name => text()();
   TextColumn get lastFourDigits => text()();
   IntColumn get creditLimitPaisa => integer()();
-  IntColumn get currentOutstandingPaisa => integer().withDefault(const Constant(0))();
+  IntColumn get currentOutstandingPaisa =>
+      integer().withDefault(const Constant(0))();
   IntColumn get dueDay => integer()(); // Day of month
   IntColumn get statementDay => integer()(); // Day of month
   RealColumn get interestRatePercent => real()();
@@ -387,7 +403,18 @@ class InvestmentTransactions extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-enum InvestmentTypeDb { mutualFund, stock, etf, fd, rd, ppf, nps, gold, crypto, other }
+enum InvestmentTypeDb {
+  mutualFund,
+  stock,
+  etf,
+  fd,
+  rd,
+  ppf,
+  nps,
+  gold,
+  crypto,
+  other
+}
 
 enum InvestmentTransactionTypeDb { buy, sell, dividend, bonus, split }
 
@@ -425,8 +452,10 @@ class ExpenseGroups extends Table {
   TextColumn get description => text().nullable()();
   TextColumn get iconCodePoint => text().nullable()();
   IntColumn get colorValue => integer().nullable()();
-  TextColumn get memberIds => text().withDefault(const Constant('[]'))(); // JSON array of friend IDs
-  IntColumn get totalExpensesPaisa => integer().withDefault(const Constant(0))();
+  TextColumn get memberIds =>
+      text().withDefault(const Constant('[]'))(); // JSON array of friend IDs
+  IntColumn get totalExpensesPaisa =>
+      integer().withDefault(const Constant(0))();
   DateTimeColumn get lastActivityAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
@@ -439,7 +468,8 @@ class ExpenseGroups extends Table {
 @DataClassName('SharedExpenseRow')
 class SharedExpenses extends Table {
   TextColumn get id => text()();
-  TextColumn get transactionId => text().nullable()(); // Link to regular transaction
+  TextColumn get transactionId =>
+      text().nullable()(); // Link to regular transaction
   TextColumn get groupId => text().nullable()(); // Optional group
   TextColumn get description => text()();
   IntColumn get totalAmountPaisa => integer()();
@@ -461,7 +491,8 @@ class SharedExpenses extends Table {
 class Settlements extends Table {
   TextColumn get id => text()();
   TextColumn get friendId => text()();
-  TextColumn get sharedExpenseId => text().nullable()(); // Specific expense or general
+  TextColumn get sharedExpenseId =>
+      text().nullable()(); // Specific expense or general
   IntColumn get amountPaisa => integer()();
   BoolColumn get isIncoming => boolean()(); // True if friend paid us
   TextColumn get notes => text().nullable()();
@@ -514,4 +545,3 @@ class CreditScores extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
-

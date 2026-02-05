@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/education/educational_content_service.dart';
 import '../core/education/financial_educator_service.dart';
-import '../domain/entities/entities.dart';
+import '../domain/entities/entities.dart' hide BudgetStatus;
 import 'database_provider.dart';
 
 // ====== SS-090-096: Education Providers ======
@@ -56,14 +56,15 @@ final learningProgressProvider = FutureProvider<LearningProgress>((ref) async {
   
   final completedIds = await dao.getCompletedLessonIds();
   int totalLessons = 0;
-  final topicProgress = <FinancialTopic, double>{};
+  final completedByTopic = <FinancialTopic, int>{};
   
   for (final topic in FinancialTopic.values) {
     final lessons = content.getLessonsForTopic(topic);
     totalLessons += lessons.length;
     
-    final completedInTopic = lessons.where((l) => completedIds.contains(l.id)).length;
-    topicProgress[topic] = lessons.isEmpty ? 0 : completedInTopic / lessons.length;
+    final completedInTopic =
+        lessons.where((l) => completedIds.contains(l.id)).length;
+    completedByTopic[topic] = completedInTopic;
   }
   
   final totalQuizScore = await dao.getTotalQuizScore();
@@ -72,10 +73,10 @@ final learningProgressProvider = FutureProvider<LearningProgress>((ref) async {
   return LearningProgress(
     completedLessons: completedIds.length,
     totalLessons: totalLessons,
-    topicProgress: topicProgress,
+    completedByTopic: completedByTopic,
     totalQuizScore: totalQuizScore,
     quizzesTaken: quizzesTaken,
-    averageQuizScore: quizzesTaken > 0 ? totalQuizScore / quizzesTaken : 0,
+    badges: const [],
   );
 });
 
@@ -173,18 +174,20 @@ class EducationNotifier extends StateNotifier<AsyncValue<void>> {
   /// Complete a lesson
   Future<void> completeLesson({
     required String lessonId,
+    required String topicId,
+    required int timeSpentSeconds,
     int? quizScore,
-    int? quizTotal,
   }) async {
     state = const AsyncValue.loading();
     try {
       await _ref.read(educationDaoProvider).completeLesson(
             CompletedLesson(
-              id: lessonId,
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
               lessonId: lessonId,
+              topicId: topicId,
+              timeSpentSeconds: timeSpentSeconds,
               completedAt: DateTime.now(),
               quizScore: quizScore,
-              quizTotal: quizTotal,
             ),
           );
       _ref.invalidate(completedLessonIdsProvider);
@@ -246,14 +249,10 @@ class EducationNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       await _ref.read(educationDaoProvider).insertCreditScore(
-            CreditScoreData(
-              id: DateTime.now().toIso8601String(),
-              score: score,
-              rating: _getRating(score),
-              source: source,
-              checkedAt: DateTime.now(),
-              factors: factors ?? [],
-            ),
+            id: DateTime.now().toIso8601String(),
+            score: score,
+            source: source,
+            factors: factors,
           );
       _ref.invalidate(latestCreditScoreProvider);
       _ref.invalidate(creditScoreHistoryProvider);
@@ -261,13 +260,6 @@ class EducationNotifier extends StateNotifier<AsyncValue<void>> {
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
-  }
-
-  CreditRating _getRating(int score) {
-    if (score >= 750) return CreditRating.excellent;
-    if (score >= 650) return CreditRating.good;
-    if (score >= 550) return CreditRating.fair;
-    return CreditRating.poor;
   }
 }
 

@@ -78,7 +78,8 @@ class _OnboardingTutorialScreenState
                     ),
                     _NotificationPermissionStep(
                       onGranted: (granted) {
-                        setState(() => _notificationPermissionGranted = granted);
+                        setState(
+                            () => _notificationPermissionGranted = granted);
                         _nextStep();
                       },
                       onSkip: _nextStep,
@@ -157,7 +158,7 @@ class _ProgressBar extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isActive
                     ? AppColors.accent
-                    : AppColors.dusk700.withOpacity(0.5),
+                    : AppColors.dusk700.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(999),
               ),
             ),
@@ -231,7 +232,7 @@ class _SmsPermissionStep extends StatelessWidget {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.2),
+              color: AppColors.primary.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -288,9 +289,9 @@ class _PrivacyBadge extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.accent.withOpacity(0.1),
+        color: AppColors.accent.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+        border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -329,7 +330,7 @@ class _NotificationPermissionStep extends StatelessWidget {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: AppColors.warning.withOpacity(0.2),
+              color: AppColors.warning.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -467,7 +468,7 @@ class _BudgetSetupStepState extends State<_BudgetSetupStep> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: AppColors.accent.withOpacity(0.2),
+              color: AppColors.accent.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -504,23 +505,18 @@ class _BudgetSetupStepState extends State<_BudgetSetupStep> {
                     vertical: AppSpacing.md,
                   ),
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primary
-                        : AppColors.darkCard,
+                    color: isSelected ? AppColors.primary : AppColors.darkCard,
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     border: Border.all(
-                      color: isSelected
-                          ? AppColors.primary
-                          : AppColors.dusk700,
+                      color: isSelected ? AppColors.primary : AppColors.dusk700,
                     ),
                   ),
                   child: Text(
                     '₹$budget',
                     style: AppTypography.bodyLarge.copyWith(
-                      color: isSelected
-                          ? Colors.white
-                          : AppColors.textPrimary,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      color: isSelected ? Colors.white : AppColors.textPrimary,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ),

@@ -148,7 +148,7 @@ class BudgetOverviewScreen extends ConsumerWidget {
                                       ? AppColors.error
                                       : AppColors.sunset500,
                                   backgroundColor:
-                                      AppColors.dusk700.withOpacity(0.4),
+                                      AppColors.dusk700.withValues(alpha: 0.4),
                                 ),
                               ),
                               const SizedBox(height: AppSpacing.sm),
@@ -192,3 +192,4 @@ class BudgetOverviewScreen extends ConsumerWidget {
     );
   }
 }
+

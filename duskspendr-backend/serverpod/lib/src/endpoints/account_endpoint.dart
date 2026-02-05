@@ -1,5 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
+import '../util/serverpod_helpers.dart';
+
 /// Account endpoint for managing financial accounts
 class AccountEndpoint extends Endpoint {
   /// Get all accounts for the current user
@@ -9,7 +11,7 @@ class AccountEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT id, user_id, name, type, balance, currency, institution,
              account_number, is_default, icon, color, created_at, updated_at
@@ -33,7 +35,7 @@ class AccountEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT id, user_id, name, type, balance, currency, institution,
              account_number, is_default, icon, color, created_at, updated_at
@@ -70,13 +72,13 @@ class AccountEndpoint extends Endpoint {
 
     // If this is default, unset any existing default
     if (isDefault) {
-      await session.db.query(
+      await session.query(
         'UPDATE accounts SET is_default = false WHERE user_id = @userId',
         parameters: {'userId': userId},
       );
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       INSERT INTO accounts (
         user_id, name, type, balance, currency, institution,
@@ -157,7 +159,7 @@ class AccountEndpoint extends Endpoint {
     if (isDefault != null) {
       // If setting as default, unset others first
       if (isDefault) {
-        await session.db.query(
+        await session.query(
           'UPDATE accounts SET is_default = false WHERE user_id = @userId',
           parameters: {'userId': userId},
         );
@@ -180,7 +182,7 @@ class AccountEndpoint extends Endpoint {
 
     updates.add('updated_at = NOW()');
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       UPDATE accounts
       SET ${updates.join(', ')}
@@ -215,7 +217,7 @@ class AccountEndpoint extends Endpoint {
     }
 
     // Check if account has transactions
-    final txResult = await session.db.query(
+    final txResult = await session.query(
       'SELECT COUNT(*) FROM transactions WHERE account_id = @accountId',
       parameters: {'accountId': accountId},
     );
@@ -225,7 +227,7 @@ class AccountEndpoint extends Endpoint {
       throw Exception('Cannot delete account with transactions. Transfer transactions first.');
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       'DELETE FROM accounts WHERE id = @id AND user_id = @userId RETURNING id',
       parameters: {'id': accountId, 'userId': userId},
     );
@@ -240,7 +242,7 @@ class AccountEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT 
         COALESCE(SUM(balance), 0) as total_balance,
@@ -279,7 +281,7 @@ class AccountEndpoint extends Endpoint {
     }
 
     // Calculate balance from transactions
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT COALESCE(SUM(amount), 0)
       FROM transactions

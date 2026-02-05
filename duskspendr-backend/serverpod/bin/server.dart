@@ -10,6 +10,6 @@ void main(List<String> args) {
     Protocol(),
     Endpoints(),
   );
-  pod.webServer.addHandler((request) => handleSyncRequests(request, pod));
+  pod.webServer.addRoute(SyncRoute(), '/sync/transactions');
   pod.start();
 }

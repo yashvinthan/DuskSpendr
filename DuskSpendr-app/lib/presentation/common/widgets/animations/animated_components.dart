@@ -126,7 +126,7 @@ class AnimatedProgressBar extends StatelessWidget {
                         gradient: LinearGradient(
                           colors: [
                             foregroundColor ?? AppColors.primary,
-                            (foregroundColor ?? AppColors.primary).withOpacity(0.8),
+                            (foregroundColor ?? AppColors.primary).withValues(alpha: 0.8),
                           ],
                         ),
                         borderRadius: radius,
@@ -513,7 +513,7 @@ class _ConfettiPainter extends CustomPainter {
       final opacity = (1 - progress).clamp(0.0, 1.0);
       
       final paint = Paint()
-        ..color = particle.color.withOpacity(opacity)
+        ..color = particle.color.withValues(alpha: opacity)
         ..style = PaintingStyle.fill;
       
       canvas.drawCircle(Offset(x, y), 4, paint);
@@ -606,3 +606,4 @@ class _ShakeWidgetState extends State<ShakeWidget>
     );
   }
 }
+

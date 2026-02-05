@@ -1,5 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
+import '../util/serverpod_helpers.dart';
+
 /// Budget endpoint for budget tracking and alerts
 class BudgetEndpoint extends Endpoint {
   /// Get all budgets for the current user
@@ -9,7 +11,7 @@ class BudgetEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT id, user_id, name, category_id, amount, spent, period,
              start_date, end_date, alert_threshold, is_active, rollover,
@@ -34,7 +36,7 @@ class BudgetEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT id, user_id, name, category_id, amount, spent, period,
              start_date, end_date, alert_threshold, is_active, rollover,
@@ -73,7 +75,7 @@ class BudgetEndpoint extends Endpoint {
     startDate ??= _getPeriodStart(now, period);
     endDate ??= _getPeriodEnd(now, period);
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       INSERT INTO budgets (
         user_id, name, category_id, amount, spent, period,
@@ -155,7 +157,7 @@ class BudgetEndpoint extends Endpoint {
 
     updates.add('updated_at = NOW()');
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       UPDATE budgets
       SET ${updates.join(', ')}
@@ -181,7 +183,7 @@ class BudgetEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       'DELETE FROM budgets WHERE id = @id AND user_id = @userId RETURNING id',
       parameters: {'id': budgetId, 'userId': userId},
     );
@@ -200,7 +202,7 @@ class BudgetEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       UPDATE budgets
       SET spent = @spent, updated_at = NOW()
@@ -226,16 +228,16 @@ class BudgetEndpoint extends Endpoint {
     final percentUsed = spent / (budget['amount'] as double);
     if (percentUsed >= (budget['alertThreshold'] as double)) {
       // Send alert notification
-      await session.messages.postMessage(
+      session.messages.postMessage(
         'budget-alert',
-        {
+        JsonMessage({
           'userId': userId,
           'budgetId': budgetId,
           'budgetName': budget['name'],
           'percentUsed': percentUsed,
           'spent': spent,
           'amount': budget['amount'],
-        },
+        }),
       );
     }
 
@@ -320,7 +322,7 @@ class BudgetEndpoint extends Endpoint {
       };
     }
 
-    final result = await session.db.query(query, parameters: params);
+    final result = await session.query(query, parameters: params);
     return (result.first[0] as num?)?.toDouble() ?? 0.0;
   }
 

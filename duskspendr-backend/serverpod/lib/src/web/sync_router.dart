@@ -2,48 +2,76 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
-
 import 'package:serverpod/serverpod.dart';
 
 import 'db.dart';
 
-Future<Response> handleSyncRequests(Request request, Serverpod pod) async {
-  if (request.url.path != 'sync/transactions') {
-    return Response.notFound('Not found');
-  }
-  final userId = request.headers['x-user-id'];
-  if (userId == null || userId.isEmpty) {
-    return Response.json({'error': 'missing user id'}, status: 400);
-  }
-  final syncSecret = Platform.environment['SYNC_SHARED_SECRET'];
-  if (syncSecret == null || syncSecret.isEmpty) {
-    return Response.json({'error': 'sync secret not configured'}, status: 500);
-  }
-  final timestamp = request.headers['x-sync-timestamp'];
-  final signature = request.headers['x-sync-signature'];
-  if (timestamp == null || signature == null) {
-    return Response.json({'error': 'missing sync signature'}, status: 401);
-  }
-  final body = await request.readAsString();
-  final payload = body.isEmpty ? '{}' : body;
+class SyncRoute extends Route {
+  SyncRoute() : super(method: RouteMethod.post);
 
-  if (!_isValidSignature(syncSecret, timestamp, userId, payload, signature)) {
-    return Response.json({'error': 'invalid sync signature'}, status: 401);
+  @override
+  void setHeaders(HttpHeaders headers) {
+    headers.contentType = ContentType('application', 'json', charset: 'utf-8');
   }
 
-  final dbUrl = Platform.environment['SERVERPOD_DB_URL'] ??
-      Platform.environment['DATABASE_URL'];
-  if (dbUrl == null || dbUrl.isEmpty) {
-    return Response.json({'error': 'db url not configured'}, status: 500);
-  }
-  final db = await SyncDb.connect(dbUrl);
-  try {
-    await db.insertSync(userId, payload);
-  } finally {
-    await db.close();
-  }
+  @override
+  Future<bool> handleCall(Session session, HttpRequest request) async {
+    if (request.method.toUpperCase() != 'POST') {
+      request.response.statusCode = HttpStatus.methodNotAllowed;
+      request.response.write(jsonEncode({'error': 'method not allowed'}));
+      return true;
+    }
 
-  return Response.json({'status': 'stored'});
+    final userId = request.headers.value('x-user-id');
+    if (userId == null || userId.isEmpty) {
+      request.response.statusCode = HttpStatus.badRequest;
+      request.response.write(jsonEncode({'error': 'missing user id'}));
+      return true;
+    }
+
+    final syncSecret = Platform.environment['SYNC_SHARED_SECRET'];
+    if (syncSecret == null || syncSecret.isEmpty) {
+      request.response.statusCode = HttpStatus.internalServerError;
+      request.response
+          .write(jsonEncode({'error': 'sync secret not configured'}));
+      return true;
+    }
+
+    final timestamp = request.headers.value('x-sync-timestamp');
+    final signature = request.headers.value('x-sync-signature');
+    if (timestamp == null || signature == null) {
+      request.response.statusCode = HttpStatus.unauthorized;
+      request.response.write(jsonEncode({'error': 'missing sync signature'}));
+      return true;
+    }
+
+    final body = await utf8.decoder.bind(request).join();
+    final payload = body.isEmpty ? '{}' : body;
+
+    if (!_isValidSignature(syncSecret, timestamp, userId, payload, signature)) {
+      request.response.statusCode = HttpStatus.unauthorized;
+      request.response.write(jsonEncode({'error': 'invalid sync signature'}));
+      return true;
+    }
+
+    final dbUrl = Platform.environment['SERVERPOD_DB_URL'] ??
+        Platform.environment['DATABASE_URL'];
+    if (dbUrl == null || dbUrl.isEmpty) {
+      request.response.statusCode = HttpStatus.internalServerError;
+      request.response.write(jsonEncode({'error': 'db url not configured'}));
+      return true;
+    }
+
+    final db = await SyncDb.connect(dbUrl);
+    try {
+      await db.insertSync(userId, payload);
+    } finally {
+      await db.close();
+    }
+
+    request.response.write(jsonEncode({'status': 'stored'}));
+    return true;
+  }
 }
 
 bool _isValidSignature(

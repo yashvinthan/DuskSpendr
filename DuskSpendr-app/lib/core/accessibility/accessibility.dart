@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
 
@@ -211,7 +212,7 @@ class AccessibleProgress extends StatelessWidget {
 
   String get _accessibilityLabel {
     final percentage = ((value / max) * 100).toStringAsFixed(0);
-    final unitStr = unit != null ? ' ${unit}' : '';
+    final unitStr = unit != null ? ' $unit' : '';
     return '$label: ${value.toStringAsFixed(0)}$unitStr of ${max.toStringAsFixed(0)}$unitStr, $percentage percent';
   }
 
@@ -292,20 +293,23 @@ class A11y {
   }
 
   static double _relativeLuminance(Color color) {
-    double channel(int value) {
-      final normalized = value / 255;
-      return normalized <= 0.03928
-          ? normalized / 12.92
-          : math.pow((normalized + 0.055) / 1.055, 2.4).toDouble();
+    double channel(double value) {
+      return value <= 0.03928
+          ? value / 12.92
+          : math.pow((value + 0.055) / 1.055, 2.4).toDouble();
     }
-    return 0.2126 * channel(color.red) +
-           0.7152 * channel(color.green) +
-           0.0722 * channel(color.blue);
+    return 0.2126 * channel(color.r) +
+           0.7152 * channel(color.g) +
+           0.0722 * channel(color.b);
   }
 
   /// Announce to screen reader
   static void announce(BuildContext context, String message) {
-    SemanticsService.announce(message, TextDirection.ltr);
+    SemanticsService.sendAnnouncement(
+      View.of(context),
+      message,
+      Directionality.of(context),
+    );
   }
 
   /// Focus node for accessibility navigation

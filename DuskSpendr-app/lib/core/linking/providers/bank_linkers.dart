@@ -235,6 +235,8 @@ abstract class BankLinker implements AccountLinker {
 
 /// SS-012: SBI Bank Linking
 class SbiBankLinker extends BankLinker {
+  static const _aaBaseUrl = String.fromEnvironment('AA_SBI_BASE_URL');
+  static const _fipId = String.fromEnvironment('AA_SBI_FIP_ID');
   @override
   AccountProviderType get providerType => AccountProviderType.sbi;
 
@@ -245,14 +247,16 @@ class SbiBankLinker extends BankLinker {
   String get iconPath => 'assets/icons/providers/sbi.png';
 
   @override
-  String get aaBaseUrl => 'https://aa.sbi.co.in/v2';
+  String get aaBaseUrl => _aaBaseUrl;
 
   @override
-  String get fipId => 'SBI-FIP';
+  String get fipId => _fipId;
 }
 
 /// SS-013: HDFC Bank Linking
 class HdfcBankLinker extends BankLinker {
+  static const _aaBaseUrl = String.fromEnvironment('AA_HDFC_BASE_URL');
+  static const _fipId = String.fromEnvironment('AA_HDFC_FIP_ID');
   @override
   AccountProviderType get providerType => AccountProviderType.hdfc;
 
@@ -263,14 +267,16 @@ class HdfcBankLinker extends BankLinker {
   String get iconPath => 'assets/icons/providers/hdfc.png';
 
   @override
-  String get aaBaseUrl => 'https://aa.hdfcbank.com/v2';
+  String get aaBaseUrl => _aaBaseUrl;
 
   @override
-  String get fipId => 'HDFC-FIP';
+  String get fipId => _fipId;
 }
 
 /// SS-014: ICICI Bank Linking
 class IciciBankLinker extends BankLinker {
+  static const _aaBaseUrl = String.fromEnvironment('AA_ICICI_BASE_URL');
+  static const _fipId = String.fromEnvironment('AA_ICICI_FIP_ID');
   @override
   AccountProviderType get providerType => AccountProviderType.icici;
 
@@ -281,14 +287,16 @@ class IciciBankLinker extends BankLinker {
   String get iconPath => 'assets/icons/providers/icici.png';
 
   @override
-  String get aaBaseUrl => 'https://aa.icicibank.com/v2';
+  String get aaBaseUrl => _aaBaseUrl;
 
   @override
-  String get fipId => 'ICICI-FIP';
+  String get fipId => _fipId;
 }
 
 /// SS-015: Axis Bank Linking
 class AxisBankLinker extends BankLinker {
+  static const _aaBaseUrl = String.fromEnvironment('AA_AXIS_BASE_URL');
+  static const _fipId = String.fromEnvironment('AA_AXIS_FIP_ID');
   @override
   AccountProviderType get providerType => AccountProviderType.axis;
 
@@ -299,10 +307,10 @@ class AxisBankLinker extends BankLinker {
   String get iconPath => 'assets/icons/providers/axis.png';
 
   @override
-  String get aaBaseUrl => 'https://aa.axisbank.co.in/v2';
+  String get aaBaseUrl => _aaBaseUrl;
 
   @override
-  String get fipId => 'AXIS-FIP';
+  String get fipId => _fipId;
 }
 
 /// Factory for creating bank linkers

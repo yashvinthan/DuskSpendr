@@ -37,7 +37,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.lightCard,
         elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.08),
+        shadowColor: Colors.black.withValues(alpha: 0.08),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
@@ -60,7 +60,7 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.lightBackground,
-        selectedColor: AppColors.primary.withOpacity(0.2),
+        selectedColor: AppColors.primary.withValues(alpha: 0.2),
         labelStyle: AppTypography.caption.copyWith(color: AppColors.textPrimaryLight),
       ),
       dividerTheme: const DividerThemeData(
@@ -110,7 +110,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          side: BorderSide(color: AppColors.dusk700.withOpacity(0.3)),
+          side: BorderSide(color: AppColors.dusk700.withValues(alpha: 0.3)),
         ),
       ),
       inputDecorationTheme: _buildInputTheme(isLight: false),
@@ -131,11 +131,11 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.darkCard,
-        selectedColor: AppColors.primary.withOpacity(0.3),
+        selectedColor: AppColors.primary.withValues(alpha: 0.3),
         labelStyle: AppTypography.caption.copyWith(color: AppColors.textPrimary),
       ),
       dividerTheme: DividerThemeData(
-        color: AppColors.dusk700.withOpacity(0.5),
+        color: AppColors.dusk700.withValues(alpha: 0.5),
         thickness: 1,
       ),
       snackBarTheme: SnackBarThemeData(
@@ -158,7 +158,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          side: BorderSide(color: Colors.white.withOpacity(0.1)),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
         ),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
@@ -273,3 +273,4 @@ class AppTheme {
     );
   }
 }
+

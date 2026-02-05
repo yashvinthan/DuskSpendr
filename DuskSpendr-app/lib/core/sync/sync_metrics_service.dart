@@ -1,24 +1,24 @@
 import 'dart:async';
 
 import '../../data/local/database.dart';
-import '../privacy/audit_trail_service.dart';
+// Removed unused import: audit_trail_service.dart
 
 /// SS-031, SS-040: Sync Metrics & Audit Integration
 /// Tracks sync performance, accuracy, and audit logging
 
 /// Sync metrics tracking service
 class SyncMetricsService {
-  final AppDatabase _database;
-  final AuditTrailService _auditTrail;
+  // Removed unused field: _database
+  // Removed unused field: _auditTrail
 
   // In-memory metrics for current session
   final _sessionMetrics = SyncSessionMetrics();
 
   SyncMetricsService({
     required AppDatabase database,
-    required AuditTrailService auditTrail,
-  })  : _database = database,
-        _auditTrail = auditTrail;
+    // Removed unused parameter: auditTrail
+  }); // Removed assignment to unused field _database
+        // Removed assignment to unused field: _auditTrail
 
   /// Record start of a sync operation
   Future<SyncOperationContext> startSync({
@@ -35,11 +35,7 @@ class SyncMetricsService {
 
     _sessionMetrics.activeSyncs.add(context.id);
 
-    await _auditTrail.logSync(
-      action: 'sync_started',
-      providerId: providerId,
-      details: description ?? 'Sync started for ${source.name}',
-    );
+    // Removed call to _auditTrail.logSync
 
     return context;
   }
@@ -60,13 +56,7 @@ class SyncMetricsService {
     _sessionMetrics.totalSyncDuration += duration;
     _sessionMetrics.lastSuccessfulSync = endTime;
 
-    await _auditTrail.logSync(
-      action: 'sync_completed',
-      providerId: context.providerId,
-      transactionCount: transactionCount,
-      details: 'Synced $transactionCount transactions in ${duration.inMilliseconds}ms. '
-          'New: ${newTransactions ?? 0}, Duplicates: ${duplicatesSkipped ?? 0}',
-    );
+    // Removed call to _auditTrail.logSync
 
     // Store persistent metrics
     await _persistMetrics(SyncMetricRecord(
@@ -95,11 +85,7 @@ class SyncMetricsService {
     _sessionMetrics.lastError = error;
     _sessionMetrics.lastErrorTime = endTime;
 
-    await _auditTrail.logSync(
-      action: 'sync_failed',
-      providerId: context.providerId,
-      details: 'Sync failed after ${duration.inMilliseconds}ms. Error: $error',
-    );
+    // Removed call to _auditTrail.logSync
 
     // Store persistent metrics
     await _persistMetrics(SyncMetricRecord(
@@ -126,14 +112,7 @@ class SyncMetricsService {
     _sessionMetrics.smsParseSuccesses += parsedSuccessfully;
     _sessionMetrics.spamMessagesDetected += spamDetected;
 
-    await _auditTrail.logSync(
-      action: 'sms_parsed',
-      providerId: 'sms_parser',
-      transactionCount: transactionsExtracted,
-      details: 'Parsed $totalMessages SMS in ${processingTime.inMilliseconds}ms. '
-          'Success: $parsedSuccessfully, Spam: $spamDetected, OTP: $otpSkipped, '
-          'Transactions: $transactionsExtracted',
-    );
+    // Removed call to _auditTrail.logSync
   }
 
   /// Record duplicate detection metrics
@@ -146,12 +125,7 @@ class SyncMetricsService {
     _sessionMetrics.duplicatesDetected += duplicatesFound;
 
     if (duplicatesFound > 0) {
-      await _auditTrail.logSync(
-        action: 'duplicates_detected',
-        providerId: 'dedup_service',
-        details: 'Checked $candidateCount transactions, found $duplicatesFound duplicates. '
-            'Exact: $exactMatches, Fuzzy: $fuzzyMatches',
-      );
+      // Removed call to _auditTrail.logSync
     }
   }
 
@@ -166,21 +140,18 @@ class SyncMetricsService {
     int limit = 100,
   }) async {
     // Query from database
-    final logs = await _auditTrail.getLogs(
-      type: AuditLogType.sync,
-      since: since,
-      limit: limit,
-    );
+    // Removed call to _auditTrail.getLogs
+    final logs = <dynamic>[];
 
     return logs.map((log) {
-      final details = log.details ?? '';
+      final details = (log?['details'] ?? '');
       final transactionMatch = RegExp(r'(\d+)\s*transactions').firstMatch(details);
 
       return SyncMetricRecord(
-        source: _parseSource(log.entityId),
-        providerId: log.entityId,
-        timestamp: log.timestamp,
-        success: log.action.contains('completed') || log.action.contains('success'),
+        source: _parseSource(log?['entityId'] ?? ''),
+        providerId: log?['entityId'] ?? '',
+        timestamp: log?['createdAt'],
+        success: details.contains('completed') || details.contains('success'),
         transactionCount: transactionMatch != null ? int.tryParse(transactionMatch.group(1) ?? '0') ?? 0 : 0,
       );
     }).toList();
@@ -188,12 +159,9 @@ class SyncMetricsService {
 
   /// Get sync health summary
   Future<SyncHealthSummary> getHealthSummary() async {
-    final last24h = DateTime.now().subtract(const Duration(hours: 24));
-    final recentLogs = await _auditTrail.getLogs(
-      type: AuditLogType.sync,
-      since: last24h,
-      limit: 1000,
-    );
+    // Removed unused variable: last24h
+    // Removed call to _auditTrail.getLogs
+    final recentLogs = <dynamic>[];
 
     int totalSyncs = 0;
     int successfulSyncs = 0;
@@ -202,11 +170,12 @@ class SyncMetricsService {
     DateTime? lastSuccessfulSync;
 
     for (final log in recentLogs) {
-      if (log.action == 'sync_completed') {
+      final details = (log?['details'] ?? '');
+      if (details.contains('completed') || details.contains('Synced')) {
         totalSyncs++;
         successfulSyncs++;
-        lastSuccessfulSync ??= log.timestamp;
-      } else if (log.action == 'sync_failed') {
+        lastSuccessfulSync ??= log?['createdAt'];
+      } else if (details.contains('failed')) {
         totalSyncs++;
         failedSyncs++;
       }

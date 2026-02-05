@@ -2,8 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/gamification/finance_score_service.dart';
-import '../domain/entities/entities.dart';
-import 'database_provider.dart';
 import 'budget_provider.dart';
 import 'transaction_provider.dart';
 
@@ -12,8 +10,7 @@ import 'transaction_provider.dart';
 // ====== Finance Score Service ======
 
 final financeScoreServiceProvider = Provider<FinanceScoreService>((ref) {
-  final db = ref.watch(databaseProvider);
-  return FinanceScoreService(database: db);
+  return FinanceScoreService();
 });
 
 // ====== Finance Score ======
@@ -93,9 +90,13 @@ final achievementUnlockStreamProvider = StreamProvider<Achievement>((ref) {
 /// Total achievement points
 final totalAchievementPointsProvider = FutureProvider<int>((ref) async {
   final achievements = await ref.watch(allAchievementsProvider.future);
-  return achievements
-      .where((a) => a.isUnlocked)
-      .fold(0, (sum, a) => sum + a.points);
+  var total = 0;
+  for (final achievement in achievements) {
+    if (achievement.isUnlocked) {
+      total += achievement.points;
+    }
+  }
+  return total;
 });
 
 // ====== Score Level ======

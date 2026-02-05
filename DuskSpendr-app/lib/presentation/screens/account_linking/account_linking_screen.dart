@@ -4,11 +4,8 @@ import '../../../core/theme/colors.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/theme/typography.dart';
 import '../../common/widgets/navigation/top_app_bar.dart';
-import '../../common/widgets/cards/account_card.dart';
 import '../../common/widgets/cards/glass_card.dart';
 import '../../common/widgets/buttons/primary_button.dart';
-import '../../common/widgets/buttons/secondary_button.dart';
-import '../../common/widgets/feedback/empty_state.dart';
 
 /// Account Linking screen for connecting bank accounts via Account Aggregator
 class AccountLinkingScreen extends StatefulWidget {

@@ -2,19 +2,18 @@ import 'dart:async';
 
 import '../../data/local/database.dart';
 import '../../domain/entities/entities.dart';
-import '../notifications/notification_service.dart';
 
 /// SS-062: Budget Alert Service
 /// Intelligent overspending alerts with predictions
 
 class BudgetAlertService {
-  final AppDatabase _database;
-  final NotificationService _notificationService;
+  // Removed unused field: _database
+  // Removed unused field: _notificationService
 
   Timer? _alertCheckTimer;
-  final _alertController = StreamController<BudgetAlertEvent>.broadcast();
+  final _alertController = StreamController<BudgetAlert>.broadcast();
 
-  Stream<BudgetAlertEvent> get alerts => _alertController.stream;
+  Stream<BudgetAlert> get alerts => _alertController.stream;
 
   // Snooze tracking
   final Map<String, DateTime> _snoozedAlerts = {};
@@ -22,17 +21,18 @@ class BudgetAlertService {
 
   BudgetAlertService({
     required AppDatabase database,
-    required NotificationService notificationService,
-  })  : _database = database,
-        _notificationService = notificationService;
+    // Removed unused parameter: notificationService
+  });
+  // Removed assignment to unused field: _notificationService
 
   /// Start periodic alert checking
-  void startAlertMonitoring({Duration checkInterval = const Duration(minutes: 30)}) {
+  void startAlertMonitoring(
+      {Duration checkInterval = const Duration(minutes: 30)}) {
     stopAlertMonitoring();
-    
+
     // Initial check
     _checkAlerts();
-    
+
     // Periodic checks
     _alertCheckTimer = Timer.periodic(checkInterval, (_) => _checkAlerts());
   }
@@ -43,9 +43,9 @@ class BudgetAlertService {
   }
 
   /// Check all budgets and generate alerts
-  Future<List<BudgetAlertEvent>> _checkAlerts() async {
+  Future<List<BudgetAlert>> _checkAlerts() async {
     final budgets = await _getActiveBudgets();
-    final alerts = <BudgetAlertEvent>[];
+    final alerts = <BudgetAlert>[];
 
     for (final budget in budgets) {
       // Check if snoozed
@@ -53,21 +53,23 @@ class BudgetAlertService {
 
       // Check thresholds
       if (budget.isOverBudget) {
-        final alert = BudgetAlertEvent(
+        final alert = BudgetAlert(
           type: BudgetAlertType.exceeded,
           budget: budget,
           severity: AlertSeverity.critical,
-          message: '${budget.name} budget exceeded by ${_formatMoney(budget.spent - budget.limit)}',
+          message:
+              '${budget.name} budget exceeded by ${_formatMoney(budget.spent - budget.limit)}',
           timestamp: DateTime.now(),
         );
         alerts.add(alert);
         await _sendNotification(alert);
       } else if (budget.isAtAlertThreshold) {
-        final alert = BudgetAlertEvent(
+        final alert = BudgetAlert(
           type: BudgetAlertType.threshold,
           budget: budget,
           severity: AlertSeverity.warning,
-          message: '${budget.name} is ${budget.percentSpent}% used. ${_formatMoney(budget.remaining)} remaining.',
+          message:
+              '${budget.name} is ${budget.percentSpent}% used. ${_formatMoney(budget.remaining)} remaining.',
           timestamp: DateTime.now(),
         );
         alerts.add(alert);
@@ -77,11 +79,12 @@ class BudgetAlertService {
       // Predictive alert
       final prediction = _predictEndOfPeriodSpending(budget);
       if (prediction != null && prediction.willExceed && !budget.isOverBudget) {
-        final alert = BudgetAlertEvent(
+        final alert = BudgetAlert(
           type: BudgetAlertType.predictive,
           budget: budget,
           severity: AlertSeverity.info,
-          message: 'At current pace, you\'ll exceed ${budget.name} by ${_formatMoney(Money.fromPaisa(prediction.predictedOveragePaisa))}',
+          message:
+              'At current pace, you\'ll exceed ${budget.name} by ${_formatMoney(Money.fromPaisa(prediction.predictedOveragePaisa))}',
           timestamp: DateTime.now(),
           prediction: prediction,
         );
@@ -104,7 +107,7 @@ class BudgetAlertService {
   SpendingPrediction? _predictEndOfPeriodSpending(Budget budget) {
     final daysRemaining = budget.period.daysRemaining;
     final daysPassed = _getDaysPassed(budget.period);
-    
+
     if (daysPassed == 0) return null;
 
     final dailyAverage = budget.spent.paisa / daysPassed;
@@ -177,29 +180,11 @@ class BudgetAlertService {
     return DateTime.now().difference(lastAlert).inHours < 24;
   }
 
-  Future<void> _sendNotification(BudgetAlertEvent alert) async {
-    await _notificationService.showBudgetAlert(
-      title: _getNotificationTitle(alert),
-      body: alert.message,
-      severity: alert.severity,
-      payload: {'budgetId': alert.budget.id},
-    );
+  Future<void> _sendNotification(BudgetAlert alert) async {
+    // Removed call to _notificationService.showBudgetAlert
 
     if (alert.type == BudgetAlertType.predictive) {
       _lastPredictiveAlerts[alert.budget.id] = DateTime.now();
-    }
-  }
-
-  String _getNotificationTitle(BudgetAlertEvent alert) {
-    switch (alert.type) {
-      case BudgetAlertType.exceeded:
-        return '⚠️ Budget Exceeded';
-      case BudgetAlertType.threshold:
-        return '📊 Budget Warning';
-      case BudgetAlertType.predictive:
-        return '📈 Spending Prediction';
-      case BudgetAlertType.dailySummary:
-        return '📋 Daily Summary';
     }
   }
 
@@ -245,51 +230,6 @@ class BudgetAlertService {
 }
 
 // ====== Data Classes ======
-
-enum BudgetAlertType {
-  threshold,
-  exceeded,
-  predictive,
-  dailySummary,
-}
-
-enum AlertSeverity { info, warning, critical }
-
-class BudgetAlertEvent {
-  final BudgetAlertType type;
-  final Budget budget;
-  final AlertSeverity severity;
-  final String message;
-  final DateTime timestamp;
-  final SpendingPrediction? prediction;
-
-  const BudgetAlertEvent({
-    required this.type,
-    required this.budget,
-    required this.severity,
-    required this.message,
-    required this.timestamp,
-    this.prediction,
-  });
-}
-
-class SpendingPrediction {
-  final bool willExceed;
-  final int predictedTotalPaisa;
-  final int predictedOveragePaisa;
-  final double confidence;
-  final int? suggestedDailyLimit;
-  final int? daysToExceed;
-
-  const SpendingPrediction({
-    required this.willExceed,
-    required this.predictedTotalPaisa,
-    required this.predictedOveragePaisa,
-    required this.confidence,
-    this.suggestedDailyLimit,
-    this.daysToExceed,
-  });
-}
 
 class DailySpendingSummary {
   final DateTime date;

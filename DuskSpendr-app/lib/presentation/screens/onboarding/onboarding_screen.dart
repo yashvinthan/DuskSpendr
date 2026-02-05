@@ -145,7 +145,7 @@ class _OnboardingPage extends StatelessWidget {
               gradient: AppColors.gradientDusk,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.dusk500.withOpacity(0.35),
+                  color: AppColors.dusk500.withValues(alpha: 0.35),
                   blurRadius: 24,
                   offset: const Offset(0, 12),
                 ),
@@ -211,3 +211,4 @@ class _OnboardingData {
   final String subtitle;
   final IconData icon;
 }
+

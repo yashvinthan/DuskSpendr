@@ -1,5 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
+import '../util/serverpod_helpers.dart';
+
 /// Category endpoint for managing transaction categories
 class CategoryEndpoint extends Endpoint {
   /// Default categories that are created for new users
@@ -28,7 +30,7 @@ class CategoryEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT id, user_id, name, icon, color, type, parent_id, is_system, created_at
       FROM categories
@@ -51,7 +53,7 @@ class CategoryEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT id, user_id, name, icon, color, type, parent_id, is_system, created_at
       FROM categories
@@ -89,7 +91,7 @@ class CategoryEndpoint extends Endpoint {
       }
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       INSERT INTO categories (
         user_id, name, icon, color, type, parent_id, is_system, created_at
@@ -170,7 +172,7 @@ class CategoryEndpoint extends Endpoint {
       return existing;
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       UPDATE categories
       SET ${updates.join(', ')}
@@ -204,7 +206,7 @@ class CategoryEndpoint extends Endpoint {
     }
 
     // Check for child categories
-    final children = await session.db.query(
+    final children = await session.query(
       'SELECT COUNT(*) FROM categories WHERE parent_id = @id',
       parameters: {'id': categoryId},
     );
@@ -213,12 +215,12 @@ class CategoryEndpoint extends Endpoint {
     }
 
     // Update transactions to remove this category
-    await session.db.query(
+    await session.query(
       'UPDATE transactions SET category_id = NULL WHERE category_id = @categoryId AND user_id = @userId',
       parameters: {'categoryId': categoryId, 'userId': userId},
     );
 
-    final result = await session.db.query(
+    final result = await session.query(
       'DELETE FROM categories WHERE id = @id AND user_id = @userId AND is_system = false RETURNING id',
       parameters: {'id': categoryId, 'userId': userId},
     );
@@ -236,7 +238,7 @@ class CategoryEndpoint extends Endpoint {
     }
 
     // Check if user already has categories
-    final existing = await session.db.query(
+    final existing = await session.query(
       'SELECT COUNT(*) FROM categories WHERE user_id = @userId',
       parameters: {'userId': userId},
     );
@@ -246,7 +248,7 @@ class CategoryEndpoint extends Endpoint {
 
     // Create default categories
     for (final cat in defaultCategories) {
-      await session.db.query(
+      await session.query(
         '''
         INSERT INTO categories (user_id, name, icon, color, type, is_system, created_at)
         VALUES (@userId, @name, @icon, @color, @type, false, NOW())
@@ -279,7 +281,7 @@ class CategoryEndpoint extends Endpoint {
     final start = startDate ?? DateTime(now.year, now.month, 1);
     final end = endDate ?? now;
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT 
         c.id,
@@ -308,15 +310,13 @@ class CategoryEndpoint extends Endpoint {
     );
 
     return result.map((row) => {
-      return {
-        'id': row[0],
-        'name': row[1],
-        'icon': row[2],
-        'color': row[3],
-        'type': row[4],
-        'totalAmount': row[5],
-        'transactionCount': row[6],
-      };
+      'id': row[0],
+      'name': row[1],
+      'icon': row[2],
+      'color': row[3],
+      'type': row[4],
+      'totalAmount': row[5],
+      'transactionCount': row[6],
     }).toList();
   }
 

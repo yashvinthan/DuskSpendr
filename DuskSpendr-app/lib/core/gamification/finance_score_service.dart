@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import '../../data/local/database.dart';
 import '../../domain/entities/entities.dart';
 
 /// SS-083: Student Finance Score calculation and gamification
@@ -12,15 +11,13 @@ import '../../domain/entities/entities.dart';
 /// - Goal Score (10%): Progress toward goals
 
 class FinanceScoreService {
-  final AppDatabase _database;
-
   final _scoreController = StreamController<FinanceScore>.broadcast();
   final _achievementController = StreamController<Achievement>.broadcast();
 
   Stream<FinanceScore> get scoreStream => _scoreController.stream;
   Stream<Achievement> get newAchievements => _achievementController.stream;
 
-  FinanceScoreService({required AppDatabase database}) : _database = database;
+  FinanceScoreService();
 
   // ====== Score Calculation ======
 
@@ -281,8 +278,8 @@ class FinanceScoreService {
       
       case 'no_overspend_month':
         // No budget exceeded in the last 30 days
-        return budgets.isNotEmpty && 
-          budgets.every((b) => b.percentUsed < 100);
+        return budgets.isNotEmpty &&
+            budgets.every((b) => b.percentSpent < 100);
       
       default:
         return false;

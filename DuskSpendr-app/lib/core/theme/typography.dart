@@ -111,4 +111,71 @@ class AppTypography {
     fontWeight: FontWeight.w800,
     letterSpacing: -2,
   );
+
+  // Material 3 compatible aliases
+  static const headlineSmall = TextStyle(
+    fontFamily: 'PlusJakartaSans',
+    fontSize: 24,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0,
+  );
+
+  static const titleLarge = TextStyle(
+    fontFamily: 'PlusJakartaSans',
+    fontSize: 22,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0,
+  );
+
+  static const titleMedium = TextStyle(
+    fontFamily: 'Inter',
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.15,
+  );
+
+  static const titleSmall = TextStyle(
+    fontFamily: 'Inter',
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.1,
+  );
+
+  // Material 3 display variants
+  static const displaySmall = TextStyle(
+    fontFamily: 'PlusJakartaSans',
+    fontSize: 36,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0,
+  );
+
+  // Material 3 headline variants
+  static const headlineMedium = TextStyle(
+    fontFamily: 'PlusJakartaSans',
+    fontSize: 28,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0,
+  );
+
+  // Material 3 label variants
+  static const labelLarge = TextStyle(
+    fontFamily: 'Inter',
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.1,
+  );
+
+  static const labelMedium = TextStyle(
+    fontFamily: 'Inter',
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.5,
+  );
+
+  static const labelSmall = TextStyle(
+    fontFamily: 'Inter',
+    fontSize: 11,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.5,
+  );
 }

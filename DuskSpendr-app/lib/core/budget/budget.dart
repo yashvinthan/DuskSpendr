@@ -1,5 +1,5 @@
 /// Spec 5: Budget & Financial Tracking Module
-/// 
+///
 /// This module provides comprehensive budget management and financial tracking
 /// for students including:
 /// - Budget tracking with daily/weekly/monthly periods (SS-060)

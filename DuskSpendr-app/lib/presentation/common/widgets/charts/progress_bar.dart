@@ -158,7 +158,7 @@ class MiniCategoryBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final percentage = maxAmount > 0 ? (amount / maxAmount).clamp(0, 1.0) : 0.0;
+    final double percentage = maxAmount > 0 ? (amount / maxAmount).clamp(0.0, 1.0).toDouble() : 0.0;
 
     return GestureDetector(
       onTap: onTap,

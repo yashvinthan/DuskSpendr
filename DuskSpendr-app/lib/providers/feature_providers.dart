@@ -18,6 +18,7 @@ import '../core/education/education_service.dart';
 import '../core/split/expense_splitting_service.dart';
 import '../domain/entities/budget.dart';
 import '../domain/entities/money.dart';
+import '../core/budget/financial_calculators.dart';
 import '../domain/entities/linked_account.dart';
 
 // ====== Core Infrastructure Providers ======
@@ -594,13 +595,8 @@ final receiptScannerProvider = Provider<ReceiptScanner>((ref) {
 
 /// Settlement Reminder Provider
 final settlementRemindersProvider = Provider<List<SettlementReminder>>((ref) {
-  final splittingState = ref.watch(expenseSplittingProvider);
-  final service = SettlementReminderService();
-
-  // Build friends map
-  final friendsMap = {for (var f in splittingState.friends) f.id: f};
-
-  // This would normally use the actual debts from the service
+  ref.watch(expenseSplittingProvider);
+  // This would normally use the SettlementReminderService and debts
   // For now, return empty list as debts require service method access
   return [];
 });

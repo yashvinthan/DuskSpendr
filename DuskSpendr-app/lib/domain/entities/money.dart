@@ -21,6 +21,9 @@ class Money {
   /// Get amount in rupees
   double get inRupees => paisa / 100;
 
+  /// Get amount in rupees (alias for convenience)
+  double get rupees => inRupees;
+
   /// Format as INR string (e.g., "₹1,234.56")
   String get formatted {
     final rupeeAmount = inRupees;

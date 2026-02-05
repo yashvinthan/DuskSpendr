@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../../core/theme/colors.dart';
-import '../../../../core/theme/spacing.dart';
 
 /// Data point for line chart
 class LineChartPoint {

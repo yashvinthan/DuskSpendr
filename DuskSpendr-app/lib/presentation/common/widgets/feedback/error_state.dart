@@ -3,7 +3,6 @@ import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/spacing.dart';
 import '../../../../core/theme/typography.dart';
 import '../buttons/primary_button.dart';
-import '../buttons/secondary_button.dart';
 
 /// Generic error state with retry action
 class ErrorState extends StatelessWidget {

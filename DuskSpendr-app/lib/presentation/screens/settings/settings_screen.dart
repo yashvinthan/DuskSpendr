@@ -296,7 +296,7 @@ class _SettingsToggle extends StatelessWidget {
               HapticFeedback.lightImpact();
               onChanged(newValue);
             },
-            activeColor: AppColors.dusk500,
+            activeThumbColor: AppColors.dusk500,
           ),
         ],
       ),
@@ -379,3 +379,4 @@ class _SignOutButton extends StatelessWidget {
     );
   }
 }
+

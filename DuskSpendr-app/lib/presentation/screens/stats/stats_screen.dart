@@ -161,8 +161,8 @@ class _LineChartCard extends StatelessWidget {
                       show: true,
                       gradient: LinearGradient(
                         colors: [
-                          AppColors.sunset500.withOpacity(0.4),
-                          AppColors.dusk500.withOpacity(0.05),
+                          AppColors.sunset500.withValues(alpha: 0.4),
+                          AppColors.dusk500.withValues(alpha: 0.05),
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -241,3 +241,4 @@ List<FlSpot> _buildWeekSpots(List<TransactionModel> items) {
 
   return List.generate(7, (i) => FlSpot(i.toDouble(), totals[i]));
 }
+

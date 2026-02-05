@@ -2,7 +2,6 @@ import 'dart:math';
 
 import '../../data/local/daos/sync_outbox_dao.dart';
 import '../../data/local/daos/transaction_dao.dart';
-import '../../data/local/tables.dart';
 import '../../data/local/session_store.dart';
 import '../../data/remote/sync_api.dart';
 import '../../domain/entities/category.dart';
@@ -40,7 +39,7 @@ class SyncUploadService {
       return const SyncUploadResult(success: true, uploaded: 0, skipped: 0);
     }
 
-    final ids = pending.map((e) => e.transactionId).toList();
+    final ids = pending.map((entry) => entry.transactionId).toList();
     await _outboxDao.markSyncing(ids);
 
     final payload = <Map<String, dynamic>>[];
@@ -106,14 +105,10 @@ class SyncUploadService {
         'notes': tx.notes,
       };
 
-  String _mapType(TransactionType type) {
-    switch (type) {
-      case TransactionType.debit:
-        return 'debit';
-      case TransactionType.credit:
-        return 'credit';
-    }
-  }
+  String _mapType(TransactionType type) => switch (type) {
+        TransactionType.debit => 'debit',
+        TransactionType.credit => 'credit',
+      };
 
   DateTime _nextAttempt(int attempts) {
     const baseSeconds = 30;

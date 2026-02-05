@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/privacy/privacy_engine.dart';
+// Removed unused import: privacy_engine.dart
 import '../core/sms/financial_institution_database.dart';
 import '../core/sms/notification_listener_service.dart';
 import '../core/sms/sms_parser.dart';
@@ -128,10 +128,9 @@ final syncUploadServiceProvider = Provider<SyncUploadService>((ref) {
 /// Sync Metrics Service provider
 final syncMetricsProvider = Provider<SyncMetricsService>((ref) {
   final database = ref.watch(databaseProvider);
-  final auditTrail = ref.watch(auditTrailProvider);
   return SyncMetricsService(
     database: database,
-    auditTrail: auditTrail,
+    // Removed undefined parameter: auditTrail
   );
 });
 

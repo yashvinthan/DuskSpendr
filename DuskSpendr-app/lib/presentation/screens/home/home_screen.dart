@@ -11,7 +11,7 @@ import '../../../providers/budget_provider.dart';
 import '../../../providers/gamification_provider.dart';
 import '../../../providers/transaction_provider.dart';
 import '../../../providers/sync_providers.dart';
-import '../budgets/budget_overview_screen.dart';
+import '../../../core/sync/sync_metrics_service.dart';
 import '../profile/profile_screen.dart';
 import '../settings/settings_screen.dart';
 import '../stats/stats_screen.dart';
@@ -189,7 +189,7 @@ class _HomeDashboard extends ConsumerWidget {
       decoration: BoxDecoration(
         gradient: Theme.of(context).brightness == Brightness.dark
             ? AppColors.gradientNight
-            : AppColors.gradientDay,
+            : AppColors.gradientPrimary,
       ),
       child: SafeArea(
         child: Padding(
@@ -665,30 +665,29 @@ class _SpendingCard extends ConsumerWidget {
     switch (category) {
       case TransactionCategory.food:
         return '🍔';
-      case TransactionCategory.transport:
+      case TransactionCategory.transportation:
         return '🚗';
       case TransactionCategory.entertainment:
         return '🎮';
       case TransactionCategory.shopping:
         return '🛍️';
-      case TransactionCategory.bills:
+      case TransactionCategory.utilities:
         return '📱';
-      case TransactionCategory.health:
+      case TransactionCategory.healthcare:
         return '💊';
       case TransactionCategory.education:
         return '📚';
-      case TransactionCategory.groceries:
-        return '🛒';
-      case TransactionCategory.travel:
-        return '✈️';
-      case TransactionCategory.investment:
+      case TransactionCategory.subscriptions:
+        return '🔁';
+      case TransactionCategory.investments:
         return '📈';
-      case TransactionCategory.salary:
-        return '💰';
-      case TransactionCategory.gift:
-        return '🎁';
+      case TransactionCategory.loans:
+        return '💳';
+      case TransactionCategory.shared:
+        return '👥';
+      case TransactionCategory.pocketMoney:
+        return '💵';
       case TransactionCategory.other:
-      default:
         return '💳';
     }
   }
@@ -834,20 +833,26 @@ class _TransactionsCard extends ConsumerWidget {
     switch (category) {
       case TransactionCategory.food:
         return '🍕';
-      case TransactionCategory.transport:
+      case TransactionCategory.transportation:
         return '🚕';
       case TransactionCategory.entertainment:
         return '🎮';
       case TransactionCategory.shopping:
         return '🛍️';
-      case TransactionCategory.bills:
+      case TransactionCategory.utilities:
         return '📱';
-      case TransactionCategory.health:
+      case TransactionCategory.healthcare:
         return '💊';
       case TransactionCategory.education:
         return '📚';
-      case TransactionCategory.salary:
-        return '💰';
+      case TransactionCategory.investments:
+        return '📈';
+      case TransactionCategory.subscriptions:
+        return '🔁';
+      case TransactionCategory.shared:
+        return '👥';
+      case TransactionCategory.pocketMoney:
+        return '💵';
       default:
         return '💳';
     }

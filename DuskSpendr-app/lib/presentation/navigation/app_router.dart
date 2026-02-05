@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/screens.dart';
+import '../../data/models/transaction_model.dart';
+import '../../data/models/budget_model.dart';
 
 /// App route paths
 class AppRoutes {
@@ -73,7 +75,7 @@ class AppRouter {
           name: 'otp',
           builder: (context, state) {
             final phoneNumber = state.extra as String? ?? '';
-            return OtpScreen(phoneNumber: phoneNumber);
+              return OTPScreen(phone: phoneNumber);
           },
         ),
         GoRoute(
@@ -107,8 +109,11 @@ class AppRouter {
                   path: 'edit',
                   name: 'editTransaction',
                   builder: (context, state) {
-                    final transactionId = state.extra as String? ?? '';
-                    return EditTransactionScreen(transactionId: transactionId);
+                    // Removed unused variable: transactionId
+                      // Pass TransactionModel via state.extra
+                      final tx = state.extra as TransactionModel?;
+                      if (tx == null) return const TransactionsScreen();
+                      return EditTransactionScreen(tx: tx);
                   },
                 ),
               ],
@@ -127,8 +132,11 @@ class AppRouter {
                   path: 'edit',
                   name: 'editBudget',
                   builder: (context, state) {
-                    final budgetId = state.extra as String? ?? '';
-                    return BudgetEditScreen(budgetId: budgetId);
+                    // Removed unused variable: budgetId
+                      // Pass BudgetModel via state.extra
+                      final budget = state.extra as BudgetModel?;
+                      if (budget == null) return const BudgetOverviewScreen();
+                      return BudgetEditScreen(budget: budget);
                   },
                 ),
                 GoRoute(

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../core/backup/backup_metadata_store.dart';
 import 'daos/backup_metadata_dao.dart';
+import 'database.dart';
 import 'tables.dart';
 
 class DriftBackupMetadataStore implements BackupMetadataStore {
@@ -19,7 +20,7 @@ class DriftBackupMetadataStore implements BackupMetadataStore {
         sizeBytes: entry.sizeBytes,
         checksum: entry.checksum,
         version: entry.version,
-        isEncrypted: entry.isEncrypted,
+        isEncrypted: Value(entry.isEncrypted),
         status: BackupStatusDb.success,
       ),
     );

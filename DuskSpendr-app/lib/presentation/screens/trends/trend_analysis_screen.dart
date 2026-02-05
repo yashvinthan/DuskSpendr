@@ -8,7 +8,6 @@ import '../../../core/theme/spacing.dart';
 import '../../../core/theme/typography.dart';
 import '../../../domain/entities/entities.dart';
 import '../../../providers/transaction_provider.dart';
-import '../../../providers/budget_provider.dart';
 
 /// SS-085: Spending Trend Analysis Screen
 /// Shows 3-6 month spending trends with category comparisons
@@ -40,7 +39,7 @@ class _TrendAnalysisScreenState extends ConsumerState<TrendAnalysisScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -271,7 +270,6 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final formatter = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
     final total = monthlyData.values.fold(0.0, (a, b) => a + b);
 
@@ -378,7 +376,6 @@ class _MonthlyBarChart extends StatelessWidget {
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
-              final month = data.keys.elementAt(group.x);
               return BarTooltipItem(
                 '₹${NumberFormat.compact().format(rod.toY)}',
                 AppTypography.bodyMedium.copyWith(color: Colors.white),
@@ -494,7 +491,8 @@ class _CategoriesTab extends ConsumerWidget {
               Text('Category Breakdown', style: AppTypography.h3),
               const SizedBox(height: AppSpacing.md),
               ...sortedCategories.map((entry) {
-                final percentage = total > 0 ? (entry.value / total) * 100 : 0;
+                final percentage =
+                    total > 0 ? (entry.value / total) * 100 : 0.0;
                 return _CategoryRow(
                   category: entry.key,
                   amount: entry.value,
@@ -656,30 +654,29 @@ class _CategoryRow extends StatelessWidget {
     switch (category) {
       case TransactionCategory.food:
         return '🍔';
-      case TransactionCategory.transport:
+      case TransactionCategory.transportation:
         return '🚗';
       case TransactionCategory.entertainment:
         return '🎮';
       case TransactionCategory.shopping:
         return '🛍️';
-      case TransactionCategory.bills:
+      case TransactionCategory.utilities:
         return '📱';
-      case TransactionCategory.health:
+      case TransactionCategory.healthcare:
         return '💊';
       case TransactionCategory.education:
         return '📚';
-      case TransactionCategory.groceries:
-        return '🛒';
-      case TransactionCategory.travel:
-        return '✈️';
-      case TransactionCategory.investment:
+      case TransactionCategory.subscriptions:
+        return '🎬';
+      case TransactionCategory.investments:
         return '📈';
-      case TransactionCategory.salary:
+      case TransactionCategory.loans:
+        return '🏦';
+      case TransactionCategory.shared:
+        return '👥';
+      case TransactionCategory.pocketMoney:
         return '💰';
-      case TransactionCategory.gift:
-        return '🎁';
       case TransactionCategory.other:
-      default:
         return '💳';
     }
   }
@@ -749,3 +746,9 @@ class _InsightCard extends StatelessWidget {
     );
   }
 }
+
+
+
+
+
+

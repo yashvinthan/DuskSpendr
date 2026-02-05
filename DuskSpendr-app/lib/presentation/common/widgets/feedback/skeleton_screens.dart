@@ -136,7 +136,7 @@ class _BalanceCardSkeleton extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             AppColors.darkCard,
-            AppColors.darkCard.withOpacity(0.8),
+            AppColors.darkCard.withValues(alpha: 0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(AppRadius.xl),
@@ -406,3 +406,4 @@ class _AccountCardSkeleton extends StatelessWidget {
     );
   }
 }
+

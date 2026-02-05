@@ -266,7 +266,7 @@ func validateIngestEnums(input models.SyncIngestItem) error {
     "loans": true,
     "shared": true,
     "pocketMoney": true,
-    "custom": true,
+    "other": true,
   }
   allowedPayments := map[string]bool{
     "upi": true,

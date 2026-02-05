@@ -47,6 +47,24 @@ final thisMonthTransactionsProvider = StreamProvider<List<Transaction>>((ref) {
   return dao.watchTransactions(startDate: startOfMonth, endDate: endOfMonth);
 });
 
+/// This week's transactions (Monday - Sunday)
+final thisWeekTransactionsProvider = StreamProvider<List<Transaction>>((ref) {
+  final dao = ref.watch(transactionDaoProvider);
+  final now = DateTime.now();
+  final startOfWeek = DateTime(now.year, now.month, now.day)
+      .subtract(Duration(days: now.weekday - 1));
+  final endOfWeek = startOfWeek.add(const Duration(days: 7));
+  return dao.watchTransactions(startDate: startOfWeek, endDate: endOfWeek);
+});
+
+/// This week's total spending
+final weeklySpendingProvider = FutureProvider<Money>((ref) async {
+  final transactions = await ref.watch(thisWeekTransactionsProvider.future);
+  final debits = transactions.where((t) => t.type == TransactionType.debit);
+  final total = debits.fold<int>(0, (sum, t) => sum + t.amount.paisa);
+  return Money.fromPaisa(total);
+});
+
 /// This month's total spending
 final thisMonthSpendingProvider = FutureProvider<Money>((ref) async {
   final transactions = await ref.watch(thisMonthTransactionsProvider.future);

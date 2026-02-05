@@ -1,5 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
+import '../util/serverpod_helpers.dart';
+
 /// Split endpoint for shared expense management
 class SplitEndpoint extends Endpoint {
   /// Get all splits created by or involving the current user
@@ -9,7 +11,7 @@ class SplitEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT DISTINCT s.id, s.transaction_id, s.creator_id, s.total_amount,
              s.description, s.status, s.created_at, s.settled_at
@@ -39,7 +41,7 @@ class SplitEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT s.id, s.transaction_id, s.creator_id, s.total_amount,
              s.description, s.status, s.created_at, s.settled_at
@@ -87,7 +89,7 @@ class SplitEndpoint extends Endpoint {
     }
 
     // Create the split
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       INSERT INTO splits (transaction_id, creator_id, total_amount, description, status, created_at)
       VALUES (@transactionId, @creatorId, @totalAmount, @description, 'pending', NOW())
@@ -106,7 +108,7 @@ class SplitEndpoint extends Endpoint {
 
     // Add participants
     for (final participant in participants) {
-      await session.db.query(
+      await session.query(
         '''
         INSERT INTO split_participants (split_id, user_id, name, phone, email, amount, is_paid, created_at)
         VALUES (@splitId, @userId, @name, @phone, @email, @amount, @isPaid, NOW())
@@ -124,16 +126,16 @@ class SplitEndpoint extends Endpoint {
 
       // Send notification to participant
       if (participant['userId'] != null) {
-        await session.messages.postMessage(
+        session.messages.postMessage(
           'split-notification',
-          {
+          JsonMessage({
             'type': 'split_created',
             'recipientId': participant['userId'],
             'splitId': splitId,
             'creatorId': userId,
             'amount': participant['amount'],
             'description': description,
-          },
+          }),
         );
       }
     }
@@ -175,7 +177,7 @@ class SplitEndpoint extends Endpoint {
       throw Exception('Not authorized to mark as paid');
     }
 
-    await session.db.query(
+    await session.query(
       '''
       UPDATE split_participants
       SET is_paid = true, paid_at = NOW()
@@ -188,7 +190,7 @@ class SplitEndpoint extends Endpoint {
     );
 
     // Check if all participants have paid
-    final unpaidResult = await session.db.query(
+    final unpaidResult = await session.query(
       '''
       SELECT COUNT(*) FROM split_participants
       WHERE split_id = @splitId AND is_paid = false
@@ -199,7 +201,7 @@ class SplitEndpoint extends Endpoint {
     final unpaidCount = unpaidResult.first[0] as int;
     if (unpaidCount == 0) {
       // Mark split as settled
-      await session.db.query(
+      await session.query(
         '''
         UPDATE splits
         SET status = 'settled', settled_at = NOW()
@@ -210,15 +212,15 @@ class SplitEndpoint extends Endpoint {
     }
 
     // Send notification
-    await session.messages.postMessage(
+    session.messages.postMessage(
       'split-notification',
-      {
+      JsonMessage({
         'type': 'payment_received',
         'recipientId': split['creatorId'],
         'splitId': splitId,
         'participantId': participantId,
         'amount': participant['amount'],
-      },
+      }),
     );
 
     return await getSplit(session, splitId);
@@ -255,9 +257,9 @@ class SplitEndpoint extends Endpoint {
     }
 
     // Send reminder notification
-    await session.messages.postMessage(
+    session.messages.postMessage(
       'split-notification',
-      {
+      JsonMessage({
         'type': 'payment_reminder',
         'recipientId': participant['userId'],
         'recipientPhone': participant['phone'],
@@ -266,7 +268,7 @@ class SplitEndpoint extends Endpoint {
         'amount': participant['amount'],
         'description': split['description'],
         'senderId': userId,
-      },
+      }),
     );
 
     return true;
@@ -280,13 +282,13 @@ class SplitEndpoint extends Endpoint {
     }
 
     // Delete participants first
-    await session.db.query(
+    await session.query(
       'DELETE FROM split_participants WHERE split_id = @splitId',
       parameters: {'splitId': splitId},
     );
 
     // Delete split
-    final result = await session.db.query(
+    final result = await session.query(
       'DELETE FROM splits WHERE id = @splitId AND creator_id = @userId RETURNING id',
       parameters: {'splitId': splitId, 'userId': userId},
     );
@@ -302,7 +304,7 @@ class SplitEndpoint extends Endpoint {
     }
 
     // Amount owed to user (as creator, unpaid participants)
-    final owedToResult = await session.db.query(
+    final owedToResult = await session.query(
       '''
       SELECT COALESCE(SUM(sp.amount), 0)
       FROM splits s
@@ -315,7 +317,7 @@ class SplitEndpoint extends Endpoint {
     );
 
     // Amount user owes (as participant, not paid)
-    final owesResult = await session.db.query(
+    final owesResult = await session.query(
       '''
       SELECT COALESCE(SUM(sp.amount), 0)
       FROM split_participants sp
@@ -337,7 +339,7 @@ class SplitEndpoint extends Endpoint {
     Session session,
     int splitId,
   ) async {
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT id, split_id, user_id, name, phone, email, amount, is_paid, paid_at, created_at
       FROM split_participants

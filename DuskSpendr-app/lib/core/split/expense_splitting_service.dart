@@ -301,20 +301,6 @@ class ExpenseSplittingService {
     final balances = calculateBalances(groupId: groupId);
     final balance = balances[memberId] ?? 0;
 
-    int totalOwed = 0;
-    int totalOwing = 0;
-
-    for (final entry in balances.entries) {
-      if (entry.key == memberId) continue;
-      if (entry.value < 0) {
-        // They owe money
-        totalOwing += -entry.value;
-      } else if (entry.value > 0) {
-        // They're owed money
-        totalOwed += entry.value;
-      }
-    }
-
     return MemberSummary(
       memberId: memberId,
       netBalancePaisa: balance,

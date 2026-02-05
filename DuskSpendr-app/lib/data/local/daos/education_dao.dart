@@ -42,7 +42,11 @@ class EducationDao extends DatabaseAccessor<AppDatabase> with _$EducationDaoMixi
   /// Get total quiz score
   Future<int> getTotalQuizScore() async {
     final rows = await select(completedLessons).get();
-    return rows.fold(0, (sum, row) => sum + (row.quizScore ?? 0));
+    var total = 0;
+    for (final row in rows) {
+      total += row.quizScore ?? 0;
+    }
+    return total;
   }
 
   /// Get quizzes taken count
@@ -166,6 +170,22 @@ class EducationDao extends DatabaseAccessor<AppDatabase> with _$EducationDaoMixi
     if (rows.isEmpty) return null;
     final previous = rows.length > 1 ? rows[1] : null;
     return _toCreditScoreData(rows.first, previous);
+  }
+
+  /// Get credit score history
+  Future<List<CreditScoreData>> getCreditScoreHistory({int limit = 12}) async {
+    final rows = await (select(creditScores)
+          ..orderBy([(t) => OrderingTerm.desc(t.fetchedAt)])
+          ..limit(limit))
+        .get();
+
+    final result = <CreditScoreData>[];
+    for (int i = 0; i < rows.length; i++) {
+      final row = rows[i];
+      final previous = i + 1 < rows.length ? rows[i + 1] : null;
+      result.add(_toCreditScoreData(row, previous));
+    }
+    return result;
   }
 
   /// Insert credit score

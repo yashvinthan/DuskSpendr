@@ -156,6 +156,7 @@ class AppFAB extends StatefulWidget {
 
 class _AppFABState extends State<AppFAB> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  // ignore: unused_field
   late Animation<double> _scaleAnimation;
   late Animation<double> _bounceAnimation;
 

@@ -18,6 +18,7 @@ class AnalyticsScreen extends StatefulWidget {
 class _AnalyticsScreenState extends State<AnalyticsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  // ignore: unused_field
   String _selectedPeriod = 'This Month';
 
   @override
@@ -202,18 +203,23 @@ class _SpendingTab extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        const Center(
+        Center(
           child: DonutChart(
             segments: [
-              DonutSegment(value: 35, color: AppColors.sunset500, label: 'Food'),
-              DonutSegment(value: 25, color: AppColors.dusk500, label: 'Shopping'),
-              DonutSegment(value: 20, color: AppColors.info, label: 'Transport'),
-              DonutSegment(value: 12, color: AppColors.success, label: 'Bills'),
-              DonutSegment(value: 8, color: AppColors.warning, label: 'Other'),
+              ChartSegment(value: 35, color: AppColors.sunset500, label: 'Food'),
+              ChartSegment(value: 25, color: AppColors.dusk500, label: 'Shopping'),
+              ChartSegment(value: 20, color: AppColors.info, label: 'Transport'),
+              ChartSegment(value: 12, color: AppColors.success, label: 'Bills'),
+              ChartSegment(value: 8, color: AppColors.warning, label: 'Other'),
             ],
             size: 180,
-            centerLabel: '₹32.4K',
-            centerSubLabel: 'Total',
+            centerContent: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('₹32.4K', style: AppTypography.titleLarge.copyWith(color: AppColors.textPrimary)),
+                Text('Total', style: AppTypography.caption.copyWith(color: AppColors.textMuted)),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
@@ -482,8 +488,21 @@ class _TrendsTab extends StatelessWidget {
             color: AppColors.darkCard,
             borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
-          child: const SpendingLineChart(
-            dataPoints: [28, 32, 25, 35, 30, 38, 32, 28, 35, 40, 33, 32],
+          child: SpendingLineChart(
+            points: [
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 11)), value: 28),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 10)), value: 32),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 9)), value: 25),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 8)), value: 35),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 7)), value: 30),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 6)), value: 38),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 5)), value: 32),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 4)), value: 28),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 3)), value: 35),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 2)), value: 40),
+              LineChartPoint(date: DateTime.now().subtract(const Duration(days: 1)), value: 33),
+              LineChartPoint(date: DateTime.now(), value: 32),
+            ],
             height: 180,
             showGradient: true,
           ),

@@ -5,7 +5,6 @@ import '../../../core/theme/spacing.dart';
 import '../../../core/theme/typography.dart';
 import '../../common/widgets/navigation/top_app_bar.dart';
 import '../../common/widgets/cards/glass_card.dart';
-import '../../common/widgets/buttons/primary_button.dart';
 
 /// Insurance Hub screen
 class InsuranceScreen extends StatefulWidget {

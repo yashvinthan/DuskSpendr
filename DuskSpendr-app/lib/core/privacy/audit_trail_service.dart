@@ -215,7 +215,7 @@ class AuditTrailService {
     };
   }
 
-  AuditLogEntry _dbToEntry(AuditLog log) {
+  AuditLogEntry _dbToEntry(AuditLogRow log) {
     return AuditLogEntry(
       id: log.id,
       type: _dbToType(log.type),

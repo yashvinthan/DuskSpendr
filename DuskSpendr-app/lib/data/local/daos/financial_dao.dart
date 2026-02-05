@@ -2,7 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../database.dart';
 import '../tables.dart';
-import '../../../core/budget/balance_tracking_service.dart';
+// Removed unused import: balance_tracking_service.dart
 import '../../../core/budget/bill_reminder_service.dart';
 
 part 'financial_dao.g.dart';
@@ -17,7 +17,7 @@ class BalanceSnapshotDao extends DatabaseAccessor<AppDatabase>
   Future<BalanceSnapshot?> getLatest(String accountId) async {
     final query = select(balanceSnapshots)
       ..where((b) => b.accountId.equals(accountId))
-      ..orderBy([(b) => OrderingTerm.desc(b.recordedAt)])
+      ..orderBy([(b) => OrderingTerm.desc(b.timestamp)])
       ..limit(1);
     final row = await query.getSingleOrNull();
     return row != null ? _rowToSnapshot(row) : null;
@@ -30,11 +30,11 @@ class BalanceSnapshotDao extends DatabaseAccessor<AppDatabase>
       '''
       SELECT bs.* FROM balance_snapshots bs
       INNER JOIN (
-        SELECT account_id, MAX(recorded_at) as max_recorded
+        SELECT account_id, MAX(timestamp) as max_timestamp
         FROM balance_snapshots
         GROUP BY account_id
       ) latest ON bs.account_id = latest.account_id 
-        AND bs.recorded_at = latest.max_recorded
+        AND bs.timestamp = latest.max_timestamp
       ''',
       readsFrom: {balanceSnapshots},
     ).get();
@@ -43,8 +43,7 @@ class BalanceSnapshotDao extends DatabaseAccessor<AppDatabase>
       id: row.read<String>('id'),
       accountId: row.read<String>('account_id'),
       balancePaisa: row.read<int>('balance_paisa'),
-      source: _parseSource(row.read<int>('source')),
-      recordedAt: DateTime.fromMillisecondsSinceEpoch(row.read<int>('recorded_at')),
+      timestamp: row.read<DateTime>('timestamp'),
     )).toList();
   }
 
@@ -57,13 +56,13 @@ class BalanceSnapshotDao extends DatabaseAccessor<AppDatabase>
   }) async {
     var query = select(balanceSnapshots)
       ..where((b) => b.accountId.equals(accountId))
-      ..orderBy([(b) => OrderingTerm.desc(b.recordedAt)]);
+      ..orderBy([(b) => OrderingTerm.desc(b.timestamp)]);
 
     if (startDate != null) {
-      query = query..where((b) => b.recordedAt.isBiggerOrEqualValue(startDate));
+      query = query..where((b) => b.timestamp.isBiggerOrEqualValue(startDate));
     }
     if (endDate != null) {
-      query = query..where((b) => b.recordedAt.isSmallerOrEqualValue(endDate));
+      query = query..where((b) => b.timestamp.isSmallerOrEqualValue(endDate));
     }
     if (limit != null) {
       query = query..limit(limit);
@@ -79,8 +78,7 @@ class BalanceSnapshotDao extends DatabaseAccessor<AppDatabase>
       id: snapshot.id,
       accountId: snapshot.accountId,
       balancePaisa: snapshot.balancePaisa,
-      source: snapshot.source.index,
-      recordedAt: snapshot.recordedAt,
+      timestamp: snapshot.timestamp,
     ));
   }
 
@@ -88,22 +86,17 @@ class BalanceSnapshotDao extends DatabaseAccessor<AppDatabase>
   Future<int> pruneOld({int keepDays = 30}) async {
     final cutoff = DateTime.now().subtract(Duration(days: keepDays));
     return await (delete(balanceSnapshots)
-          ..where((b) => b.recordedAt.isSmallerThanValue(cutoff)))
+          ..where((b) => b.timestamp.isSmallerThanValue(cutoff)))
         .go();
   }
 
-  BalanceSnapshot _rowToSnapshot(BalanceSnapshotData row) {
+  BalanceSnapshot _rowToSnapshot(BalanceSnapshotRow row) {
     return BalanceSnapshot(
       id: row.id,
       accountId: row.accountId,
       balancePaisa: row.balancePaisa,
-      source: _parseSource(row.source),
-      recordedAt: row.recordedAt,
+      timestamp: row.timestamp,
     );
-  }
-
-  BalanceSource _parseSource(int index) {
-    return BalanceSource.values[index];
   }
 }
 
@@ -186,14 +179,14 @@ class BillReminderDao extends DatabaseAccessor<AppDatabase>
       merchantName: Value(bill.merchantName),
       amountPaisa: bill.amountPaisa,
       frequency: _frequencyToDb(bill.frequency),
-      billType: bill.billType.name,
       nextDueDate: bill.nextDueDate,
-      reminderDaysBefore: bill.reminderDaysBefore,
+      reminderDaysBefore: Value(bill.reminderDaysBefore),
       linkedAccountId: Value(bill.linkedAccountId),
-      isAutoDetected: bill.isAutoDetected,
-      isActive: bill.isActive,
+      isAutoDetected: Value(bill.isAutoDetected),
+      isActive: Value(bill.isActive),
       notes: Value(bill.notes),
       createdAt: bill.createdAt,
+      updatedAt: bill.createdAt,
     ));
   }
 
@@ -208,6 +201,7 @@ class BillReminderDao extends DatabaseAccessor<AppDatabase>
         reminderDaysBefore: Value(bill.reminderDaysBefore),
         isActive: Value(bill.isActive),
         notes: Value(bill.notes),
+        updatedAt: Value(DateTime.now()),
       ),
     );
   }
@@ -233,7 +227,7 @@ class BillReminderDao extends DatabaseAccessor<AppDatabase>
       amountPaisa: payment.amountPaisa,
       paidAt: payment.paidAt,
       transactionId: Value(payment.transactionId),
-      isAutoLinked: payment.isAutoLinked,
+      isAutoLinked: Value(payment.isAutoLinked),
     ));
   }
 
@@ -246,17 +240,14 @@ class BillReminderDao extends DatabaseAccessor<AppDatabase>
     return rows.map(_rowToPayment).toList();
   }
 
-  BillReminder _rowToBill(BillReminderData row, List<BillPayment> payments) {
+  BillReminder _rowToBill(BillReminderRow row, List<BillPayment> payments) {
     return BillReminder(
       id: row.id,
       name: row.name,
       merchantName: row.merchantName,
       amountPaisa: row.amountPaisa,
       frequency: _dbToFrequency(row.frequency),
-      billType: BillType.values.firstWhere(
-        (t) => t.name == row.billType,
-        orElse: () => BillType.other,
-      ),
+      billType: _inferBillType(row.merchantName, row.name),
       nextDueDate: row.nextDueDate,
       reminderDaysBefore: row.reminderDaysBefore,
       isAutoDetected: row.isAutoDetected,
@@ -268,7 +259,7 @@ class BillReminderDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
-  BillPayment _rowToPayment(BillPaymentData row) {
+  BillPayment _rowToPayment(BillPaymentRow row) {
     return BillPayment(
       id: row.id,
       billId: row.billId,
@@ -277,6 +268,41 @@ class BillReminderDao extends DatabaseAccessor<AppDatabase>
       transactionId: row.transactionId,
       isAutoLinked: row.isAutoLinked,
     );
+  }
+
+  BillType _inferBillType(String? merchantName, String billName) {
+    final nameLower = (merchantName ?? billName).toLowerCase();
+
+    if (_matchesAny(nameLower, ['airtel', 'jio', 'vodafone', 'vi', 'bsnl', 'mtnl'])) {
+      return BillType.phoneRecharge;
+    }
+    if (_matchesAny(nameLower, ['bescom', 'mseb', 'tneb', 'pgvcl', 'electricity', 'power', 'vidyut'])) {
+      return BillType.electricity;
+    }
+    if (_matchesAny(nameLower, ['actfibernet', 'act ', 'hathway', 'tikona', 'broadband', 'fiber'])) {
+      return BillType.internet;
+    }
+    if (_matchesAny(nameLower, ['netflix', 'hotstar', 'prime', 'spotify', 'youtube', 'apple', 'google play', 'disney'])) {
+      return BillType.subscription;
+    }
+    if (_matchesAny(nameLower, ['hdfc card', 'icici card', 'axis card', 'sbi card', 'amex', 'credit card'])) {
+      return BillType.creditCard;
+    }
+    if (_matchesAny(nameLower, ['emi', 'loan', 'bajaj finserv', 'home credit', 'tata capital'])) {
+      return BillType.loanEmi;
+    }
+    if (_matchesAny(nameLower, ['rent', 'landlord', 'housing', 'pg ', 'hostel'])) {
+      return BillType.rent;
+    }
+    if (_matchesAny(nameLower, ['lic', 'insurance', 'hdfc life', 'max life', 'icici pru'])) {
+      return BillType.insurance;
+    }
+
+    return BillType.other;
+  }
+
+  bool _matchesAny(String text, List<String> patterns) {
+    return patterns.any((p) => text.contains(p));
   }
 
   BillFrequencyDb _frequencyToDb(BillFrequency freq) {
@@ -305,14 +331,12 @@ class BalanceSnapshot {
   final String id;
   final String accountId;
   final int balancePaisa;
-  final BalanceSource source;
-  final DateTime recordedAt;
+  final DateTime timestamp;
 
   const BalanceSnapshot({
     required this.id,
     required this.accountId,
     required this.balancePaisa,
-    required this.source,
-    required this.recordedAt,
+    required this.timestamp,
   });
 }

@@ -525,42 +525,6 @@ Future<void> _showCategoryPicker(
   ref.invalidate(transactionsProvider);
 }
 
-Future<void> _deleteTransaction(
-  BuildContext context,
-  WidgetRef ref,
-  TransactionModel tx,
-) async {
-  final token = await ref.read(sessionStoreProvider).readToken();
-  if (token == null) return;
-  await ref.read(transactionsApiProvider).delete(token: token, id: tx.id);
-  ref.invalidate(transactionPageProvider);
-
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: const Text('Transaction deleted'),
-      action: SnackBarAction(
-        label: 'Undo',
-        onPressed: () async {
-          await ref.read(transactionsApiProvider).create(
-                token: token,
-                amountPaisa: tx.amountPaisa,
-                type: tx.type,
-                category: tx.category,
-                source: tx.source,
-                timestamp: tx.timestamp,
-                merchantName: tx.merchantName,
-                description: tx.description,
-              );
-          ref.invalidate(transactionPageProvider);
-        },
-      ),
-    ),
-  );
-  await ref.read(searchHistoryProvider.notifier).add(
-        tx.merchantName ?? tx.category,
-      );
-}
-
 class _RecentSearches extends ConsumerWidget {
   const _RecentSearches({required this.controller, required this.onSelected});
 

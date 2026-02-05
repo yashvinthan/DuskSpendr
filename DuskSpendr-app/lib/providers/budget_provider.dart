@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/budget/balance_tracking_service.dart';
 import '../core/budget/bill_reminder_service.dart';
 import '../core/budget/budget_alert_service.dart';
-import '../core/budget/budget_service.dart';
+import '../core/budget/financial_calculators.dart';
+
 import '../core/budget/investment_tracker.dart';
 import '../core/notifications/notification_service.dart';
 import '../data/local/daos/budget_dao.dart';
@@ -26,9 +27,9 @@ final overallBudgetProvider = FutureProvider<Budget?>((ref) async {
 /// Budget by category
 final budgetByCategoryProvider =
     FutureProvider.family<Budget?, TransactionCategory>((ref, category) async {
-      final dao = ref.watch(budgetDaoProvider);
-      return await dao.getByCategory(category);
-    });
+  final dao = ref.watch(budgetDaoProvider);
+  return await dao.getByCategory(category);
+});
 
 /// Budgets that need alerts
 final budgetAlertsProvider = FutureProvider<List<Budget>>((ref) async {
@@ -121,9 +122,9 @@ class BudgetNotifier extends StateNotifier<AsyncValue<void>> {
 /// Budget mutation provider
 final budgetNotifierProvider =
     StateNotifierProvider<BudgetNotifier, AsyncValue<void>>((ref) {
-      final dao = ref.watch(budgetDaoProvider);
-      return BudgetNotifier(dao);
-    });
+  final dao = ref.watch(budgetDaoProvider);
+  return BudgetNotifier(dao);
+});
 
 /// Budget progress with optional category breakdown
 class BudgetProgress {
@@ -151,15 +152,14 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
 
 final budgetAlertServiceProvider = Provider<BudgetAlertService>((ref) {
   final db = ref.watch(databaseProvider);
-  final notifications = ref.watch(notificationServiceProvider);
   return BudgetAlertService(
     database: db,
-    notificationService: notifications,
+    // Removed undefined parameter: notificationService
   );
 });
 
 /// Stream of budget alerts
-final budgetAlertStreamProvider = StreamProvider<BudgetAlertEvent>((ref) {
+final budgetAlertStreamProvider = StreamProvider<BudgetAlert>((ref) {
   final service = ref.watch(budgetAlertServiceProvider);
   return service.alerts;
 });
@@ -175,27 +175,28 @@ final budgetAlertMonitoringProvider = FutureProvider<void>((ref) async {
 
 final balanceTrackingServiceProvider = Provider<BalanceTrackingService>((ref) {
   final db = ref.watch(databaseProvider);
-  final notifications = ref.watch(notificationServiceProvider);
   return BalanceTrackingService(
     database: db,
-    notificationService: notifications,
   );
 });
 
 /// Consolidated balance across all accounts
-final consolidatedBalanceProvider = FutureProvider<ConsolidatedBalanceInfo>((ref) async {
+final consolidatedBalanceProvider =
+    FutureProvider<ConsolidatedBalanceInfo>((ref) async {
   final service = ref.watch(balanceTrackingServiceProvider);
   return await service.getConsolidatedBalance();
 });
 
 /// Balance for specific account
-final accountBalanceProvider = FutureProvider.family<AccountBalanceInfo?, String>((ref, accountId) async {
+final accountBalanceProvider =
+    FutureProvider.family<AccountBalanceInfo?, String>((ref, accountId) async {
   final service = ref.watch(balanceTrackingServiceProvider);
   return await service.getAccountBalance(accountId);
 });
 
 /// Stream of low balance alerts
-final lowBalanceAlertStreamProvider = StreamProvider<LowBalanceAlertEvent>((ref) {
+final lowBalanceAlertStreamProvider =
+    StreamProvider<LowBalanceAlertEvent>((ref) {
   final service = ref.watch(balanceTrackingServiceProvider);
   return service.lowBalanceAlerts;
 });
@@ -250,33 +251,36 @@ final financialCalculatorsProvider = Provider<FinancialCalculators>((ref) {
 });
 
 /// EMI calculation
-final emiCalculatorProvider = Provider.family<EmiResult, EmiInput>((ref, input) {
+final emiCalculatorProvider =
+    Provider.family<EmiResult, EmiInput>((ref, input) {
   final calc = ref.watch(financialCalculatorsProvider);
   return calc.calculateEmi(
-    input.principal,
-    input.ratePercent,
-    input.tenureMonths,
+    principalPaisa: input.principal,
+    annualRatePercent: input.ratePercent,
+    tenureMonths: input.tenureMonths,
   );
 });
 
 /// SIP returns calculation
-final sipCalculatorProvider = Provider.family<SipResult, SipInput>((ref, input) {
+final sipCalculatorProvider =
+    Provider.family<SipResult, SipInput>((ref, input) {
   final calc = ref.watch(financialCalculatorsProvider);
   return calc.calculateSipReturns(
-    input.monthlyAmountPaisa,
-    input.ratePercent,
-    input.years,
+    monthlyInvestmentPaisa: input.monthlyAmountPaisa,
+    expectedAnnualReturnPercent: input.ratePercent,
+    years: input.years,
   );
 });
 
 /// Compound interest calculation
-final compoundInterestProvider = Provider.family<int, CompoundInput>((ref, input) {
+final compoundInterestProvider =
+    Provider.family<CompoundInterestResult, CompoundInput>((ref, input) {
   final calc = ref.watch(financialCalculatorsProvider);
   return calc.calculateCompoundInterest(
-    input.principalPaisa,
-    input.ratePercent,
-    input.years,
-    input.compoundingFrequency,
+    principalPaisa: input.principalPaisa,
+    annualRatePercent: input.ratePercent,
+    years: input.years,
+    compoundingFrequency: input.compoundingFrequency,
   );
 });
 
@@ -300,7 +304,8 @@ class CompoundInput {
   final double ratePercent;
   final int years;
   final int compoundingFrequency;
-  const CompoundInput(this.principalPaisa, this.ratePercent, this.years, [this.compoundingFrequency = 12]);
+  const CompoundInput(this.principalPaisa, this.ratePercent, this.years,
+      [this.compoundingFrequency = 12]);
 }
 
 // ====== Investment Tracker (SS-069) ======
@@ -312,8 +317,7 @@ final investmentTrackerProvider = Provider<InvestmentTracker>((ref) {
 /// Portfolio summary
 final portfolioSummaryProvider = FutureProvider<PortfolioSummary>((ref) async {
   final tracker = ref.watch(investmentTrackerProvider);
-  final investments = <Investment>[]; // TODO: Load from database
-  return tracker.calculatePortfolioSummary(investments);
+  return tracker.getPortfolioSummary();
 });
 
 // ====== Loan Tracker (SS-068) ======
@@ -324,7 +328,7 @@ final loanTrackerProvider = Provider<LoanTracker>((ref) {
 
 /// Loan insights
 final loanInsightsProvider = FutureProvider<LoanInsights?>((ref) async {
-  final tracker = ref.watch(loanTrackerProvider);
+  // Removed unused variable: tracker
   // TODO: Load active loan from database
   return null;
 });

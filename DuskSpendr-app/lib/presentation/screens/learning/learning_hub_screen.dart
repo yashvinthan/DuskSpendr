@@ -8,6 +8,7 @@ import '../../../domain/entities/entities.dart';
 import '../../../providers/education_provider.dart';
 import '../../common/widgets/navigation/top_app_bar.dart';
 import '../../common/widgets/cards/glass_card.dart';
+import 'lesson_screen.dart';
 
 /// SS-096: Learning Hub main screen
 class LearningHubScreen extends ConsumerWidget {

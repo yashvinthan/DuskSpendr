@@ -13,6 +13,7 @@ class GlassCard extends StatelessWidget {
   final bool showGradientBorder;
   final double blurAmount;
   final VoidCallback? onTap;
+  final Gradient? gradient;
 
   const GlassCard({
     super.key,
@@ -24,6 +25,7 @@ class GlassCard extends StatelessWidget {
     this.showGradientBorder = true,
     this.blurAmount = 10,
     this.onTap,
+    this.gradient,
   });
 
   @override
@@ -36,15 +38,16 @@ class GlassCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(borderRadius),
           gradient: showGradientBorder
-              ? LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppColors.dusk500.withValues(alpha: 0.3),
-                    AppColors.sunset500.withValues(alpha: 0.2),
-                    AppColors.dusk700.withValues(alpha: 0.1),
-                  ],
-                )
+              ? (gradient ??
+                  LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppColors.dusk500.withValues(alpha: 0.3),
+                      AppColors.sunset500.withValues(alpha: 0.2),
+                      AppColors.dusk700.withValues(alpha: 0.1),
+                    ],
+                  ))
               : null,
         ),
         child: Container(

@@ -55,6 +55,9 @@ enum BudgetPeriod {
   }
 }
 
+/// Alert severity for budget alerts
+enum AlertSeverity { info, warning, critical }
+
 /// Budget entity
 class Budget extends Equatable {
   final String id;
@@ -79,10 +82,10 @@ class Budget extends Equatable {
     this.isActive = true,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : id = id ?? const Uuid().v4(),
-       spent = spent ?? Money.zero,
-       createdAt = createdAt ?? DateTime.now(),
-       updatedAt = updatedAt ?? DateTime.now();
+  })  : id = id ?? const Uuid().v4(),
+        spent = spent ?? Money.zero,
+        createdAt = createdAt ?? DateTime.now(),
+        updatedAt = updatedAt ?? DateTime.now();
 
   /// Remaining amount
   Money get remaining => limit - spent;
@@ -144,16 +147,67 @@ class Budget extends Equatable {
 
   @override
   List<Object?> get props => [
-    id,
-    name,
-    limit.paisa,
-    spent.paisa,
-    period,
-    category,
-    alertThreshold,
-    isActive,
-  ];
+        id,
+        name,
+        limit.paisa,
+        spent.paisa,
+        period,
+        category,
+        alertThreshold,
+        isActive,
+      ];
 }
 
 /// Budget status for styling
 enum BudgetStatus { onTrack, warning, exceeded }
+
+/// Alert types
+enum BudgetAlertType {
+  threshold,
+  exceeded,
+  predictive,
+  dailySummary,
+}
+
+/// Unified Budget Alert class
+class BudgetAlert {
+  final BudgetAlertType type;
+  final Budget budget;
+  final String message;
+  final AlertSeverity severity;
+  final double? percentUsed;
+  final DateTime timestamp;
+  final SpendingPrediction? prediction;
+
+  BudgetAlert({
+    required this.type,
+    required this.budget,
+    required this.message,
+    required this.severity,
+    this.percentUsed,
+    DateTime? timestamp,
+    this.prediction,
+  }) : timestamp =
+            timestamp ?? DateTime.now(); // Default to now if not provided
+}
+
+/// Unified Spending Prediction class
+class SpendingPrediction {
+  final bool willExceed;
+  final int predictedTotalPaisa;
+  final int predictedOveragePaisa;
+  final double confidence;
+  final int? suggestedDailyLimit;
+  final int? daysToExceed;
+  final String? message;
+
+  const SpendingPrediction({
+    required this.willExceed,
+    required this.predictedTotalPaisa,
+    required this.predictedOveragePaisa,
+    required this.confidence,
+    this.suggestedDailyLimit,
+    this.daysToExceed,
+    this.message,
+  });
+}

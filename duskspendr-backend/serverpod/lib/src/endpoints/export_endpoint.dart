@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'package:serverpod/serverpod.dart';
 
+import '../util/serverpod_helpers.dart';
 /// Export endpoint for data portability
 class ExportEndpoint extends Endpoint {
   /// Export all user data as JSON
@@ -110,7 +110,7 @@ class ExportEndpoint extends Endpoint {
     // Create deletion request (processed async)
     final requestId = DateTime.now().millisecondsSinceEpoch.toString();
 
-    await session.db.query(
+    await session.query(
       '''
       INSERT INTO deletion_requests (id, user_id, status, requested_at)
       VALUES (@requestId, @userId, 'pending', NOW())
@@ -123,13 +123,13 @@ class ExportEndpoint extends Endpoint {
     );
 
     // Send notification to admin
-    await session.messages.postMessage(
+    session.messages.postMessage(
       'admin-notification',
-      {
+      JsonMessage({
         'type': 'deletion_request',
         'userId': userId,
         'requestId': requestId,
-      },
+      }),
     );
 
     return {
@@ -146,7 +146,7 @@ class ExportEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT id, status, requested_at, completed_at
       FROM deletion_requests
@@ -176,7 +176,7 @@ class ExportEndpoint extends Endpoint {
     Session session,
     int userId,
   ) async {
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT id, phone, email, display_name, avatar_url, preferences, created_at
       FROM users
@@ -219,7 +219,7 @@ class ExportEndpoint extends Endpoint {
       params['endDate'] = endDate;
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT t.id, t.amount, t.merchant_name, t.description, t.date, t.source,
              t.is_recurring, t.tags, t.location, t.created_at,
@@ -253,7 +253,7 @@ class ExportEndpoint extends Endpoint {
     Session session,
     int userId,
   ) async {
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT b.id, b.name, b.amount, b.spent, b.period, b.start_date, b.end_date,
              b.alert_threshold, b.is_active, b.rollover, b.created_at,
@@ -286,7 +286,7 @@ class ExportEndpoint extends Endpoint {
     Session session,
     int userId,
   ) async {
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT id, name, type, balance, currency, institution, is_default, created_at
       FROM accounts
@@ -312,7 +312,7 @@ class ExportEndpoint extends Endpoint {
     Session session,
     int userId,
   ) async {
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT s.id, s.total_amount, s.description, s.status, s.created_at, s.settled_at
       FROM splits s
@@ -325,7 +325,7 @@ class ExportEndpoint extends Endpoint {
     final splits = <Map<String, dynamic>>[];
     for (final row in result) {
       final splitId = row[0] as int;
-      final participants = await session.db.query(
+      final participants = await session.query(
         '''
         SELECT name, phone, email, amount, is_paid
         FROM split_participants

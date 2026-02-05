@@ -1,5 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
+import '../util/serverpod_helpers.dart';
+
 /// Transaction endpoint for CRUD operations
 class TransactionEndpoint extends Endpoint {
   /// Get transactions with optional filters
@@ -41,7 +43,7 @@ class TransactionEndpoint extends Endpoint {
       params['source'] = source;
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT id, user_id, amount, merchant_name, category_id, subcategory_id,
              description, date, source, account_id, is_recurring, recurring_id,
@@ -67,7 +69,7 @@ class TransactionEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT id, user_id, amount, merchant_name, category_id, subcategory_id,
              description, date, source, account_id, is_recurring, recurring_id,
@@ -109,7 +111,7 @@ class TransactionEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       INSERT INTO transactions (
         user_id, amount, merchant_name, category_id, subcategory_id,
@@ -147,13 +149,13 @@ class TransactionEndpoint extends Endpoint {
     // Trigger AI categorization if no category provided
     if (categoryId == null && result.isNotEmpty) {
       final transactionId = result.first[0] as int;
-      await session.messages.postMessage(
+      session.messages.postMessage(
         'ai-categorization',
-        {
+        JsonMessage({
           'transactionId': transactionId,
           'merchantName': merchantName,
           'amount': amount,
-        },
+        }),
       );
     }
 
@@ -233,7 +235,7 @@ class TransactionEndpoint extends Endpoint {
 
     updates.add('updated_at = NOW()');
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       UPDATE transactions
       SET ${updates.join(', ')}
@@ -259,7 +261,7 @@ class TransactionEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final result = await session.db.query(
+    final result = await session.query(
       'DELETE FROM transactions WHERE id = @id AND user_id = @userId RETURNING id',
       parameters: {'id': transactionId, 'userId': userId},
     );
@@ -315,7 +317,7 @@ class TransactionEndpoint extends Endpoint {
     startDate ??= DateTime.now().subtract(const Duration(days: 30));
     endDate ??= DateTime.now();
 
-    final result = await session.db.query(
+    final result = await session.query(
       '''
       SELECT 
         COUNT(*) as total_count,

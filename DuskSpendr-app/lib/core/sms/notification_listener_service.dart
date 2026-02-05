@@ -76,6 +76,7 @@ class NotificationPermissionService {
 /// UPI Notification Listener
 /// Listens for payment notifications from UPI apps
 class UpiNotificationListener {
+  // ignore: unused_field
   static const _channel = MethodChannel('dev.duskspendr/notifications');
   static const _eventChannel = EventChannel('dev.duskspendr/notification_events');
 

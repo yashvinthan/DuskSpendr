@@ -120,7 +120,7 @@ class _LogoMark extends StatelessWidget {
             gradient: AppColors.gradientDusk,
             boxShadow: [
               BoxShadow(
-                color: AppColors.sunset500.withOpacity(0.4 * glow),
+                color: AppColors.sunset500.withValues(alpha: 0.4 * glow),
                 blurRadius: 30,
                 spreadRadius: 8,
               ),
@@ -132,7 +132,7 @@ class _LogoMark extends StatelessWidget {
           height: 120,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.dusk900.withOpacity(0.85),
+            color: AppColors.dusk900.withValues(alpha: 0.85),
           ),
           alignment: Alignment.center,
           child: Text(
@@ -178,3 +178,4 @@ class _ProgressDots extends StatelessWidget {
     );
   }
 }
+

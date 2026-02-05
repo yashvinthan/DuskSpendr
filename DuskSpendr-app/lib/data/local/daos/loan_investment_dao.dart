@@ -12,7 +12,7 @@ class LoanDao extends DatabaseAccessor<AppDatabase> with _$LoanDaoMixin {
   LoanDao(super.db);
 
   /// Get all active loans
-  Future<List<LoanData>> getActiveLoans() async {
+  Future<List<LoanRow>> getActiveLoans() async {
     final rows = await (select(loans)
           ..where((l) => l.isActive.equals(true))
           ..orderBy([(l) => OrderingTerm.asc(l.nextDueDate)]))
@@ -21,13 +21,13 @@ class LoanDao extends DatabaseAccessor<AppDatabase> with _$LoanDaoMixin {
   }
 
   /// Get loan by ID
-  Future<LoanData?> getById(String id) async {
+  Future<LoanRow?> getById(String id) async {
     final query = select(loans)..where((l) => l.id.equals(id));
     return await query.getSingleOrNull();
   }
 
   /// Watch all active loans
-  Stream<List<LoanData>> watchActiveLoans() {
+  Stream<List<LoanRow>> watchActiveLoans() {
     return (select(loans)
           ..where((l) => l.isActive.equals(true))
           ..orderBy([(l) => OrderingTerm.asc(l.nextDueDate)]))
@@ -39,19 +39,21 @@ class LoanDao extends DatabaseAccessor<AppDatabase> with _$LoanDaoMixin {
     await into(loans).insert(LoansCompanion.insert(
       id: loan.id,
       name: loan.name,
-      lenderName: Value(loan.lenderName),
-      loanType: _typeToDb(loan.type),
+      type: _typeToDb(loan.type),
       principalPaisa: loan.principalPaisa,
-      remainingPaisa: loan.remainingPaisa,
+      outstandingPaisa: loan.outstandingPaisa,
       interestRatePercent: loan.interestRatePercent,
-      emiAmountPaisa: loan.emiAmountPaisa,
+      emiPaisa: loan.emiPaisa,
       tenureMonths: loan.tenureMonths,
-      remainingMonths: loan.remainingMonths,
+      totalPaidPaisa: Value(loan.totalPaidPaisa),
       startDate: loan.startDate,
       nextDueDate: Value(loan.nextDueDate),
-      linkedAccountId: Value(loan.linkedAccountId),
-      isActive: true,
+      lastPaymentDate: Value(loan.lastPaymentDate),
+      lenderName: const Value.absent(),
+      isActive: const Value(true),
+      notes: const Value.absent(),
       createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     ));
   }
 
@@ -59,9 +61,11 @@ class LoanDao extends DatabaseAccessor<AppDatabase> with _$LoanDaoMixin {
   Future<void> updateLoan(tracker.Loan loan) async {
     await (update(loans)..where((l) => l.id.equals(loan.id))).write(
       LoansCompanion(
-        remainingPaisa: Value(loan.remainingPaisa),
-        remainingMonths: Value(loan.remainingMonths),
+        outstandingPaisa: Value(loan.outstandingPaisa),
+        totalPaidPaisa: Value(loan.totalPaidPaisa),
         nextDueDate: Value(loan.nextDueDate),
+        lastPaymentDate: Value(loan.lastPaymentDate),
+        updatedAt: Value(DateTime.now()),
       ),
     );
   }
@@ -77,14 +81,14 @@ class LoanDao extends DatabaseAccessor<AppDatabase> with _$LoanDaoMixin {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       loanId: loanId,
       amountPaisa: amountPaisa,
-      principalPaisa: principalPaisa,
-      interestPaisa: interestPaisa,
+      principalPaidPaisa: principalPaisa,
+      interestPaidPaisa: interestPaisa,
       paidAt: DateTime.now(),
     ));
   }
 
   /// Get payment history
-  Future<List<LoanPaymentData>> getPayments(String loanId) async {
+  Future<List<LoanPaymentRow>> getPayments(String loanId) async {
     final rows = await (select(loanPayments)
           ..where((p) => p.loanId.equals(loanId))
           ..orderBy([(p) => OrderingTerm.desc(p.paidAt)]))
@@ -95,7 +99,10 @@ class LoanDao extends DatabaseAccessor<AppDatabase> with _$LoanDaoMixin {
   /// Close loan
   Future<void> closeLoan(String id) async {
     await (update(loans)..where((l) => l.id.equals(id))).write(
-      const LoansCompanion(isActive: Value(false)),
+      LoansCompanion(
+        isActive: const Value(false),
+        updatedAt: Value(DateTime.now()),
+      ),
     );
   }
 
@@ -106,14 +113,14 @@ class LoanDao extends DatabaseAccessor<AppDatabase> with _$LoanDaoMixin {
   }
 
   // Credit cards
-  
+
   /// Get all credit cards
-  Future<List<CreditCardData>> getCreditCards() async {
+  Future<List<CreditCardRow>> getCreditCards() async {
     return await select(creditCards).get();
   }
 
   /// Watch credit cards
-  Stream<List<CreditCardData>> watchCreditCards() {
+  Stream<List<CreditCardRow>> watchCreditCards() {
     return select(creditCards).watch();
   }
 
@@ -124,34 +131,53 @@ class LoanDao extends DatabaseAccessor<AppDatabase> with _$LoanDaoMixin {
     required String lastFourDigits,
     required int creditLimitPaisa,
     required int dueDay,
+    required int statementDay,
+    required double interestRatePercent,
+    String? bankName,
+    bool isActive = true,
   }) async {
     await into(creditCards).insert(CreditCardsCompanion.insert(
       id: id,
       name: name,
       lastFourDigits: lastFourDigits,
       creditLimitPaisa: creditLimitPaisa,
-      currentOutstandingPaisa: 0,
+      currentOutstandingPaisa: const Value(0),
       dueDay: dueDay,
+      statementDay: statementDay,
+      interestRatePercent: interestRatePercent,
+      bankName: Value(bankName),
+      isActive: Value(isActive),
       createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     ));
   }
 
   /// Update credit card outstanding
   Future<void> updateOutstanding(String id, int outstandingPaisa) async {
     await (update(creditCards)..where((c) => c.id.equals(id))).write(
-      CreditCardsCompanion(currentOutstandingPaisa: Value(outstandingPaisa)),
+      CreditCardsCompanion(
+        currentOutstandingPaisa: Value(outstandingPaisa),
+        updatedAt: Value(DateTime.now()),
+      ),
     );
   }
 
   LoanTypeDb _typeToDb(tracker.LoanType type) {
     switch (type) {
-      case tracker.LoanType.personal: return LoanTypeDb.personal;
-      case tracker.LoanType.education: return LoanTypeDb.education;
-      case tracker.LoanType.vehicle: return LoanTypeDb.vehicle;
-      case tracker.LoanType.home: return LoanTypeDb.home;
-      case tracker.LoanType.creditCard: return LoanTypeDb.creditCard;
-      case tracker.LoanType.bnpl: return LoanTypeDb.bnpl;
-      case tracker.LoanType.other: return LoanTypeDb.other;
+      case tracker.LoanType.personal:
+        return LoanTypeDb.personal;
+      case tracker.LoanType.education:
+        return LoanTypeDb.education;
+      case tracker.LoanType.vehicle:
+        return LoanTypeDb.vehicle;
+      case tracker.LoanType.home:
+        return LoanTypeDb.home;
+      case tracker.LoanType.creditCard:
+        return LoanTypeDb.creditCard;
+      case tracker.LoanType.bnpl:
+        return LoanTypeDb.bnpl;
+      case tracker.LoanType.other:
+        return LoanTypeDb.other;
     }
   }
 }
@@ -163,19 +189,19 @@ class InvestmentDao extends DatabaseAccessor<AppDatabase>
   InvestmentDao(super.db);
 
   /// Get all investments
-  Future<List<InvestmentData>> getAll() async {
+  Future<List<InvestmentRow>> getAll() async {
     return await select(investments).get();
   }
 
   /// Watch all investments
-  Stream<List<InvestmentData>> watchAll() {
+  Stream<List<InvestmentRow>> watchAll() {
     return (select(investments)
           ..orderBy([(i) => OrderingTerm.desc(i.currentValuePaisa)]))
         .watch();
   }
 
   /// Get investment by ID
-  Future<InvestmentData?> getById(String id) async {
+  Future<InvestmentRow?> getById(String id) async {
     final query = select(investments)..where((i) => i.id.equals(id));
     return await query.getSingleOrNull();
   }
@@ -185,12 +211,14 @@ class InvestmentDao extends DatabaseAccessor<AppDatabase>
     await into(investments).insert(InvestmentsCompanion.insert(
       id: investment.id,
       name: investment.name,
-      investmentType: _typeToDb(investment.type),
-      investedAmountPaisa: investment.investedAmountPaisa,
+      type: _typeToDb(investment.type),
+      platformId: Value(investment.platformId),
+      investedPaisa: investment.investedPaisa,
       currentValuePaisa: investment.currentValuePaisa,
-      unitsBought: Value(investment.unitsBought),
-      purchaseDate: investment.purchaseDate,
-      notes: Value(investment.notes),
+      units: Value(investment.units),
+      startDate: investment.startDate,
+      lastUpdated: investment.lastUpdated,
+      notes: const Value.absent(),
       createdAt: DateTime.now(),
     ));
   }
@@ -200,7 +228,7 @@ class InvestmentDao extends DatabaseAccessor<AppDatabase>
     await (update(investments)..where((i) => i.id.equals(id))).write(
       InvestmentsCompanion(
         currentValuePaisa: Value(currentValuePaisa),
-        lastUpdatedAt: Value(DateTime.now()),
+        lastUpdated: Value(DateTime.now()),
       ),
     );
   }
@@ -210,24 +238,26 @@ class InvestmentDao extends DatabaseAccessor<AppDatabase>
     required String investmentId,
     required tracker.InvestmentTransactionType type,
     required int amountPaisa,
-    double? units,
-    int? navPaisa,
+    required double units,
+    required double pricePerUnit,
+    String? notes,
   }) async {
     await into(investmentTransactions).insert(
       InvestmentTransactionsCompanion.insert(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         investmentId: investmentId,
-        transactionType: _txTypeToDb(type),
+        type: _txTypeToDb(type),
         amountPaisa: amountPaisa,
-        units: Value(units),
-        navPaisa: Value(navPaisa),
+        units: units,
+        pricePerUnit: pricePerUnit,
         transactionDate: DateTime.now(),
+        notes: Value(notes),
       ),
     );
   }
 
   /// Get transaction history
-  Future<List<InvestmentTransactionData>> getTransactions(
+  Future<List<InvestmentTransactionRow>> getTransactions(
     String investmentId,
   ) async {
     final rows = await (select(investmentTransactions)
@@ -250,46 +280,86 @@ class InvestmentDao extends DatabaseAccessor<AppDatabase>
     final all = await getAll();
     int totalInvested = 0;
     int currentValue = 0;
+    final allocationByType = <tracker.InvestmentType, int>{};
 
     for (final inv in all) {
-      totalInvested += inv.investedAmountPaisa;
+      totalInvested += inv.investedPaisa;
       currentValue += inv.currentValuePaisa;
+      final type = _typeFromDb(inv.type);
+      allocationByType[type] = (allocationByType[type] ?? 0) + inv.currentValuePaisa;
     }
 
     final profitLoss = currentValue - totalInvested;
-    final returnPercent = totalInvested > 0
-        ? (profitLoss / totalInvested) * 100
-        : 0.0;
+    final returnPercent =
+        totalInvested > 0 ? (profitLoss / totalInvested) * 100 : 0.0;
 
     return tracker.PortfolioSummary(
       totalInvestedPaisa: totalInvested,
-      currentValuePaisa: currentValue,
-      totalReturnPaisa: profitLoss,
-      returnPercentage: returnPercent,
-      dayChangePercent: 0.0, // Would need price history
-      investments: [], // Load full details if needed
+      totalCurrentValuePaisa: currentValue,
+      totalGainLossPaisa: profitLoss,
+      overallReturnPercent: returnPercent,
+      investmentCount: all.length,
+      allocationByType: allocationByType,
     );
   }
 
   InvestmentTypeDb _typeToDb(tracker.InvestmentType type) {
     switch (type) {
-      case tracker.InvestmentType.mutualFund: return InvestmentTypeDb.mutualFund;
-      case tracker.InvestmentType.stocks: return InvestmentTypeDb.stocks;
-      case tracker.InvestmentType.fixedDeposit: return InvestmentTypeDb.fixedDeposit;
-      case tracker.InvestmentType.ppf: return InvestmentTypeDb.ppf;
-      case tracker.InvestmentType.nps: return InvestmentTypeDb.nps;
-      case tracker.InvestmentType.gold: return InvestmentTypeDb.gold;
-      case tracker.InvestmentType.crypto: return InvestmentTypeDb.crypto;
-      case tracker.InvestmentType.other: return InvestmentTypeDb.other;
+      case tracker.InvestmentType.mutualFund:
+        return InvestmentTypeDb.mutualFund;
+      case tracker.InvestmentType.stock:
+        return InvestmentTypeDb.stock;
+      case tracker.InvestmentType.etf:
+        return InvestmentTypeDb.etf;
+      case tracker.InvestmentType.fd:
+        return InvestmentTypeDb.fd;
+      case tracker.InvestmentType.rd:
+        return InvestmentTypeDb.rd;
+      case tracker.InvestmentType.ppf:
+        return InvestmentTypeDb.ppf;
+      case tracker.InvestmentType.nps:
+        return InvestmentTypeDb.nps;
+      case tracker.InvestmentType.gold:
+        return InvestmentTypeDb.gold;
+      case tracker.InvestmentType.crypto:
+        return InvestmentTypeDb.crypto;
+      case tracker.InvestmentType.other:
+        return InvestmentTypeDb.other;
     }
   }
 
-  InvestmentTransactionTypeDb _txTypeToDb(tracker.InvestmentTransactionType type) {
+  tracker.InvestmentType _typeFromDb(InvestmentTypeDb type) {
     switch (type) {
-      case tracker.InvestmentTransactionType.buy: return InvestmentTransactionTypeDb.buy;
-      case tracker.InvestmentTransactionType.sell: return InvestmentTransactionTypeDb.sell;
-      case tracker.InvestmentTransactionType.dividend: return InvestmentTransactionTypeDb.dividend;
-      case tracker.InvestmentTransactionType.sip: return InvestmentTransactionTypeDb.sip;
+      case InvestmentTypeDb.mutualFund:
+        return tracker.InvestmentType.mutualFund;
+      case InvestmentTypeDb.stock:
+        return tracker.InvestmentType.stock;
+      case InvestmentTypeDb.etf:
+        return tracker.InvestmentType.etf;
+      case InvestmentTypeDb.fd:
+        return tracker.InvestmentType.fd;
+      case InvestmentTypeDb.rd:
+        return tracker.InvestmentType.rd;
+      case InvestmentTypeDb.ppf:
+        return tracker.InvestmentType.ppf;
+      case InvestmentTypeDb.nps:
+        return tracker.InvestmentType.nps;
+      case InvestmentTypeDb.gold:
+        return tracker.InvestmentType.gold;
+      case InvestmentTypeDb.crypto:
+        return tracker.InvestmentType.crypto;
+      case InvestmentTypeDb.other:
+        return tracker.InvestmentType.other;
+    }
+  }
+
+  InvestmentTransactionTypeDb _txTypeToDb(
+      tracker.InvestmentTransactionType type) {
+    switch (type) {
+      case tracker.InvestmentTransactionType.buy:
+        return InvestmentTransactionTypeDb.buy;
+      case tracker.InvestmentTransactionType.sell:
+        return InvestmentTransactionTypeDb.sell;
     }
   }
 }

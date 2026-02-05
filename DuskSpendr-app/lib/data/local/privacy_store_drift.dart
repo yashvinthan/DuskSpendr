@@ -7,6 +7,7 @@ import '../../core/privacy/privacy_engine.dart';
 import '../../core/privacy/privacy_store.dart';
 import 'daos/audit_log_dao.dart';
 import 'daos/privacy_report_dao.dart';
+import 'database.dart';
 import 'tables.dart';
 
 class DriftPrivacyStore implements PrivacyStore {
@@ -25,8 +26,8 @@ class DriftPrivacyStore implements PrivacyStore {
         id: _uuid.v4(),
         type: _mapType(entry.type),
         entity: entry.entity,
-        entityId: entry.entityId,
-        details: entry.details,
+        entityId: Value(entry.entityId),
+        details: Value(entry.details),
         metadata: Value(jsonEncode(entry.toJson())),
         createdAt: entry.timestamp,
       ),

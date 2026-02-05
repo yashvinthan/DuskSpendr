@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:share_plus/share_plus.dart';
-import 'dart:ui' as ui;
 
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/spacing.dart';
@@ -229,7 +227,6 @@ class _MonthlySummaryCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
     final targetMonth = DateTime(now.year, now.month - monthsAgo, 1);
-    final monthName = _fullMonthName(targetMonth.month);
 
     final monthlySpending = ref.watch(thisMonthSpendingProvider);
     final categoryBreakdown = ref.watch(categorySpendingProvider);
@@ -247,7 +244,7 @@ class _MonthlySummaryCard extends ConsumerWidget {
           monthlySpending.when(
             data: (total) => _BudgetComparisonCard(
               spent: total,
-              budget: Money(paisa: 2000000), // TODO: Get from budget provider
+              budget: Money.fromPaisa(2000000), // TODO: Get from budget provider
             ),
             loading: () => const _LoadingCard(),
             error: (e, _) => _ErrorCard(message: e.toString()),
@@ -280,11 +277,6 @@ class _MonthlySummaryCard extends ConsumerWidget {
     );
   }
 
-  String _fullMonthName(int month) {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June',
-                    'July', 'August', 'September', 'October', 'November', 'December'];
-    return months[month - 1];
-  }
 }
 
 class _MonthHeader extends StatelessWidget {
@@ -354,7 +346,7 @@ class _SpendingTotalCard extends StatelessWidget {
         children: [
           Text(label,
               style: AppTypography.bodyMedium.copyWith(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
               )),
           const SizedBox(height: AppSpacing.sm),
           Text(
@@ -374,7 +366,7 @@ class _SpendingTotalCard extends StatelessWidget {
                 Text(
                   '${changePercent!.abs().toStringAsFixed(1)}% vs last period',
                   style: AppTypography.caption.copyWith(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                   ),
                 ),
               ],
@@ -400,7 +392,9 @@ class _BudgetComparisonCard extends StatelessWidget {
     final progress = budget.paisa > 0 
         ? (spent.paisa / budget.paisa).clamp(0.0, 1.0)
         : 0.0;
-    final remaining = Money(paisa: (budget.paisa - spent.paisa).clamp(0, budget.paisa));
+    final remaining = Money.fromPaisa(
+      (budget.paisa - spent.paisa).clamp(0, budget.paisa),
+    );
     final isOverBudget = spent.paisa > budget.paisa;
 
     return Container(
@@ -410,7 +404,7 @@ class _BudgetComparisonCard extends StatelessWidget {
         color: AppColors.darkCard,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
-          color: isOverBudget ? AppColors.danger.withOpacity(0.5) : Colors.transparent,
+          color: isOverBudget ? AppColors.danger.withValues(alpha: 0.5) : Colors.transparent,
         ),
       ),
       child: Column(
@@ -435,7 +429,7 @@ class _BudgetComparisonCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 12,
-              backgroundColor: AppColors.dusk700.withOpacity(0.3),
+              backgroundColor: AppColors.dusk700.withValues(alpha: 0.3),
               valueColor: AlwaysStoppedAnimation(
                 isOverBudget ? AppColors.danger : AppColors.accent,
               ),
@@ -465,7 +459,7 @@ class _BudgetComparisonCard extends StatelessWidget {
                       )),
                   Text(
                     isOverBudget 
-                        ? '-${Money(paisa: spent.paisa - budget.paisa).formatted}'
+                        ? '-${Money.fromPaisa(spent.paisa - budget.paisa).formatted}'
                         : remaining.formatted,
                     style: AppTypography.bodyLarge.copyWith(
                       color: isOverBudget ? AppColors.danger : AppColors.accent,
@@ -569,7 +563,7 @@ class _CategoryBar extends StatelessWidget {
           child: LinearProgressIndicator(
             value: percent / 100,
             minHeight: 6,
-            backgroundColor: AppColors.dusk700.withOpacity(0.3),
+            backgroundColor: AppColors.dusk700.withValues(alpha: 0.3),
             valueColor: AlwaysStoppedAnimation(color),
           ),
         ),
@@ -848,7 +842,7 @@ class _HighlightItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Column(
@@ -898,7 +892,7 @@ class _ErrorCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.danger.withOpacity(0.1),
+        color: AppColors.danger.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Text(
@@ -908,3 +902,4 @@ class _ErrorCard extends StatelessWidget {
     );
   }
 }
+

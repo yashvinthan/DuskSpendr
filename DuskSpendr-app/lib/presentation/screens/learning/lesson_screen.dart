@@ -179,8 +179,9 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
 
     await ref.read(educationNotifierProvider.notifier).completeLesson(
           lessonId: lesson.id,
+          topicId: lesson.topic.name,
+          timeSpentSeconds: 0,
           quizScore: quizScore,
-          quizTotal: lesson.quiz.isNotEmpty ? lesson.quiz.length : null,
         );
 
     if (mounted) {
@@ -378,6 +379,12 @@ class _SectionPage extends StatelessWidget {
 
   IconData _getSectionIcon(LessonSectionType type) {
     switch (type) {
+      case LessonSectionType.text:
+        return Icons.text_snippet_outlined;
+      case LessonSectionType.image:
+        return Icons.image_outlined;
+      case LessonSectionType.video:
+        return Icons.play_circle_outline;
       case LessonSectionType.hook:
         return Icons.lightbulb_outline;
       case LessonSectionType.concept:
@@ -642,10 +649,10 @@ class _QuizPageState extends State<_QuizPage> {
                       ),
                     ],
                   ),
-                  if (!isCorrect && question.explanation != null) ...[
+                  if (!isCorrect && question.explanation.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Text(
-                      question.explanation!,
+                      question.explanation,
                       style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
                     ),
                   ],

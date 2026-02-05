@@ -123,7 +123,7 @@ class BudgetDao extends DatabaseAccessor<AppDatabase> with _$BudgetDaoMixin {
   }
 
   // Conversion helpers
-  Budget _rowToEntity(BudgetData row) {
+  Budget _rowToEntity(BudgetRow row) {
     return Budget(
       id: row.id,
       name: row.name,

@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import '../../data/local/database.dart';
-import '../../domain/entities/entities.dart';
+
+
+import '../../domain/entities/entities.dart' as domain;
 
 /// SS-064, SS-065, SS-066: Account Balance Tracking
 /// Track balances, consolidated dashboard, low balance alerts
@@ -11,15 +13,18 @@ class BalanceTrackingService {
 
   // In-memory cache for quick access
   final Map<String, AccountBalanceInfo> _balanceCache = {};
-  final _balanceController = StreamController<ConsolidatedBalanceInfo>.broadcast();
+  final _balanceController =
+      StreamController<ConsolidatedBalanceInfo>.broadcast();
 
-  Stream<ConsolidatedBalanceInfo> get balanceStream => _balanceController.stream;
+  Stream<ConsolidatedBalanceInfo> get balanceStream =>
+      _balanceController.stream;
 
   // Low balance thresholds per account
   final Map<String, int> _lowBalanceThresholds = {};
   static const _defaultLowBalanceThreshold = 100000; // ₹1000
 
-  BalanceTrackingService({required AppDatabase database}) : _database = database;
+  BalanceTrackingService({required AppDatabase database})
+      : _database = database;
 
   // ====== SS-064: Account Balance Tracking ======
 
@@ -154,7 +159,7 @@ class BalanceTrackingService {
     required Duration period,
     int? maxPoints,
   }) async {
-    final since = DateTime.now().subtract(period);
+    // Removed unused variable: since
     // Implementation would query BalanceSnapshots table
     return [];
   }
@@ -165,7 +170,7 @@ class BalanceTrackingService {
     final byAccount = <String, int>{};
 
     for (final balance in _balanceCache.values) {
-      byType[balance.accountType] = 
+      byType[balance.accountType] =
           (byType[balance.accountType] ?? 0) + balance.balancePaisa;
       byAccount[balance.accountName] = balance.balancePaisa;
     }
@@ -195,12 +200,14 @@ class BalanceTrackingService {
         _defaultLowBalanceThreshold;
   }
 
-  final _lowBalanceController = StreamController<LowBalanceAlertEvent>.broadcast();
-  Stream<LowBalanceAlertEvent> get lowBalanceAlerts => _lowBalanceController.stream;
+  final _lowBalanceController =
+      StreamController<LowBalanceAlertEvent>.broadcast();
+  Stream<LowBalanceAlertEvent> get lowBalanceAlerts =>
+      _lowBalanceController.stream;
 
   void _checkLowBalance(String accountId, int balancePaisa) {
     final threshold = _getThreshold(accountId);
-    
+
     if (balancePaisa < threshold) {
       final account = _balanceCache[accountId];
       _lowBalanceController.add(LowBalanceAlertEvent(
@@ -235,7 +242,68 @@ class BalanceTrackingService {
 
   /// Load balances from database
   Future<void> loadBalances() async {
-    // Implementation would query LinkedAccounts table
+    final accounts = await _database.accountDao.getAll();
+    for (final account in accounts) {
+      if (account.balance != null) {
+        _updateCacheFromAccount(account);
+      }
+    }
+    _balanceController.add(calculateConsolidated());
+  }
+
+  void _updateCacheFromAccount(domain.LinkedAccount account) {
+    if (account.balance == null) return;
+
+    AccountType type;
+    switch (account.provider.type) {
+      case domain.AccountType.bank:
+        type = AccountType.bank;
+        break;
+      case domain.AccountType.wallet:
+        type = AccountType.wallet;
+        break;
+      case domain.AccountType.creditCard:
+        type = AccountType.creditCard;
+        break;
+      case domain.AccountType.investment:
+        type = AccountType.investment;
+        break;
+      default:
+        type = AccountType.bank; // Default or handle error
+        break;
+    }
+
+    _balanceCache[account.id] = AccountBalanceInfo(
+      accountId: account.id,
+      accountName: account.accountName ?? '',
+      accountType: type,
+      balancePaisa: account.balance!.paisa,
+      lastUpdated: account.balanceUpdatedAt ?? DateTime.now(),
+      updateSource: BalanceUpdateSource.manual, // Default source for now
+    );
+  }
+
+  /// Get consolidated balance (Future wrapper)
+  Future<ConsolidatedBalanceInfo> getConsolidatedBalance() async {
+    return calculateConsolidated();
+  }
+
+  /// Get account balance by ID
+  Future<AccountBalanceInfo?> getAccountBalance(String accountId) async {
+    return _balanceCache[accountId];
+  }
+
+  /// Start balance monitoring background service
+  Future<void> startBalanceMonitoring() async {
+    // Start periodic checks or listeners
+    // For now, reload from DB
+    await loadBalances();
+  }
+
+  /// Stop balance monitoring
+  Future<void> stopBalanceMonitoring() async {
+    // Cancel listeners
+    dispose();
   }
 
   void dispose() {
