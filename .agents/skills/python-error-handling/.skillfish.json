@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "python-error-handling",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/python-development/skills/python-error-handling",
+  "branch": "main",
+  "sha": "cb6c9295d57491f5eeefc2d1469d10f12d06b951",
+  "source": "manual"
+}

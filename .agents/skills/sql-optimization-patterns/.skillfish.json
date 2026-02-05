@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "sql-optimization-patterns",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/developer-essentials/skills/sql-optimization-patterns",
+  "branch": "main",
+  "sha": "0dbc921386fa71a0e7b1ec324ea65022a4934552",
+  "source": "manual"
+}

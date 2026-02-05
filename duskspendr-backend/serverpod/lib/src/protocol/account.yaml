@@ -1,0 +1,20 @@
+### Account model for DuskSpendr
+class: Account
+table: accounts
+fields:
+  userId: int
+  name: String
+  type: String
+  balance: double
+  currency: String
+  institution: String?
+  accountNumber: String?
+  isDefault: bool
+  icon: String?
+  color: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+
+indexes:
+  account_user_idx:
+    fields: userId

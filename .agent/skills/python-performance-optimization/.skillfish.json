@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "python-performance-optimization",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/python-development/skills/python-performance-optimization",
+  "branch": "main",
+  "sha": "ea26a709fa185e46b567c87f9206a4cf6346eeaf",
+  "source": "manual"
+}

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "context-driven-development",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/conductor/skills/context-driven-development",
+  "branch": "main",
+  "sha": "6d9c4419b8cdeeb53d2e49b004256036c28a655b",
+  "source": "manual"
+}

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "projection-patterns",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/backend-development/skills/projection-patterns",
+  "branch": "main",
+  "sha": "cc89b965cf13024917f23c468f109857121dbdab",
+  "source": "manual"
+}

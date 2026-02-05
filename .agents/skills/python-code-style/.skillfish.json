@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "python-code-style",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/python-development/skills/python-code-style",
+  "branch": "main",
+  "sha": "e5a0c7b40f1cff37ca3869b29291b6ee97d450e9",
+  "source": "manual"
+}

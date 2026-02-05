@@ -1,0 +1,19 @@
+### User model for DuskSpendr
+class: User
+table: users
+fields:
+  phone: String
+  email: String?
+  displayName: String?
+  avatarUrl: String?
+  preferences: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+
+indexes:
+  user_phone_idx:
+    fields: phone
+    unique: true
+  user_email_idx:
+    fields: email
+    unique: true

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "python-packaging",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/python-development/skills/python-packaging",
+  "branch": "main",
+  "sha": "0fca3ed65cc27328abc7a899e27813f4e3004b2c",
+  "source": "manual"
+}

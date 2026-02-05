@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "architecture-patterns",
+  "owner": "microck",
+  "repo": "ordinary-claude-skills",
+  "path": "skills_all/architecture-patterns",
+  "branch": "main",
+  "sha": "f40011b626337e08838a6d0cdd9587aa31fc557c",
+  "source": "manual"
+}

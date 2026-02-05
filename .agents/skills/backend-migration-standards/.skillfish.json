@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "backend-migration-standards",
+  "owner": "microck",
+  "repo": "ordinary-claude-skills",
+  "path": "skills_all/backend-migration-standards",
+  "branch": "main",
+  "sha": "8ff3df4b77342bb7146a3d8cd6c5c59ef7603c3a",
+  "source": "manual"
+}

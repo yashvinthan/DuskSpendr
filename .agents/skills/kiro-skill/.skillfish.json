@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "kiro-skill",
+  "owner": "microck",
+  "repo": "ordinary-claude-skills",
+  "path": "skills_all/kiro-skill",
+  "branch": "main",
+  "sha": "a362d9d9455943b5792903bc552ce245e301bd50",
+  "source": "manual"
+}

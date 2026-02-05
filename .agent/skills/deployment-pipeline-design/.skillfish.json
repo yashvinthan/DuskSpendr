@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "deployment-pipeline-design",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/cicd-automation/skills/deployment-pipeline-design",
+  "branch": "main",
+  "sha": "c172dbf4bbc7ff2595f08ac5d0e7c09d6cd49ce8",
+  "source": "manual"
+}

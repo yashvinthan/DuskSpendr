@@ -1,0 +1,34 @@
+### Transaction model for DuskSpendr
+class: Transaction
+table: transactions
+fields:
+  userId: int
+  amount: double
+  merchantName: String?
+  categoryId: int?
+  subcategoryId: int?
+  description: String?
+  date: DateTime
+  source: String
+  accountId: int?
+  isRecurring: bool
+  recurringId: int?
+  tags: List<String>?
+  location: String?
+  latitude: double?
+  longitude: double?
+  smsHash: String?
+  createdAt: DateTime
+  updatedAt: DateTime?
+  syncedAt: DateTime?
+
+indexes:
+  tx_user_idx:
+    fields: userId
+  tx_user_date_idx:
+    fields: userId, date
+  tx_category_idx:
+    fields: categoryId
+  tx_sms_hash_idx:
+    fields: smsHash
+    unique: true

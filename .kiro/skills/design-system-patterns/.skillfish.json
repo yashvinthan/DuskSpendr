@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "design-system-patterns",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/ui-design/skills/design-system-patterns",
+  "branch": "main",
+  "sha": "4cb76fe80811c5e154839d035adf92d35c839eb1",
+  "source": "manual"
+}

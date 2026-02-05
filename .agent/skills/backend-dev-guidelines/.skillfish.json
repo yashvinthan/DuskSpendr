@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "backend-dev-guidelines",
+  "owner": "microck",
+  "repo": "ordinary-claude-skills",
+  "path": "skills_all/backend-dev-guidelines",
+  "branch": "main",
+  "sha": "bdf9659fb267d7297ab34e4d787220c212a26ef7",
+  "source": "manual"
+}

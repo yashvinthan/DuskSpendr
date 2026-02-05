@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "fastapi-templates",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/api-scaffolding/skills/fastapi-templates",
+  "branch": "main",
+  "sha": "e2b6b2b8dcd526d45aeeb19901e88577e4c4ecc3",
+  "source": "manual"
+}

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "secrets-management",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/cicd-automation/skills/secrets-management",
+  "branch": "main",
+  "sha": "7289e885d804a8b489f5349a5292dbdfe4c926ce",
+  "source": "manual"
+}

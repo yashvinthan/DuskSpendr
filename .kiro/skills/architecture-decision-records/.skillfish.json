@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "architecture-decision-records",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/documentation-generation/skills/architecture-decision-records",
+  "branch": "main",
+  "sha": "6e7483b7b0737ff76b7dd0503c17920c6e5173ff",
+  "source": "manual"
+}

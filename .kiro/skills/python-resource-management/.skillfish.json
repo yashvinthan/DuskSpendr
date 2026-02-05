@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "python-resource-management",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/python-development/skills/python-resource-management",
+  "branch": "main",
+  "sha": "ae87af5edcc71fe411e50fd62679f37e0ff08250",
+  "source": "manual"
+}

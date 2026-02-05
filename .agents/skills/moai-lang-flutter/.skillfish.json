@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "moai-lang-flutter",
+  "owner": "modu-ai",
+  "repo": "moai-adk",
+  "path": ".claude/skills/moai-lang-flutter",
+  "branch": "main",
+  "sha": "a12eae8415e07961dbfcef1983c851a9fc2248e3",
+  "source": "manual"
+}

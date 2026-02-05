@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "sdk-analytics-installer",
+  "owner": "microck",
+  "repo": "ordinary-claude-skills",
+  "path": "skills_all/sdk-analytics-installer",
+  "branch": "main",
+  "sha": "902ffa68e0e5aff950e73e0b3c5d8218adffd14d",
+  "source": "manual"
+}

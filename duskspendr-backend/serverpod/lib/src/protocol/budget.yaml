@@ -1,0 +1,25 @@
+### Budget model for DuskSpendr
+class: Budget
+table: budgets
+fields:
+  userId: int
+  name: String
+  categoryId: int?
+  amount: double
+  spent: double
+  period: String
+  startDate: DateTime
+  endDate: DateTime?
+  alertThreshold: double
+  isActive: bool
+  rollover: bool
+  createdAt: DateTime
+  updatedAt: DateTime?
+
+indexes:
+  budget_user_idx:
+    fields: userId
+  budget_user_period_idx:
+    fields: userId, period
+  budget_category_idx:
+    fields: categoryId

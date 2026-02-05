@@ -1,0 +1,19 @@
+### Split participant model for DuskSpendr
+class: SplitParticipant
+table: split_participants
+fields:
+  splitId: int
+  userId: int?
+  name: String
+  phone: String?
+  email: String?
+  amount: double
+  isPaid: bool
+  paidAt: DateTime?
+  createdAt: DateTime
+
+indexes:
+  sp_split_idx:
+    fields: splitId
+  sp_user_idx:
+    fields: userId

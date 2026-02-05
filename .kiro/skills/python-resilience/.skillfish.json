@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "python-resilience",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/python-development/skills/python-resilience",
+  "branch": "main",
+  "sha": "656b9d366a9a7676008233b13f3cd7eac0b20a16",
+  "source": "manual"
+}

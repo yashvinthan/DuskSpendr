@@ -1,0 +1,16 @@
+name: duskspendr_serverpod
+description: DuskSpendr Serverpod service.
+version: 0.1.0
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  serverpod: ^1.2.6
+  serverpod_auth_server: ^1.2.6
+  postgres: ^2.6.3
+  crypto: ^3.0.3
+
+dev_dependencies:
+  lints: ^2.1.1

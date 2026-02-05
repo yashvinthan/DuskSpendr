@@ -1,0 +1,17 @@
+### Split expense model for DuskSpendr
+class: Split
+table: splits
+fields:
+  transactionId: int
+  creatorId: int
+  totalAmount: double
+  description: String?
+  status: String
+  createdAt: DateTime
+  settledAt: DateTime?
+
+indexes:
+  split_creator_idx:
+    fields: creatorId
+  split_transaction_idx:
+    fields: transactionId

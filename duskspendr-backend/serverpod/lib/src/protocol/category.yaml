@@ -1,0 +1,19 @@
+### Category model for DuskSpendr
+class: Category
+table: categories
+fields:
+  name: String
+  displayName: String
+  icon: String
+  color: String
+  parentId: int?
+  isSystem: bool
+  sortOrder: int
+  createdAt: DateTime
+
+indexes:
+  category_name_idx:
+    fields: name
+    unique: true
+  category_parent_idx:
+    fields: parentId

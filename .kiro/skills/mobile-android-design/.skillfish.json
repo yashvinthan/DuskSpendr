@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "mobile-android-design",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/ui-design/skills/mobile-android-design",
+  "branch": "main",
+  "sha": "6ff8e8419c237bbcc5b917466954bfc5ce04871f",
+  "source": "manual"
+}

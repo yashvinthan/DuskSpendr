@@ -1,0 +1,177 @@
+# DuskSpendr Backend - Microservices Architecture
+# Docker Compose for local development
+
+services:
+  # ==================== Infrastructure ====================
+  
+  db:
+    image: postgres:16-alpine
+    container_name: duskspendr-db
+    environment:
+      POSTGRES_USER: dusk
+      POSTGRES_PASSWORD: dusk
+      POSTGRES_DB: duskspendr
+    ports:
+      - "5432:5432"
+    volumes:
+      - duskspendr_db:/var/lib/postgresql/data
+      - ./gateway/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dusk -d duskspendr"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: duskspendr-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - duskspendr_redis:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: duskspendr-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: dusk
+      RABBITMQ_DEFAULT_PASS: dusk
+    volumes:
+      - duskspendr_rabbitmq:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== API Gateway ====================
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: duskspendr-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      ENV: development
+      DATABASE_URL: postgres://dusk:dusk@db:5432/duskspendr?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://dusk:dusk@rabbitmq:5672/
+      JWT_SECRET: dev-jwt-secret-change-in-production
+      JWT_REFRESH_SECRET: dev-refresh-secret-change-in-production
+      SERVERPOD_URL: http://serverpod:8082
+      AI_SERVICE_URL: http://ai-service:8004
+      ANALYTICS_SERVICE_URL: http://analytics-service:8005
+      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:8080
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # ==================== Serverpod (Dart) ====================
+
+  serverpod:
+    build:
+      context: ./serverpod
+      dockerfile: Dockerfile
+    container_name: duskspendr-serverpod
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+      - "8082:8082"
+    environment:
+      SERVERPOD_ENVIRONMENT: development
+      DATABASE_URL: postgres://dusk:dusk@db:5432/duskspendr?sslmode=disable
+      REDIS_URL: redis://redis:6379/1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ==================== AI Service (Python) ====================
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: duskspendr-ai
+    ports:
+      - "8004:8004"
+    environment:
+      ENV: development
+      DEBUG: "true"
+      DATABASE_URL: postgresql://dusk:dusk@db:5432/duskspendr
+      REDIS_URL: redis://redis:6379/2
+      RABBITMQ_URL: amqp://dusk:dusk@rabbitmq:5672/
+      GATEWAY_URL: http://gateway:8000
+      ENABLE_DOCS: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # ==================== Analytics Service (Python) ====================
+
+  analytics-service:
+    build:
+      context: ./analytics-service
+      dockerfile: Dockerfile
+    container_name: duskspendr-analytics
+    ports:
+      - "8005:8005"
+    environment:
+      ENV: development
+      DATABASE_URL: postgresql://dusk:dusk@db:5432/duskspendr
+      REDIS_URL: redis://redis:6379/3
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ==================== Development Tools ====================
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: duskspendr-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    profiles:
+      - dev
+
+  adminer:
+    image: adminer
+    container_name: duskspendr-adminer
+    ports:
+      - "8088:8080"
+    depends_on:
+      - db
+    profiles:
+      - dev
+
+volumes:
+  duskspendr_db:
+  duskspendr_redis:
+  duskspendr_rabbitmq:
+
+networks:
+  default:
+    name: duskspendr-network

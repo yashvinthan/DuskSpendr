@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "saga-orchestration",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/backend-development/skills/saga-orchestration",
+  "branch": "main",
+  "sha": "73171139fe4a11c98f13ac60c7359a3d80059e2c",
+  "source": "manual"
+}

@@ -1,0 +1,85 @@
+name: duskspendr
+description: Privacy-first AI Finance Buddy for Students - Track expenses automatically through secure bank/UPI linking and SMS parsing.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # State Management
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+  
+  # Database & Storage
+  drift: ^2.14.1
+  sqlcipher_flutter_libs: ^0.6.8
+  path_provider: ^2.1.1
+  flutter_secure_storage: ^9.0.0
+  cryptography: ^2.7.0
+  crypto: ^3.0.3
+  
+  # UI Components
+  fl_chart: ^0.66.0
+  shimmer: ^3.0.0
+  cached_network_image: ^3.3.1
+  
+  # Animations
+  lottie: ^2.7.0
+  rive: ^0.12.4
+  
+  # Authentication
+  local_auth: ^2.1.7
+  
+  # Utils
+  intl: ^0.18.1
+  uuid: ^4.2.2
+  equatable: ^2.0.5
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
+  path: ^1.9.0
+  http: ^1.2.0
+  flutter_local_notifications: ^17.1.2
+  timezone: ^0.9.3
+  
+  # Icons & Fonts
+  cupertino_icons: ^1.0.6
+  google_fonts: ^6.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  build_runner: ^2.4.8
+  drift_dev: ^2.14.1
+  freezed: ^2.4.6
+  json_serializable: ^6.7.1
+  riverpod_generator: ^2.3.9
+  mockito: ^5.4.4
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/animations/
+    - assets/icons/
+  
+  fonts:
+    - family: PlusJakartaSans
+      fonts:
+        - asset: assets/fonts/PlusJakartaSans-Regular.ttf
+        - asset: assets/fonts/PlusJakartaSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/PlusJakartaSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/PlusJakartaSans-Bold.ttf
+          weight: 700
+    - family: SpaceMono
+      fonts:
+        - asset: assets/fonts/SpaceMono-Regular.ttf
+        - asset: assets/fonts/SpaceMono-Bold.ttf
+          weight: 700

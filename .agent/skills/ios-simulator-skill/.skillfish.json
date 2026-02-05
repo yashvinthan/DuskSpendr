@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "ios-simulator-skill",
+  "owner": "microck",
+  "repo": "ordinary-claude-skills",
+  "path": "skills_all/ios-simulator-skill",
+  "branch": "main",
+  "sha": "91b4a38eebde54087da18427590521b33e6aec0f",
+  "source": "manual"
+}

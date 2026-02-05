@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "backend-ai-guide",
+  "owner": "microck",
+  "repo": "ordinary-claude-skills",
+  "path": "skills_all/backend-ai-guide",
+  "branch": "main",
+  "sha": "75531fac4e635941d0bca150d1042c98cdfcfe18",
+  "source": "manual"
+}

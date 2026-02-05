@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "python-project-structure",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/python-development/skills/python-project-structure",
+  "branch": "main",
+  "sha": "70109b96fb8e73142730844acd8e6ffe125a2139",
+  "source": "manual"
+}

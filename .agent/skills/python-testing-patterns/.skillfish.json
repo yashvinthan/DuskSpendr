@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "python-testing-patterns",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/python-development/skills/python-testing-patterns",
+  "branch": "main",
+  "sha": "79ea3b35b9b8bb7dd47b566fd085ec45f8a6efe2",
+  "source": "manual"
+}

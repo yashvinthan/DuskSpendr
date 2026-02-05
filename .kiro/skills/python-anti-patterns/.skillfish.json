@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "python-anti-patterns",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/python-development/skills/python-anti-patterns",
+  "branch": "main",
+  "sha": "bfd45644a6e9c35c2cd94cf3bc1ba74ab46b2792",
+  "source": "manual"
+}

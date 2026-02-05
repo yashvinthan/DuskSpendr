@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "workflow-orchestration-patterns",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/backend-development/skills/workflow-orchestration-patterns",
+  "branch": "main",
+  "sha": "d3a5944f1d4bd5aaa04b6b95c4bb6efe3439a5aa",
+  "source": "manual"
+}

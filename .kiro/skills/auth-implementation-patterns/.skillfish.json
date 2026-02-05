@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "auth-implementation-patterns",
+  "owner": "microck",
+  "repo": "ordinary-claude-skills",
+  "path": "skills_all/auth-implementation-patterns",
+  "branch": "main",
+  "sha": "e9c1883a2c04772c9bbab6be690090f65c036b45",
+  "source": "manual"
+}

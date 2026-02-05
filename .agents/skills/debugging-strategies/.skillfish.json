@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "debugging-strategies",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/developer-essentials/skills/debugging-strategies",
+  "branch": "main",
+  "sha": "0fac6889117384c7ed5cf6f80beb8b9a65f37910",
+  "source": "manual"
+}

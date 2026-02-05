@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "payment-integration",
+  "owner": "microck",
+  "repo": "ordinary-claude-skills",
+  "path": "skills_all/payment-integration",
+  "branch": "main",
+  "sha": "67ca47d9566e4c706cfbcf935178548ce2243d2b",
+  "source": "manual"
+}

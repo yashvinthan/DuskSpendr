@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "python-background-jobs",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/python-development/skills/python-background-jobs",
+  "branch": "main",
+  "sha": "8ebbe1ec54ebc7982abe57ceb85e203b2b8efa08",
+  "source": "manual"
+}

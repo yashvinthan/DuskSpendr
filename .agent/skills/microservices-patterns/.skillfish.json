@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "microservices-patterns",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/backend-development/skills/microservices-patterns",
+  "branch": "main",
+  "sha": "9c0165d30129d7a7d9a4e20ed1fb5190abceab5f",
+  "source": "manual"
+}

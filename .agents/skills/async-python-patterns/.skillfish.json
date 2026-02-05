@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "async-python-patterns",
+  "owner": "wshobson",
+  "repo": "agents",
+  "path": "plugins/python-development/skills/async-python-patterns",
+  "branch": "main",
+  "sha": "05d5fed8e2417aad779c92afdc6df17d0208c422",
+  "source": "manual"
+}
