@@ -23,7 +23,7 @@ class NotificationService {
     required String body,
     required DateTime scheduledAt,
   }) async {
-    final androidDetails = AndroidNotificationDetails(
+    const androidDetails = AndroidNotificationDetails(
       'budget_alerts',
       'Budget Alerts',
       channelDescription: 'Budget threshold alerts',
@@ -31,7 +31,7 @@ class NotificationService {
       priority: Priority.high,
     );
     const iosDetails = DarwinNotificationDetails();
-    final details = NotificationDetails(
+    const details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
@@ -44,7 +44,7 @@ class NotificationService {
       details,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
-      androidAllowWhileIdle: true,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
   }
 
@@ -54,7 +54,7 @@ class NotificationService {
     required String body,
     Map<String, dynamic>? payload,
   }) async {
-    final androidDetails = AndroidNotificationDetails(
+    const androidDetails = AndroidNotificationDetails(
       'bill_reminders',
       'Bill Reminders',
       channelDescription: 'Bill payment reminders',
@@ -63,7 +63,7 @@ class NotificationService {
       icon: '@mipmap/ic_launcher',
     );
     const iosDetails = DarwinNotificationDetails();
-    final details = NotificationDetails(
+    const details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
@@ -83,7 +83,7 @@ class NotificationService {
     required String body,
     Map<String, dynamic>? payload,
   }) async {
-    final androidDetails = AndroidNotificationDetails(
+    const androidDetails = AndroidNotificationDetails(
       'balance_alerts',
       'Balance Alerts',
       channelDescription: 'Low balance alerts',
@@ -92,7 +92,7 @@ class NotificationService {
       icon: '@mipmap/ic_launcher',
     );
     const iosDetails = DarwinNotificationDetails();
-    final details = NotificationDetails(
+    const details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
@@ -112,7 +112,7 @@ class NotificationService {
     required String body,
     Map<String, dynamic>? payload,
   }) async {
-    final androidDetails = AndroidNotificationDetails(
+    const androidDetails = AndroidNotificationDetails(
       'budget_alerts',
       'Budget Alerts',
       channelDescription: 'Budget threshold alerts',
@@ -121,7 +121,7 @@ class NotificationService {
       icon: '@mipmap/ic_launcher',
     );
     const iosDetails = DarwinNotificationDetails();
-    final details = NotificationDetails(
+    const details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );

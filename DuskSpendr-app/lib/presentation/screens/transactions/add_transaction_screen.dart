@@ -11,7 +11,8 @@ class AddTransactionScreen extends ConsumerStatefulWidget {
   const AddTransactionScreen({super.key});
 
   @override
-  ConsumerState<AddTransactionScreen> createState() => _AddTransactionScreenState();
+  ConsumerState<AddTransactionScreen> createState() =>
+      _AddTransactionScreenState();
 }
 
 class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
@@ -62,11 +63,15 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 dropdownColor: AppColors.darkSurface,
                 items: const [
                   DropdownMenuItem(value: 'food', child: Text('Food')),
-                  DropdownMenuItem(value: 'transportation', child: Text('Transport')),
-                  DropdownMenuItem(value: 'entertainment', child: Text('Entertainment')),
-                  DropdownMenuItem(value: 'education', child: Text('Education')),
+                  DropdownMenuItem(
+                      value: 'transportation', child: Text('Transport')),
+                  DropdownMenuItem(
+                      value: 'entertainment', child: Text('Entertainment')),
+                  DropdownMenuItem(
+                      value: 'education', child: Text('Education')),
                   DropdownMenuItem(value: 'shopping', child: Text('Shopping')),
-                  DropdownMenuItem(value: 'utilities', child: Text('Utilities')),
+                  DropdownMenuItem(
+                      value: 'utilities', child: Text('Utilities')),
                   DropdownMenuItem(value: 'other', child: Text('Other')),
                 ],
                 onChanged: (value) {
@@ -95,7 +100,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                           timestamp: DateTime.now(),
                           merchantName: _merchantController.text.trim(),
                         );
-                    if (!mounted) return;
+                    if (!context.mounted) return;
                     ref.invalidate(transactionsProvider);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Transaction saved')),

@@ -261,7 +261,7 @@ class ChallengeCard extends StatelessWidget {
               ),
               child: Text(
                 'Potential savings: $potentialSaving',
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 12,
                   fontWeight: FontWeight.w500,

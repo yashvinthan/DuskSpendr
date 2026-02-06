@@ -14,7 +14,8 @@ class EditTransactionScreen extends ConsumerStatefulWidget {
   final TransactionModel tx;
 
   @override
-  ConsumerState<EditTransactionScreen> createState() => _EditTransactionScreenState();
+  ConsumerState<EditTransactionScreen> createState() =>
+      _EditTransactionScreenState();
 }
 
 class _EditTransactionScreenState extends ConsumerState<EditTransactionScreen> {
@@ -55,7 +56,8 @@ class _EditTransactionScreenState extends ConsumerState<EditTransactionScreen> {
               children: [
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                  icon: const Icon(Icons.arrow_back,
+                      color: AppColors.textPrimary),
                 ),
                 Text('Edit Transaction',
                     style: AppTypography.h2.copyWith(
@@ -80,11 +82,16 @@ class _EditTransactionScreenState extends ConsumerState<EditTransactionScreen> {
                   dropdownColor: AppColors.darkSurface,
                   items: const [
                     DropdownMenuItem(value: 'food', child: Text('Food')),
-                    DropdownMenuItem(value: 'transportation', child: Text('Transport')),
-                    DropdownMenuItem(value: 'entertainment', child: Text('Entertainment')),
-                    DropdownMenuItem(value: 'education', child: Text('Education')),
-                    DropdownMenuItem(value: 'shopping', child: Text('Shopping')),
-                    DropdownMenuItem(value: 'utilities', child: Text('Utilities')),
+                    DropdownMenuItem(
+                        value: 'transportation', child: Text('Transport')),
+                    DropdownMenuItem(
+                        value: 'entertainment', child: Text('Entertainment')),
+                    DropdownMenuItem(
+                        value: 'education', child: Text('Education')),
+                    DropdownMenuItem(
+                        value: 'shopping', child: Text('Shopping')),
+                    DropdownMenuItem(
+                        value: 'utilities', child: Text('Utilities')),
                     DropdownMenuItem(value: 'other', child: Text('Other')),
                   ],
                   onChanged: (value) {
@@ -115,7 +122,7 @@ class _EditTransactionScreenState extends ConsumerState<EditTransactionScreen> {
                             merchantName: _merchantController.text.trim(),
                             description: widget.tx.description,
                           );
-                      if (!mounted) return;
+                      if (!context.mounted) return;
                       ref.invalidate(transactionsProvider);
                       Navigator.of(context).pop();
                     },

@@ -37,6 +37,12 @@ class AppRoutes {
   // Utility
   static const String notifications = '/notifications';
   static const String settings = '/settings';
+  static const String syncStatus = '/sync-status';
+  static const String categoryManagement = '/categories';
+  static const String lowBalanceAlerts = '/alerts/low-balance';
+  static const String financeScore = '/finance-score';
+  static const String creditScore = '/credit-score';
+  static const String financialHealth = '/financial-health';
 }
 
 /// App Router configuration
@@ -206,6 +212,36 @@ class AppRouter {
           path: AppRoutes.settings,
           name: 'settings',
           builder: (context, state) => const SettingsScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.syncStatus,
+          name: 'syncStatus',
+          builder: (context, state) => const SyncStatusScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.categoryManagement,
+          name: 'categoryManagement',
+          builder: (context, state) => const CategoryManagementScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.lowBalanceAlerts,
+          name: 'lowBalanceAlerts',
+          builder: (context, state) => const LowBalanceAlertsScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.financeScore,
+          name: 'financeScore',
+          builder: (context, state) => const FinanceScoreScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.creditScore,
+          name: 'creditScore',
+          builder: (context, state) => const CreditScoreScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.financialHealth,
+          name: 'financialHealth',
+          builder: (context, state) => const FinancialHealthScreen(),
         ),
       ],
       redirect: (context, state) {

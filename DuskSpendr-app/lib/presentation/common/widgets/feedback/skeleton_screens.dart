@@ -54,16 +54,16 @@ class _TransactionItemSkeleton extends StatelessWidget {
         color: AppColors.darkCard,
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
-      child: Row(
+      child: const Row(
         children: [
           // Category icon
-          const ShimmerLoading(width: 48, height: 48, borderRadius: 12),
-          const SizedBox(width: AppSpacing.md),
+          ShimmerLoading(width: 48, height: 48, borderRadius: 12),
+          SizedBox(width: AppSpacing.md),
           // Details
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 ShimmerLoading(width: 140, height: 16),
                 SizedBox(height: 6),
                 ShimmerLoading(width: 80, height: 12),
@@ -71,7 +71,7 @@ class _TransactionItemSkeleton extends StatelessWidget {
             ),
           ),
           // Amount
-          const ShimmerLoading(width: 70, height: 18),
+          ShimmerLoading(width: 70, height: 18),
         ],
       ),
     );
@@ -141,9 +141,9 @@ class _BalanceCardSkeleton extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(AppRadius.xl),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           ShimmerLoading(width: 100, height: 14),
           SizedBox(height: AppSpacing.sm),
           ShimmerLoading(width: 180, height: 36),
@@ -166,9 +166,9 @@ class _BalanceStatSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
+      children: [
         ShimmerLoading(width: 60, height: 12),
         SizedBox(height: 4),
         ShimmerLoading(width: 90, height: 20),
@@ -182,8 +182,8 @@ class _QuickActionSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: const [
+    return const Column(
+      children: [
         ShimmerLoading(width: 56, height: 56, borderRadius: 16),
         SizedBox(height: 8),
         ShimmerLoading(width: 48, height: 10),
@@ -249,21 +249,21 @@ class _BudgetCardSkeleton extends StatelessWidget {
         color: AppColors.darkCard,
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
+            children: [
               ShimmerLoading(width: 40, height: 40, borderRadius: 10),
               SizedBox(width: AppSpacing.md),
               Expanded(child: ShimmerLoading(width: 100, height: 16)),
               ShimmerLoading(width: 80, height: 14),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
-          const ShimmerLoading(height: 8, borderRadius: 4),
-          const SizedBox(height: AppSpacing.sm),
-          const ShimmerLoading(width: 120, height: 12),
+          SizedBox(height: AppSpacing.md),
+          ShimmerLoading(height: 8, borderRadius: 4),
+          SizedBox(height: AppSpacing.sm),
+          ShimmerLoading(width: 120, height: 12),
         ],
       ),
     );
@@ -297,8 +297,8 @@ class ProfileSkeleton extends StatelessWidget {
               color: AppColors.darkCard,
               borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
-            child: Row(
-              children: const [
+            child: const Row(
+              children: [
                 ShimmerLoading(width: 80, height: 80, borderRadius: 40),
                 SizedBox(width: AppSpacing.lg),
                 Expanded(
@@ -338,8 +338,8 @@ class _MenuItemSkeleton extends StatelessWidget {
         color: AppColors.darkCard,
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
-      child: Row(
-        children: const [
+      child: const Row(
+        children: [
           ShimmerLoading(width: 24, height: 24, borderRadius: 6),
           SizedBox(width: AppSpacing.md),
           Expanded(child: ShimmerLoading(width: 120, height: 16)),
@@ -379,21 +379,21 @@ class _AccountCardSkeleton extends StatelessWidget {
         color: AppColors.darkCard,
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
-      child: Row(
+      child: const Row(
         children: [
-          const ShimmerLoading(width: 48, height: 48, borderRadius: 12),
-          const SizedBox(width: AppSpacing.md),
+          ShimmerLoading(width: 48, height: 48, borderRadius: 12),
+          SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 ShimmerLoading(width: 120, height: 16),
                 SizedBox(height: 6),
                 ShimmerLoading(width: 80, height: 12),
               ],
             ),
           ),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               ShimmerLoading(width: 100, height: 18),

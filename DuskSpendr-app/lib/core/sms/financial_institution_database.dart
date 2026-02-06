@@ -1,5 +1,6 @@
 /// SS-034: Enhanced Financial Institution Database
 /// Comprehensive sender ID database for Indian banks, UPI apps, and fintech
+library;
 
 /// Financial Institution enumeration with full Indian bank coverage
 enum FinancialInstitution {

@@ -60,7 +60,7 @@ class FinanceScoreService {
       goalScore: goalScore.round(),
       level: _getLevel(totalScore),
       levelName: _getLevelName(totalScore),
-      weeklyChange: 0, // TODO: Compare with last week
+      weeklyChange: 0, // Compare with last week when history is stored
       calculatedAt: now,
       tips: _generateTips(
         budgetScore: budgetScore,
@@ -309,7 +309,7 @@ class FinanceScoreService {
 
   /// All available achievements
   static final List<Achievement> _allAchievements = [
-    Achievement(
+    const Achievement(
       id: 'first_transaction',
       name: 'First Step',
       description: 'Log your first transaction',
@@ -317,7 +317,7 @@ class FinanceScoreService {
       points: 10,
       category: AchievementCategory.beginner,
     ),
-    Achievement(
+    const Achievement(
       id: 'first_budget',
       name: 'Budget Boss',
       description: 'Create your first budget',
@@ -325,7 +325,7 @@ class FinanceScoreService {
       points: 20,
       category: AchievementCategory.beginner,
     ),
-    Achievement(
+    const Achievement(
       id: 'week_under_budget',
       name: 'Week Warrior',
       description: 'Stay under budget for a week',
@@ -333,7 +333,7 @@ class FinanceScoreService {
       points: 50,
       category: AchievementCategory.budgeting,
     ),
-    Achievement(
+    const Achievement(
       id: 'saved_20_percent',
       name: 'Super Saver',
       description: 'Save 20% of your pocket money',
@@ -341,7 +341,7 @@ class FinanceScoreService {
       points: 75,
       category: AchievementCategory.savings,
     ),
-    Achievement(
+    const Achievement(
       id: 'categorized_100',
       name: 'Organization Pro',
       description: 'Categorize 100 transactions',
@@ -349,7 +349,7 @@ class FinanceScoreService {
       points: 40,
       category: AchievementCategory.tracking,
     ),
-    Achievement(
+    const Achievement(
       id: 'streak_7_days',
       name: 'Week Streak',
       description: 'Track expenses for 7 consecutive days',
@@ -357,7 +357,7 @@ class FinanceScoreService {
       points: 30,
       category: AchievementCategory.consistency,
     ),
-    Achievement(
+    const Achievement(
       id: 'streak_30_days',
       name: 'Month Master',
       description: 'Track expenses for 30 consecutive days',
@@ -365,7 +365,7 @@ class FinanceScoreService {
       points: 100,
       category: AchievementCategory.consistency,
     ),
-    Achievement(
+    const Achievement(
       id: 'no_overspend_month',
       name: 'Discipline Champion',
       description: 'No budget exceeded for a full month',

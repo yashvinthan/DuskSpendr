@@ -348,7 +348,8 @@ class BudgetEndpoint extends Endpoint {
         return DateTime(now.year, now.month, now.day, 23, 59, 59);
       case 'weekly':
         final weekday = now.weekday;
-        return DateTime(now.year, now.month, now.day + (7 - weekday), 23, 59, 59);
+        return DateTime(
+            now.year, now.month, now.day + (7 - weekday), 23, 59, 59);
       case 'monthly':
         return DateTime(now.year, now.month + 1, 0, 23, 59, 59);
       case 'yearly':

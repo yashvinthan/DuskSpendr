@@ -395,19 +395,19 @@ class ReceiptScanner {
 
     // Return mock data
     return [
-      ExpenseItem(
+      const ExpenseItem(
         name: 'Pizza',
         pricePaisa: 35000,
         quantity: 1,
         sharedByMemberIds: [],
       ),
-      ExpenseItem(
+      const ExpenseItem(
         name: 'Pasta',
         pricePaisa: 28000,
         quantity: 1,
         sharedByMemberIds: [],
       ),
-      ExpenseItem(
+      const ExpenseItem(
         name: 'Drinks',
         pricePaisa: 15000,
         quantity: 3,

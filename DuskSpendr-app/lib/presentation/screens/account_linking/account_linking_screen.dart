@@ -17,7 +17,7 @@ class AccountLinkingScreen extends StatefulWidget {
 
 class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
   final List<LinkedAccount> _linkedAccounts = [];
-  bool _isLinking = false;
+  final bool _isLinking = false;
 
   @override
   Widget build(BuildContext context) {
@@ -32,9 +32,7 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
           ),
         ],
       ),
-      body: _linkedAccounts.isEmpty
-          ? _buildEmptyState()
-          : _buildAccountsList(),
+      body: _linkedAccounts.isEmpty ? _buildEmptyState() : _buildAccountsList(),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -144,7 +142,7 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
             ),
           ],
         ),
-        content: Column(
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

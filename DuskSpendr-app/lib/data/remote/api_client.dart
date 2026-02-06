@@ -2,12 +2,18 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+/// HTTP client for API calls. Never log request/response bodies that may contain tokens.
 class ApiClient {
-  ApiClient({required this.baseUrl, http.Client? client})
-      : _client = client ?? http.Client();
+  ApiClient({
+    required this.baseUrl,
+    http.Client? client,
+    void Function()? onUnauthorized,
+  })  : _client = client ?? http.Client(),
+        _onUnauthorized = onUnauthorized;
 
   final String baseUrl;
   final http.Client _client;
+  final void Function()? _onUnauthorized;
 
   Future<Map<String, dynamic>> postJson(
     String path, {
@@ -62,7 +68,17 @@ class ApiClient {
   }
 
   Map<String, dynamic> _decode(http.Response response) {
-    final payload = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode == 401) {
+      _onUnauthorized?.call();
+    }
+    Map<String, dynamic> payload = {};
+    if (response.body.isNotEmpty) {
+      try {
+        payload = jsonDecode(response.body) as Map<String, dynamic>;
+      } catch (_) {
+        // ignore invalid JSON on error responses
+      }
+    }
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return payload;
     }

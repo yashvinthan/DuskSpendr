@@ -188,7 +188,7 @@ class AuditTrailService {
 
   /// Clean up old logs beyond retention period
   Future<int> cleanupOldLogs() async {
-    final cutoff = DateTime.now().subtract(Duration(days: _retentionDays));
+    final cutoff = DateTime.now().subtract(const Duration(days: _retentionDays));
     // Note: Would need to add a delete method to the DAO
     final logs = await getLogs(to: cutoff, limit: _maxEntriesPerQuery);
     // In production, delete logs older than cutoff

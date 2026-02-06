@@ -305,8 +305,8 @@ class GamificationNotifier extends StateNotifier<GamificationState> {
   final GamificationService _service = GamificationService();
 
   GamificationNotifier()
-      : super(GamificationState(
-          level: const UserLevel(
+      : super(const GamificationState(
+          level: UserLevel(
               level: 1,
               currentXp: 0,
               xpForNext: 100,
@@ -369,7 +369,7 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
   final OnboardingService _service = OnboardingService();
 
   OnboardingNotifier()
-      : super(OnboardingState(
+      : super(const OnboardingState(
           currentStep: 0,
           isComplete: false,
         ));

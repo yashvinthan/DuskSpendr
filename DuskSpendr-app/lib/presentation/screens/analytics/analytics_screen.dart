@@ -58,8 +58,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
       body: Column(
         children: [
           // Summary cards
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
+          const Padding(
+            padding: EdgeInsets.all(AppSpacing.md),
             child: Row(
               children: [
                 Expanded(
@@ -71,7 +71,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                     icon: Icons.arrow_upward,
                   ),
                 ),
-                const SizedBox(width: AppSpacing.sm),
+                SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: _SummaryCard(
                     label: 'Saved',
@@ -205,7 +205,7 @@ class _SpendingTab extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         Center(
           child: DonutChart(
-            segments: [
+            segments: const [
               ChartSegment(value: 35, color: AppColors.sunset500, label: 'Food'),
               ChartSegment(value: 25, color: AppColors.dusk500, label: 'Shopping'),
               ChartSegment(value: 20, color: AppColors.info, label: 'Transport'),
@@ -224,35 +224,35 @@ class _SpendingTab extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.lg),
         // Category list
-        _CategoryRow(
+        const _CategoryRow(
           icon: Icons.restaurant,
           name: 'Food & Dining',
           amount: 11350,
           percentage: 35,
           color: AppColors.sunset500,
         ),
-        _CategoryRow(
+        const _CategoryRow(
           icon: Icons.shopping_bag,
           name: 'Shopping',
           amount: 8100,
           percentage: 25,
           color: AppColors.dusk500,
         ),
-        _CategoryRow(
+        const _CategoryRow(
           icon: Icons.directions_car,
           name: 'Transport',
           amount: 6490,
           percentage: 20,
           color: AppColors.info,
         ),
-        _CategoryRow(
+        const _CategoryRow(
           icon: Icons.receipt,
           name: 'Bills & Utilities',
           amount: 3890,
           percentage: 12,
           color: AppColors.success,
         ),
-        _CategoryRow(
+        const _CategoryRow(
           icon: Icons.more_horiz,
           name: 'Other',
           amount: 2620,
@@ -394,13 +394,13 @@ class _IncomeTab extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        _IncomeSource(
+        const _IncomeSource(
           icon: Icons.work,
           name: 'Salary',
           amount: 40000,
           color: AppColors.success,
         ),
-        _IncomeSource(
+        const _IncomeSource(
           icon: Icons.card_giftcard,
           name: 'Pocket Money',
           amount: 5000,
@@ -515,19 +515,19 @@ class _TrendsTab extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        _InsightCard(
+        const _InsightCard(
           icon: Icons.trending_up,
           title: 'Spending Increased',
           description: 'Food expenses up 15% this month compared to last',
           color: AppColors.warning,
         ),
-        _InsightCard(
+        const _InsightCard(
           icon: Icons.savings,
           title: 'Great Savings!',
           description: 'You saved 25% more than your target this month',
           color: AppColors.success,
         ),
-        _InsightCard(
+        const _InsightCard(
           icon: Icons.lightbulb,
           title: 'Tip',
           description: 'Consider meal prepping to reduce food delivery costs',

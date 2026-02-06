@@ -65,7 +65,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     }
     setState(() => _selectedIds.clear());
     ref.invalidate(transactionPageProvider);
-
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Deleted ${toDelete.length} transactions'),
@@ -184,7 +184,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                       ? ListView(
                           children: [
                             Padding(
-                              padding: const EdgeInsets.only(top: AppSpacing.xl),
+                              padding:
+                                  const EdgeInsets.only(top: AppSpacing.xl),
                               child: Center(
                                 child: Text(
                                   pageState.error!,
@@ -207,12 +208,13 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                               ? ListView(
                                   children: [
                                     Padding(
-                                      padding:
-                                          const EdgeInsets.only(top: AppSpacing.xl),
+                                      padding: const EdgeInsets.only(
+                                          top: AppSpacing.xl),
                                       child: Center(
                                         child: Text(
                                           'No transactions found',
-                                          style: AppTypography.bodyMedium.copyWith(
+                                          style:
+                                              AppTypography.bodyMedium.copyWith(
                                             color: AppColors.textMuted,
                                           ),
                                         ),
@@ -255,16 +257,17 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                       );
                                     }
                                     final tx = pageState.items[index];
-                                    final selected = _selectedIds.contains(tx.id);
+                                    final selected =
+                                        _selectedIds.contains(tx.id);
                                     return Dismissible(
                                       key: ValueKey(tx.id),
-                                      background: _SwipeAction(
+                                      background: const _SwipeAction(
                                         label: 'Edit',
                                         icon: Icons.edit,
                                         color: AppColors.dusk600,
                                         alignment: Alignment.centerLeft,
                                       ),
-                                      secondaryBackground: _SwipeAction(
+                                      secondaryBackground: const _SwipeAction(
                                         label: 'Category',
                                         icon: Icons.category,
                                         color: AppColors.dusk700,
@@ -281,7 +284,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                           );
                                           return false;
                                         }
-                                        await _showCategoryPicker(context, ref, tx);
+                                        await _showCategoryPicker(
+                                            context, ref, tx);
                                         return false;
                                       },
                                       child: GestureDetector(
@@ -298,20 +302,26 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                           selected: selected,
                                           leading: selected
                                               ? const CircleAvatar(
-                                                  backgroundColor: AppColors.dusk600,
+                                                  backgroundColor:
+                                                      AppColors.dusk600,
                                                   child: Icon(Icons.check,
-                                                      color: AppColors.textPrimary),
+                                                      color: AppColors
+                                                          .textPrimary),
                                                 )
                                               : const CircleAvatar(
-                                                  backgroundColor: AppColors.dusk700,
-                                                  child: Icon(Icons.receipt_long,
-                                                      color: AppColors.textPrimary),
+                                                  backgroundColor:
+                                                      AppColors.dusk700,
+                                                  child: Icon(
+                                                      Icons.receipt_long,
+                                                      color: AppColors
+                                                          .textPrimary),
                                                 ),
                                           title: _HighlightedText(
-                                            text: tx.merchantName ?? 'Transaction',
+                                            text: tx.merchantName ??
+                                                'Transaction',
                                             query: query,
-                                            baseStyle:
-                                                AppTypography.bodyLarge.copyWith(
+                                            baseStyle: AppTypography.bodyLarge
+                                                .copyWith(
                                               color: AppColors.textPrimary,
                                             ),
                                             highlightColor: AppColors.gold400,
@@ -319,16 +329,16 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                           subtitle: _HighlightedText(
                                             text: tx.category,
                                             query: query,
-                                            baseStyle:
-                                                AppTypography.bodyMedium.copyWith(
+                                            baseStyle: AppTypography.bodyMedium
+                                                .copyWith(
                                               color: AppColors.textSecondary,
                                             ),
                                             highlightColor: AppColors.gold400,
                                           ),
                                           trailing: Text(
                                             tx.amountLabel,
-                                            style:
-                                                AppTypography.bodyLarge.copyWith(
+                                            style: AppTypography.bodyLarge
+                                                .copyWith(
                                               color: tx.type == 'credit'
                                                   ? AppColors.success
                                                   : AppColors.textPrimary,
@@ -337,7 +347,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                           onTap: () {
                                             if (_selectedIds.isNotEmpty) {
                                               setState(() {
-                                                if (_selectedIds.contains(tx.id)) {
+                                                if (_selectedIds
+                                                    .contains(tx.id)) {
                                                   _selectedIds.remove(tx.id);
                                                 } else {
                                                   _selectedIds.add(tx.id);
@@ -347,9 +358,11 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                             }
                                             showModalBottomSheet(
                                               context: context,
-                                              backgroundColor: Colors.transparent,
+                                              backgroundColor:
+                                                  Colors.transparent,
                                               builder: (_) =>
-                                                  TransactionDetailSheet(tx: tx),
+                                                  TransactionDetailSheet(
+                                                      tx: tx),
                                             );
                                           },
                                         ),
@@ -382,7 +395,8 @@ class _FilterChips extends StatelessWidget {
         children: [
           _Chip(label: 'All', value: 'all', group: value, onChanged: onChanged),
           const SizedBox(width: 8),
-          _Chip(label: 'Food', value: 'food', group: value, onChanged: onChanged),
+          _Chip(
+              label: 'Food', value: 'food', group: value, onChanged: onChanged),
           const SizedBox(width: 8),
           _Chip(
               label: 'Transport',
@@ -483,7 +497,7 @@ Future<void> _showCategoryPicker(
     context: context,
     backgroundColor: AppColors.darkSurface,
     builder: (_) {
-      final items = const [
+      const items = [
         'food',
         'transportation',
         'entertainment',

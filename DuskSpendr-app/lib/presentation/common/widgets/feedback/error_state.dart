@@ -203,7 +203,7 @@ class SessionExpiredState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _ErrorIcon(
+            const _ErrorIcon(
               icon: Icons.lock_clock_outlined,
               color: AppColors.warning,
             ),

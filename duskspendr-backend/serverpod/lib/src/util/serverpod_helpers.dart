@@ -1,6 +1,8 @@
 import 'package:postgres/postgres.dart';
 import 'package:serverpod/serverpod.dart';
 
+// ignore_for_file: deprecated_member_use
+
 extension SessionDbQuery on Session {
   Future<PostgreSQLResult> query(
     String sql, {
@@ -8,6 +10,8 @@ extension SessionDbQuery on Session {
     int? timeoutInSeconds,
     Transaction? transaction,
   }) {
+    // Serverpod 1.x: `db` is deprecated but still supported.
+    // Use until the project migrates fully to the dbNext API surface.
     return db.databaseConnection.query(
       this,
       sql,

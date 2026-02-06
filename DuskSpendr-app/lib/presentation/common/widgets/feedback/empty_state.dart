@@ -224,7 +224,7 @@ class ComingSoonState extends StatelessWidget {
             Container(
               width: 80,
               height: 80,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
                   colors: [AppColors.dusk500, AppColors.sunset500],

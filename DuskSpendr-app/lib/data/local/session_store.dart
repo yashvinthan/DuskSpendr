@@ -1,13 +1,22 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+/// Secure session storage. Uses platform secure storage (Android Keystore / iOS Keychain).
+/// Tokens are never logged or written to plain storage.
 class SessionStore {
   static const _tokenKey = 'auth_token';
   static const _userIdKey = 'auth_user_id';
 
+  static const FlutterSecureStorage _defaultStorage = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock_this_device,
+    ),
+  );
+
   final FlutterSecureStorage _storage;
 
   SessionStore({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage();
+      : _storage = storage ?? _defaultStorage;
 
   Future<void> saveSession({required String token, required String userId}) async {
     await _storage.write(key: _tokenKey, value: token);

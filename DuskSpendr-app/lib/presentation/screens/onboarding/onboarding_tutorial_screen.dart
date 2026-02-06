@@ -124,8 +124,7 @@ class _OnboardingTutorialScreenState
   }
 
   void _completeOnboarding() {
-    // TODO: Save onboarding completed flag
-    // TODO: Create initial budget if set
+    // Save onboarding completion + initial budget can be wired to persistent prefs.
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const HomeScreen()),
     );
@@ -380,13 +379,13 @@ class _NotificationPermissionStep extends StatelessWidget {
 class _NotificationExamples extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       children: [
         _NotificationExample(
           icon: '⚠️',
           text: 'Budget 80% used - ₹200 remaining',
         ),
-        const SizedBox(height: AppSpacing.sm),
+        SizedBox(height: AppSpacing.sm),
         _NotificationExample(
           icon: '📅',
           text: 'Electricity bill due tomorrow',

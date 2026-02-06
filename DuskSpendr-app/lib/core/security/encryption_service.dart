@@ -14,14 +14,13 @@ class EncryptionService {
   final FlutterSecureStorage _storage;
 
   EncryptionService({FlutterSecureStorage? storage})
-    : _storage =
-          storage ??
-          const FlutterSecureStorage(
-            aOptions: AndroidOptions(encryptedSharedPreferences: true),
-            iOptions: IOSOptions(
-              accessibility: KeychainAccessibility.first_unlock,
-            ),
-          );
+      : _storage = storage ??
+            const FlutterSecureStorage(
+              aOptions: AndroidOptions(encryptedSharedPreferences: true),
+              iOptions: IOSOptions(
+                accessibility: KeychainAccessibility.first_unlock,
+              ),
+            );
 
   /// Generate new encryption key
   Future<String> generateEncryptionKey() async {
@@ -38,9 +37,7 @@ class EncryptionService {
   /// Get or create encryption key
   Future<String> getOrCreateEncryptionKey() async {
     var key = await _storage.read(key: _keyAlias);
-    if (key == null) {
-      key = await generateEncryptionKey();
-    }
+    key ??= await generateEncryptionKey();
     return key;
   }
 

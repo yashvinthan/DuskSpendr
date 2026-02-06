@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/theme/typography.dart';
@@ -152,7 +151,7 @@ class _PortfolioSummaryCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          Row(
+          const Row(
             children: [
               _StatItem(
                 label: 'Invested',
@@ -286,10 +285,10 @@ class _OverviewTab extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        _AllocationRow(label: 'Stocks', value: 45, color: AppColors.dusk500),
-        _AllocationRow(label: 'Mutual Funds', value: 35, color: AppColors.sunset500),
-        _AllocationRow(label: 'Fixed Deposits', value: 15, color: AppColors.success),
-        _AllocationRow(label: 'Gold', value: 5, color: AppColors.warning),
+        const _AllocationRow(label: 'Stocks', value: 45, color: AppColors.dusk500),
+        const _AllocationRow(label: 'Mutual Funds', value: 35, color: AppColors.sunset500),
+        const _AllocationRow(label: 'Fixed Deposits', value: 15, color: AppColors.success),
+        const _AllocationRow(label: 'Gold', value: 5, color: AppColors.warning),
         const SizedBox(height: AppSpacing.xl),
       ],
     );
@@ -349,7 +348,7 @@ class _StocksTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      children: [
+      children: const [
         _StockCard(
           name: 'Reliance Industries',
           symbol: 'RELIANCE',
@@ -511,7 +510,7 @@ class _MutualFundsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      children: [
+      children: const [
         _MFCard(
           name: 'Axis Bluechip Fund',
           category: 'Large Cap • Equity',
@@ -656,7 +655,7 @@ class _FDsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      children: [
+      children: const [
         _FDCard(
           bank: 'HDFC Bank',
           principal: 100000,
@@ -729,7 +728,7 @@ class _FDCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '${rate}% p.a.',
+                      '$rate% p.a.',
                       style: AppTypography.caption.copyWith(
                         color: AppColors.success,
                       ),
@@ -788,7 +787,7 @@ class _GoalsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      children: [
+      children: const [
         _GoalCard(
           name: 'Emergency Fund',
           icon: Icons.shield,

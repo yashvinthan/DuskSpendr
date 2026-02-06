@@ -203,8 +203,15 @@ class SpamDetector {
       RegExp(r't\.co/\w+'),
       RegExp(r'is\.gd/\w+'),
       RegExp(r'ow\.ly/\w+'),
+      RegExp(r'cli\.ck/\w+'),
+      RegExp(r'rb\.gy/\w+'),
       // IP-based URLs
-      RegExp(r'http[s]?://\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'),
+      RegExp(r'http[s]?://\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?::\d+)?'),
+      // Bank impersonation / suspicious domains (SS-035 hardening)
+      RegExp(r'https?://[^\s]*(?:sbi|hdfc|icici|axis|bank)[^\s]*\.(?:com|in|net)', caseSensitive: false),
+      RegExp(r'https?://[^\s]*secure[^\s]*login[^\s]*', caseSensitive: false),
+      RegExp(r'https?://[^\s]*kyc[^\s]*verify[^\s]*', caseSensitive: false),
+      RegExp(r'https?://[^\s]*upi[^\s]*(?:link|update|claim)[^\s]*', caseSensitive: false),
     ];
 
     return phishingPatterns.any((pattern) => pattern.hasMatch(text));

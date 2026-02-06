@@ -126,7 +126,7 @@ class _OverviewTab extends ConsumerWidget {
               const SizedBox(height: AppSpacing.lg),
 
               // Spending chart
-              Text('Monthly Spending', style: AppTypography.h3),
+              const Text('Monthly Spending', style: AppTypography.h3),
               const SizedBox(height: AppSpacing.md),
               Container(
                 height: 250,
@@ -140,7 +140,7 @@ class _OverviewTab extends ConsumerWidget {
               const SizedBox(height: AppSpacing.lg),
 
               // Insights
-              Text('Insights', style: AppTypography.h3),
+              const Text('Insights', style: AppTypography.h3),
               const SizedBox(height: AppSpacing.md),
               ..._generateInsights(monthlyData, trend).map((insight) =>
                 _InsightCard(
@@ -488,7 +488,7 @@ class _CategoriesTab extends ConsumerWidget {
               const SizedBox(height: AppSpacing.lg),
 
               // Category breakdown
-              Text('Category Breakdown', style: AppTypography.h3),
+              const Text('Category Breakdown', style: AppTypography.h3),
               const SizedBox(height: AppSpacing.md),
               ...sortedCategories.map((entry) {
                 final percentage =

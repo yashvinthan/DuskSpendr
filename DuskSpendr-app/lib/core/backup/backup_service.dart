@@ -73,17 +73,17 @@ class BackupService {
       final filename = _generateBackupFilename();
       final filePath = customPath ?? p.join(backupDir.path, filename);
 
-      // Write encrypted backup
+      final checksum = await _calculateChecksum(encryptedData);
+      // SS-006: Write checksum header for restore integrity verification
+      final fileContent = '$checksum\n$encryptedData';
       final backupFile = File(filePath);
-      await backupFile.writeAsString(encryptedData);
+      await backupFile.writeAsString(fileContent);
 
       // Update last backup timestamp
       await _storage.write(
         key: _lastBackupKey,
         value: DateTime.now().toIso8601String(),
       );
-
-      final checksum = await _calculateChecksum(encryptedData);
 
       await _metadataStore?.recordBackup(
         BackupMetadataEntry(
@@ -243,14 +243,29 @@ class BackupService {
 
       final backupFile = File(filePath);
       if (!await backupFile.exists()) {
-        return RestoreResult(
+        return const RestoreResult(
           success: false,
           error: 'Backup file not found',
         );
       }
 
-      // Read encrypted data
-      final encryptedData = await backupFile.readAsString();
+      // Read file (format: optional "checksum\n" + encrypted payload)
+      final fileContent = await backupFile.readAsString();
+      final encryptedData = fileContent.contains('\n')
+          ? fileContent.substring(fileContent.indexOf('\n') + 1)
+          : fileContent;
+
+      // SS-006: Verify integrity when checksum header present
+      if (fileContent.contains('\n')) {
+        final storedChecksum = fileContent.substring(0, fileContent.indexOf('\n'));
+        final computedChecksum = await _calculateChecksum(encryptedData);
+        if (storedChecksum != computedChecksum) {
+          return const RestoreResult(
+            success: false,
+            error: 'Backup file is corrupted or tampered. Checksum mismatch.',
+          );
+        }
+      }
 
       // Decrypt
       final jsonString = await _encryptionService.decryptData(encryptedData);
@@ -261,7 +276,7 @@ class BackupService {
 
       // Validate backup version
       if (backupData.version > 1) {
-        return RestoreResult(
+        return const RestoreResult(
           success: false,
           error: 'Backup version not supported. Please update the app.',
         );

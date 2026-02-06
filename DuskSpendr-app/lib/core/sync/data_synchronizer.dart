@@ -79,7 +79,7 @@ class DataSynchronizer {
   /// Sync all linked accounts
   Future<SyncResult> syncAll() async {
     if (_isSyncing) {
-      return SyncResult(
+      return const SyncResult(
         success: false,
         error: 'Sync already in progress',
       );
@@ -102,7 +102,7 @@ class DataSynchronizer {
         // Check circuit breaker
         final breaker = _getCircuitBreaker(provider);
         if (!breaker.canAttempt()) {
-          results[provider] = AccountSyncResult(
+          results[provider] = const AccountSyncResult(
             success: false,
             error: 'Too many failures, waiting before retry',
           );
@@ -148,7 +148,7 @@ class DataSynchronizer {
   /// Sync a single account
   Future<AccountSyncResult> syncAccount(AccountProviderType provider) async {
     if (_isSyncing) {
-      return AccountSyncResult(
+      return const AccountSyncResult(
         success: false,
         error: 'Sync already in progress',
       );
@@ -247,7 +247,7 @@ class DataSynchronizer {
       final parsed = _parseUpiNotification(notification);
 
       if (parsed == null) {
-        return UpiNotificationResult(
+        return const UpiNotificationResult(
           success: false,
           error: 'Could not parse notification',
         );

@@ -283,7 +283,7 @@ class _EmptyExpensesCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(Icons.receipt_long, size: 48, color: AppColors.textMuted),
+          const Icon(Icons.receipt_long, size: 48, color: AppColors.textMuted),
           const SizedBox(height: AppSpacing.md),
           Text('No expenses yet', style: AppTypography.bodyLarge.copyWith(color: AppColors.textSecondary)),
           const SizedBox(height: AppSpacing.sm),
@@ -749,7 +749,7 @@ class SettlementHistoryScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.history, size: 64, color: AppColors.textMuted),
+                  const Icon(Icons.history, size: 64, color: AppColors.textMuted),
                   const SizedBox(height: AppSpacing.md),
                   Text('No settlements yet', style: AppTypography.bodyLarge.copyWith(color: AppColors.textSecondary)),
                 ],

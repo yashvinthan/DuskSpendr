@@ -109,8 +109,8 @@ class _OTPInputState extends State<OTPInput>
     _notifyChange();
   }
 
-  void _onKeyDown(int index, RawKeyEvent event) {
-    if (event is RawKeyDownEvent) {
+  void _onKeyDown(int index, KeyEvent event) {
+    if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.backspace) {
         if (_controllers[index].text.isEmpty && index > 0) {
           _focusNodes[index - 1].requestFocus();
@@ -184,7 +184,7 @@ class _OTPDigitField extends StatelessWidget {
   final bool obscureText;
   final bool hasError;
   final ValueChanged<String> onChanged;
-  final ValueChanged<RawKeyEvent> onKeyDown;
+  final ValueChanged<KeyEvent> onKeyDown;
 
   const _OTPDigitField({
     required this.controller,
@@ -197,9 +197,9 @@ class _OTPDigitField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RawKeyboardListener(
-      focusNode: FocusNode(),
-      onKey: onKeyDown,
+    return KeyboardListener(
+      focusNode: focusNode,
+      onKeyEvent: onKeyDown,
       child: SizedBox(
         width: 48,
         height: 56,

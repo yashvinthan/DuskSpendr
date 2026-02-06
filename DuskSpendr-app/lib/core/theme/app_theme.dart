@@ -9,7 +9,7 @@ import 'spacing.dart';
 class AppTheme {
   // ====== Light Theme ======
   static ThemeData get lightTheme {
-    final colorScheme = ColorScheme.light(
+    const colorScheme = ColorScheme.light(
       primary: AppColors.primary,
       secondary: AppColors.accent,
       surface: AppColors.lightSurface,
@@ -27,7 +27,7 @@ class AppTheme {
       useMaterial3: true,
       fontFamily: 'Inter',
       textTheme: _buildTextTheme(isLight: true),
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.lightSurface,
         elevation: 0,
         centerTitle: true,
@@ -51,7 +51,7 @@ class AppTheme {
         foregroundColor: Colors.white,
         elevation: 4,
       ),
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.lightSurface,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textMutedLight,
@@ -80,7 +80,7 @@ class AppTheme {
 
   // ====== Dark Theme ======
   static ThemeData get darkTheme {
-    final colorScheme = ColorScheme.dark(
+    const colorScheme = ColorScheme.dark(
       primary: AppColors.primary,
       secondary: AppColors.accent,
       surface: AppColors.darkSurface,

@@ -1,4 +1,5 @@
 import 'package:serverpod/serverpod.dart';
+import 'package:serverpod/protocol.dart' show TableDefinition;
 
 import '../util/serverpod_helpers.dart';
 

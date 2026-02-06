@@ -177,7 +177,7 @@ class FinancialEducatorService {
     final random = Random();
 
     final educationalContent = [
-      FinancialTip(
+      const FinancialTip(
         id: 'edu_50_30_20',
         type: TipType.educational,
         title: 'The 50/30/20 Rule 📚',
@@ -187,7 +187,7 @@ class FinancialEducatorService {
         actionLabel: 'Learn more',
         relatedTopic: FinancialTopic.budgeting,
       ),
-      FinancialTip(
+      const FinancialTip(
         id: 'edu_compound_interest',
         type: TipType.educational,
         title: 'The Magic of Compound Interest ✨',
@@ -197,7 +197,7 @@ class FinancialEducatorService {
         actionLabel: 'Learn more',
         relatedTopic: FinancialTopic.investing,
       ),
-      FinancialTip(
+      const FinancialTip(
         id: 'edu_emergency_fund',
         type: TipType.educational,
         title: 'Emergency Fund Basics 🏥',
@@ -207,7 +207,7 @@ class FinancialEducatorService {
         actionLabel: 'Start saving',
         relatedTopic: FinancialTopic.saving,
       ),
-      FinancialTip(
+      const FinancialTip(
         id: 'edu_credit_score',
         type: TipType.educational,
         title: 'Credit Score 101 💳',

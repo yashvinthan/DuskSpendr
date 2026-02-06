@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/theme/typography.dart';
 import '../../common/widgets/navigation/top_app_bar.dart';
+import '../../navigation/navigation.dart';
 
-/// Settings screen
+/// Settings screen (SS-088)
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -34,7 +36,12 @@ class SettingsScreen extends StatelessWidget {
               _SettingsTile(
                 icon: Icons.account_balance_outlined,
                 title: 'Linked Accounts',
-                onTap: () {},
+                onTap: () => context.push(AppRoutes.accountLinking),
+              ),
+              _SettingsTile(
+                icon: Icons.sync,
+                title: 'Sync Status',
+                onTap: () => context.push(AppRoutes.syncStatus),
               ),
             ],
           ),
@@ -66,6 +73,28 @@ class SettingsScreen extends StatelessWidget {
                 title: 'Currency',
                 trailing: 'INR (₹)',
                 onTap: () {},
+              ),
+              _SettingsTile(
+                icon: Icons.category_outlined,
+                title: 'Manage Categories',
+                onTap: () => context.push(AppRoutes.categoryManagement),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          // Alerts
+          _SettingsSection(
+            title: 'Alerts',
+            children: [
+              _SettingsTile(
+                icon: Icons.account_balance_wallet_outlined,
+                title: 'Low Balance Alerts',
+                onTap: () => context.push(AppRoutes.lowBalanceAlerts),
+              ),
+              _SettingsTile(
+                icon: Icons.credit_score_outlined,
+                title: 'Credit Score',
+                onTap: () => context.push(AppRoutes.creditScore),
               ),
             ],
           ),

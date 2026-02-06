@@ -17,7 +17,7 @@ class GamificationService {
   void _initializeAchievements() {
     final defaultAchievements = [
       // Saving Achievements
-      Achievement(
+      const Achievement(
         id: 'first_save',
         name: 'First Steps',
         description: 'Save your first ₹100',
@@ -26,7 +26,7 @@ class GamificationService {
         tier: AchievementTier.bronze,
         category: AchievementCategory.saving,
       ),
-      Achievement(
+      const Achievement(
         id: 'week_saver',
         name: 'Week Warrior',
         description: 'Save money for 7 consecutive days',
@@ -35,7 +35,7 @@ class GamificationService {
         tier: AchievementTier.silver,
         category: AchievementCategory.saving,
       ),
-      Achievement(
+      const Achievement(
         id: 'month_master',
         name: 'Month Master',
         description: 'Stay under budget for entire month',
@@ -46,7 +46,7 @@ class GamificationService {
       ),
 
       // Budget Achievements
-      Achievement(
+      const Achievement(
         id: 'budget_creator',
         name: 'Budget Boss',
         description: 'Create your first budget',
@@ -55,7 +55,7 @@ class GamificationService {
         tier: AchievementTier.bronze,
         category: AchievementCategory.budgeting,
       ),
-      Achievement(
+      const Achievement(
         id: 'budget_streak_7',
         name: 'Discipline Master',
         description: 'Stay under all budgets for 7 days',
@@ -66,7 +66,7 @@ class GamificationService {
       ),
 
       // Learning Achievements
-      Achievement(
+      const Achievement(
         id: 'first_lesson',
         name: 'Knowledge Seeker',
         description: 'Complete your first financial lesson',
@@ -75,7 +75,7 @@ class GamificationService {
         tier: AchievementTier.bronze,
         category: AchievementCategory.learning,
       ),
-      Achievement(
+      const Achievement(
         id: 'quiz_master',
         name: 'Quiz Master',
         description: 'Score 100% on 5 quizzes',
@@ -86,7 +86,7 @@ class GamificationService {
       ),
 
       // Tracking Achievements
-      Achievement(
+      const Achievement(
         id: 'tracker_50',
         name: 'Transaction Tracker',
         description: 'Track 50 transactions',
@@ -95,7 +95,7 @@ class GamificationService {
         tier: AchievementTier.bronze,
         category: AchievementCategory.tracking,
       ),
-      Achievement(
+      const Achievement(
         id: 'categorizer',
         name: 'Organized One',
         description: 'Categorize 100 transactions',
@@ -106,7 +106,7 @@ class GamificationService {
       ),
 
       // Social Achievements
-      Achievement(
+      const Achievement(
         id: 'first_split',
         name: 'Fair Friend',
         description: 'Split your first expense',
@@ -115,7 +115,7 @@ class GamificationService {
         tier: AchievementTier.bronze,
         category: AchievementCategory.social,
       ),
-      Achievement(
+      const Achievement(
         id: 'settlement_king',
         name: 'Settlement King',
         description: 'Settle 10 group expenses',
@@ -126,7 +126,7 @@ class GamificationService {
       ),
 
       // Streak Achievements
-      Achievement(
+      const Achievement(
         id: 'streak_30',
         name: 'Habit Former',
         description: 'Use app for 30 consecutive days',
@@ -342,14 +342,14 @@ class DashboardChartService {
 /// Onboarding Flow
 class OnboardingService {
   final List<OnboardingStep> _steps = [
-    OnboardingStep(
+    const OnboardingStep(
       id: 'welcome',
       title: 'Welcome to DuskSpendr! 🌙',
       description: 'Your privacy-first finance buddy designed for students',
       imagePath: 'assets/images/onboarding/welcome.png',
       actions: [],
     ),
-    OnboardingStep(
+    const OnboardingStep(
       id: 'security',
       title: 'Your Data, Your Control',
       description: 'All data stays on your device. We never see your finances.',
@@ -365,7 +365,7 @@ class OnboardingService {
         ),
       ],
     ),
-    OnboardingStep(
+    const OnboardingStep(
       id: 'accounts',
       title: 'Connect Your Accounts',
       description: 'Link banks, UPI, and wallets to auto-track transactions',
@@ -381,7 +381,7 @@ class OnboardingService {
         ),
       ],
     ),
-    OnboardingStep(
+    const OnboardingStep(
       id: 'sms',
       title: 'Smart SMS Tracking',
       description: 'Grant SMS access to auto-detect transactions from banks',
@@ -397,7 +397,7 @@ class OnboardingService {
         ),
       ],
     ),
-    OnboardingStep(
+    const OnboardingStep(
       id: 'budget',
       title: 'Set Your First Budget',
       description: 'Start with a monthly spending limit',
@@ -409,7 +409,7 @@ class OnboardingService {
         ),
       ],
     ),
-    OnboardingStep(
+    const OnboardingStep(
       id: 'complete',
       title: 'You\'re All Set! 🎉',
       description: 'Start your journey to financial freedom',
@@ -439,32 +439,32 @@ class OnboardingService {
 class QuickActionsService {
   List<QuickAction> getQuickActions() {
     return [
-      QuickAction(
+      const QuickAction(
         id: 'add_expense',
         label: 'Add Expense',
         icon: Icons.remove_circle_outline,
-        color: const Color(0xFFEF4444),
+        color: Color(0xFFEF4444),
         route: '/add-transaction?type=expense',
       ),
-      QuickAction(
+      const QuickAction(
         id: 'add_income',
         label: 'Add Income',
         icon: Icons.add_circle_outline,
-        color: const Color(0xFF10B981),
+        color: Color(0xFF10B981),
         route: '/add-transaction?type=income',
       ),
-      QuickAction(
+      const QuickAction(
         id: 'split',
         label: 'Split Expense',
         icon: Icons.call_split,
-        color: const Color(0xFF6366F1),
+        color: Color(0xFF6366F1),
         route: '/split-expense',
       ),
-      QuickAction(
+      const QuickAction(
         id: 'scan',
         label: 'Scan Receipt',
         icon: Icons.document_scanner_outlined,
-        color: const Color(0xFF8B5CF6),
+        color: Color(0xFF8B5CF6),
         route: '/scan-receipt',
       ),
     ];

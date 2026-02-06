@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/theme/typography.dart';
@@ -42,7 +41,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          _PolicyCard(
+          const _PolicyCard(
             type: InsuranceType.health,
             provider: 'Star Health',
             policyNumber: 'SH2024XXXXXX',
@@ -51,7 +50,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
             renewalDate: 'Mar 15, 2025',
             status: PolicyStatus.active,
           ),
-          _PolicyCard(
+          const _PolicyCard(
             type: InsuranceType.term,
             provider: 'HDFC Life',
             policyNumber: 'HDF2023XXXXXX',
@@ -69,12 +68,12 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          _RecommendedInsuranceCard(
+          const _RecommendedInsuranceCard(
             type: InsuranceType.vehicle,
             reason: 'You mentioned buying a new bike',
             estimatedPremium: '₹2,500/year',
           ),
-          _RecommendedInsuranceCard(
+          const _RecommendedInsuranceCard(
             type: InsuranceType.travel,
             reason: 'For your upcoming Goa trip',
             estimatedPremium: '₹500/trip',
@@ -153,7 +152,7 @@ class _CoverageSummaryCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          Row(
+          const Row(
             children: [
               _CoverageStat(
                 label: 'Health',

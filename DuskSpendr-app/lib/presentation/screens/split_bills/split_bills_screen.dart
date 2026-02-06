@@ -270,7 +270,7 @@ class _ActiveSplitsTab extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.people_outline, size: 64, color: AppColors.textMuted),
+                const Icon(Icons.people_outline, size: 64, color: AppColors.textMuted),
                 const SizedBox(height: AppSpacing.md),
                 Text('No active splits', style: AppTypography.bodyLarge.copyWith(color: AppColors.textSecondary)),
                 const SizedBox(height: AppSpacing.sm),
@@ -389,7 +389,7 @@ class _SettledSplitsTab extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.check_circle_outline, size: 64, color: AppColors.textMuted),
+                const Icon(Icons.check_circle_outline, size: 64, color: AppColors.textMuted),
                 const SizedBox(height: AppSpacing.md),
                 Text('No settled expenses yet', style: AppTypography.bodyLarge.copyWith(color: AppColors.textSecondary)),
               ],

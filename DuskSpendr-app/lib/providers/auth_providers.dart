@@ -1,13 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/config/app_config.dart';
 import '../data/local/session_store.dart';
 import '../data/remote/api_client.dart';
 import '../data/remote/auth_api.dart';
 
-const _baseUrl = 'http://10.0.2.2:8080';
-
 final apiClientProvider = Provider<ApiClient>((ref) {
-  return ApiClient(baseUrl: _baseUrl);
+  final store = ref.read(sessionStoreProvider);
+  return ApiClient(
+    baseUrl: AppConfig.apiBaseUrl,
+    onUnauthorized: () => store.clear(),
+  );
 });
 
 final authApiProvider = Provider<AuthApi>((ref) {

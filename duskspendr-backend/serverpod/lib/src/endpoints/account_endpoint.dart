@@ -224,7 +224,8 @@ class AccountEndpoint extends Endpoint {
 
     final txCount = txResult.first[0] as int;
     if (txCount > 0) {
-      throw Exception('Cannot delete account with transactions. Transfer transactions first.');
+      throw Exception(
+          'Cannot delete account with transactions. Transfer transactions first.');
     }
 
     final result = await session.query(

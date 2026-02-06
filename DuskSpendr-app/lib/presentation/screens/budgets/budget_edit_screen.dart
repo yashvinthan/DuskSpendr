@@ -55,7 +55,8 @@ class _BudgetEditScreenState extends ConsumerState<BudgetEditScreen> {
               children: [
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                  icon: const Icon(Icons.arrow_back,
+                      color: AppColors.textPrimary),
                 ),
                 Text('Edit Budget',
                     style: AppTypography.h2.copyWith(
@@ -76,7 +77,7 @@ class _BudgetEditScreenState extends ConsumerState<BudgetEditScreen> {
                 ),
                 const SizedBox(height: AppSpacing.md),
                 DropdownButtonFormField<String>(
-                  value: _period,
+                  initialValue: _period,
                   dropdownColor: AppColors.darkSurface,
                   items: const [
                     DropdownMenuItem(value: 'daily', child: Text('Daily')),
@@ -108,7 +109,7 @@ class _BudgetEditScreenState extends ConsumerState<BudgetEditScreen> {
                             period: _period,
                             category: widget.budget.category,
                           );
-                      if (!mounted) return;
+                      if (!context.mounted) return;
                       ref.invalidate(budgetsProvider);
                       Navigator.of(context).pop();
                     },

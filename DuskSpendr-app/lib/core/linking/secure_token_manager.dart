@@ -133,7 +133,7 @@ class SecureTokenManager {
     if (meta == null || meta.expiresAt == null) return true;
     
     // Consider expired if less than 5 minutes remaining
-    final buffer = const Duration(minutes: 5);
+    const buffer = Duration(minutes: 5);
     return DateTime.now().isAfter(meta.expiresAt!.subtract(buffer));
   }
 
@@ -143,7 +143,7 @@ class SecureTokenManager {
     if (meta == null || meta.expiresAt == null) return true;
     
     // Refresh if less than 15 minutes remaining
-    final threshold = const Duration(minutes: 15);
+    const threshold = Duration(minutes: 15);
     return DateTime.now().isAfter(meta.expiresAt!.subtract(threshold));
   }
 

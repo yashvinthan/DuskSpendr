@@ -1,5 +1,6 @@
 /// SS-081 to SS-088: Financial Education Module
 /// AI Insights, Tips, Lessons, Quizzes
+library;
 
 /// AI-Powered Financial Insights
 class InsightsEngine {
@@ -207,7 +208,7 @@ class TipsService {
   void _initializeTips() {
     final tips = [
       // Saving Tips
-      FinancialTip(
+      const FinancialTip(
         id: 'tip_50_30_20',
         title: 'The 50/30/20 Rule',
         content: 'Allocate 50% of income to needs, 30% to wants, and 20% to savings. As a student, try 60/25/15 if needed.',
@@ -215,7 +216,7 @@ class TipsService {
         difficulty: TipDifficulty.beginner,
         estimatedReadTime: 2,
       ),
-      FinancialTip(
+      const FinancialTip(
         id: 'tip_round_up',
         title: 'Round Up Savings',
         content: 'Round up every purchase to the nearest ₹10 or ₹100 and save the difference. It adds up quickly!',
@@ -223,7 +224,7 @@ class TipsService {
         difficulty: TipDifficulty.beginner,
         estimatedReadTime: 1,
       ),
-      FinancialTip(
+      const FinancialTip(
         id: 'tip_24_hour_rule',
         title: 'The 24-Hour Rule',
         content: 'Before any purchase over ₹500, wait 24 hours. Most impulse buys fade away.',
@@ -233,7 +234,7 @@ class TipsService {
       ),
 
       // Budgeting Tips
-      FinancialTip(
+      const FinancialTip(
         id: 'tip_envelope',
         title: 'Digital Envelope Method',
         content: 'Create separate "envelopes" (budgets) for each spending category. When it\'s empty, stop spending.',
@@ -241,7 +242,7 @@ class TipsService {
         difficulty: TipDifficulty.intermediate,
         estimatedReadTime: 3,
       ),
-      FinancialTip(
+      const FinancialTip(
         id: 'tip_zero_budget',
         title: 'Zero-Based Budgeting',
         content: 'Give every rupee a job. Income minus all expenses (including savings) should equal zero.',
@@ -251,7 +252,7 @@ class TipsService {
       ),
 
       // Student-Specific Tips
-      FinancialTip(
+      const FinancialTip(
         id: 'tip_student_discount',
         title: 'Student Discounts Everywhere',
         content: 'Always ask for student discounts. Spotify, Apple Music, Amazon Prime, software - many offer 50%+ off.',
@@ -259,7 +260,7 @@ class TipsService {
         difficulty: TipDifficulty.beginner,
         estimatedReadTime: 2,
       ),
-      FinancialTip(
+      const FinancialTip(
         id: 'tip_textbook',
         title: 'Textbook Savings',
         content: 'Buy used, rent, or use library copies. Check for PDF versions or older editions.',
@@ -267,7 +268,7 @@ class TipsService {
         difficulty: TipDifficulty.beginner,
         estimatedReadTime: 2,
       ),
-      FinancialTip(
+      const FinancialTip(
         id: 'tip_meal_prep',
         title: 'Meal Prep Sunday',
         content: 'Prepare meals for the week on Sunday. Saves money AND time during busy weekdays.',
@@ -277,7 +278,7 @@ class TipsService {
       ),
 
       // Investing Tips
-      FinancialTip(
+      const FinancialTip(
         id: 'tip_start_sip',
         title: 'Start with ₹500 SIP',
         content: 'Begin investing with a small SIP in an index fund. Time in market beats timing the market.',
@@ -285,7 +286,7 @@ class TipsService {
         difficulty: TipDifficulty.intermediate,
         estimatedReadTime: 3,
       ),
-      FinancialTip(
+      const FinancialTip(
         id: 'tip_compound',
         title: 'Power of Compounding',
         content: 'Starting at 20 vs 30 can double your retirement corpus. Even ₹100/month matters!',
@@ -295,7 +296,7 @@ class TipsService {
       ),
 
       // Credit Tips
-      FinancialTip(
+      const FinancialTip(
         id: 'tip_credit_card',
         title: 'Credit Card Basics',
         content: 'Always pay full balance. Never just minimum. Interest rates are 30-40% per year!',
@@ -303,7 +304,7 @@ class TipsService {
         difficulty: TipDifficulty.beginner,
         estimatedReadTime: 2,
       ),
-      FinancialTip(
+      const FinancialTip(
         id: 'tip_bnpl',
         title: 'BNPL Warning',
         content: 'Buy Now Pay Later is still debt. Track all BNPL purchases like regular expenses.',
@@ -356,7 +357,7 @@ class LessonsService {
 
   void _initializeLessons() {
     final lessons = [
-      FinancialLesson(
+      const FinancialLesson(
         id: 'lesson_budgeting_101',
         title: 'Budgeting 101',
         description: 'Learn the fundamentals of creating and sticking to a budget',
@@ -411,7 +412,7 @@ class LessonsService {
         xpReward: 50,
       ),
 
-      FinancialLesson(
+      const FinancialLesson(
         id: 'lesson_saving_goals',
         title: 'Setting Saving Goals',
         description: 'How to set and achieve financial goals as a student',
@@ -458,7 +459,7 @@ class LessonsService {
         xpReward: 40,
       ),
 
-      FinancialLesson(
+      const FinancialLesson(
         id: 'lesson_investing_basics',
         title: 'Investing Basics',
         description: 'Introduction to investing for beginners',
@@ -529,7 +530,7 @@ class LessonsService {
         xpReward: 75,
       ),
 
-      FinancialLesson(
+      const FinancialLesson(
         id: 'lesson_credit_understanding',
         title: 'Understanding Credit',
         description: 'Learn about credit scores, cards, and responsible borrowing',
@@ -661,7 +662,7 @@ class LearningProgressTracker {
       if (entry.value.isCompleted) {
         final lesson = allLessons.firstWhere(
           (l) => l.id == entry.key,
-          orElse: () => FinancialLesson(
+          orElse: () => const FinancialLesson(
             id: '',
             title: '',
             description: '',

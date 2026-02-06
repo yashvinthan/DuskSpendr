@@ -31,7 +31,8 @@ class BudgetAlertsScreen extends ConsumerWidget {
               children: [
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                  icon: const Icon(Icons.arrow_back,
+                      color: AppColors.textPrimary),
                 ),
                 Text('Budget Alerts',
                     style: AppTypography.h2.copyWith(
@@ -52,15 +53,12 @@ class BudgetAlertsScreen extends ConsumerWidget {
                       );
                     }
 
-                    final alerts = budgets
-                        .where((b) => b.isActive)
-                        .where((b) {
-                          if (b.isExceeded) return settings.alert100;
-                          if (b.progress >= 0.8) return settings.alert80;
-                          if (b.progress >= 0.5) return settings.alert50;
-                          return false;
-                        })
-                        .toList();
+                    final alerts = budgets.where((b) => b.isActive).where((b) {
+                      if (b.isExceeded) return settings.alert100;
+                      if (b.progress >= 0.8) return settings.alert80;
+                      if (b.progress >= 0.5) return settings.alert50;
+                      return false;
+                    }).toList();
 
                     if (alerts.isEmpty) {
                       return Padding(
@@ -183,9 +181,8 @@ class BudgetAlertsScreen extends ConsumerWidget {
                         label: 'Start',
                         value: settings.quietHoursStart,
                         onChanged: (value) {
-                          ref
-                              .read(alertSettingsProvider.notifier)
-                              .update(settings.copyWith(quietHoursStart: value));
+                          ref.read(alertSettingsProvider.notifier).update(
+                              settings.copyWith(quietHoursStart: value));
                         },
                       ),
                     ),
@@ -278,7 +275,7 @@ class _HourPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<int>(
-      value: value,
+      initialValue: value,
       dropdownColor: AppColors.darkSurface,
       decoration: InputDecoration(labelText: label),
       items: List.generate(
@@ -333,4 +330,3 @@ class _AlertCard extends StatelessWidget {
     );
   }
 }
-

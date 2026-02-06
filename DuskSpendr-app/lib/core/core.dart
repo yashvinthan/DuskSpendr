@@ -1,5 +1,9 @@
 /// DuskSpendr Core Module Exports
 /// All feature implementations are exported from here
+library;
+
+// ====== Config (API URL, env) ======
+export 'config/config.dart';
 
 // ====== Core Infrastructure ======
 export 'privacy/privacy_engine.dart';

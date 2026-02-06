@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/sms/financial_institution_database.dart';
 import '../core/sms/notification_listener_service.dart';
 import '../core/sms/sms_parser.dart';
+import 'dart:async';
 import '../core/sms/sms_permission_service.dart';
 import '../core/sync/data_synchronizer.dart';
 import '../core/sync/sync_metrics_service.dart';
@@ -231,6 +232,7 @@ class SyncOrchestrator extends StateNotifier<SyncOrchestratorState> {
   final UpiNotificationListener _notificationListener;
   final SyncMetricsService _metricsService;
   final SyncUploadService _uploadService;
+  StreamSubscription<UpiPaymentNotification>? _notificationSubscription;
 
   SyncOrchestrator({
     required DataSynchronizer synchronizer,
@@ -257,9 +259,15 @@ class SyncOrchestrator extends StateNotifier<SyncOrchestratorState> {
       // Start background sync
       _synchronizer.startBackgroundSync();
 
-      // Start notification listener
+      // Start notification listener (SS-032: UPI notification handler)
       final notifStarted = await _notificationListener.startListening();
       state = state.copyWith(isListeningNotifications: notifStarted);
+      if (notifStarted) {
+        _notificationSubscription?.cancel();
+        _notificationSubscription = _notificationListener.notifications.listen(
+          _onUpiPaymentNotification,
+        );
+      }
 
       // Sync from SMS
       await _syncFromSms();
@@ -373,8 +381,48 @@ class SyncOrchestrator extends StateNotifier<SyncOrchestratorState> {
     }
   }
 
+  void _onUpiPaymentNotification(UpiPaymentNotification n) {
+    final institution = _toFinancialInstitution(n.app);
+    if (institution == null) return;
+    final parsed = ParsedTransaction(
+      amountPaisa: n.amountPaisa,
+      isDebit: !n.isCredit,
+      timestamp: n.timestamp,
+      merchantName: n.counterparty,
+      institution: institution,
+      confidence: n.confidence,
+      rawSmsBody: n.rawText,
+      referenceId: n.referenceId,
+      upiId: n.upiId,
+    );
+    _synchronizer.ingestParsedTransaction(parsed);
+  }
+
+  FinancialInstitution? _toFinancialInstitution(UpiAppType app) {
+    switch (app) {
+      case UpiAppType.googlePay:
+        return FinancialInstitution.gpay;
+      case UpiAppType.phonePe:
+        return FinancialInstitution.phonepe;
+      case UpiAppType.paytm:
+        return FinancialInstitution.paytm;
+      case UpiAppType.bharatPe:
+        return FinancialInstitution.bharatPe;
+      case UpiAppType.amazonPay:
+        return FinancialInstitution.amazonPay;
+      case UpiAppType.cred:
+        return FinancialInstitution.cred;
+      case UpiAppType.whatsAppPay:
+        return FinancialInstitution.whatsappPay;
+      default:
+        return null;
+    }
+  }
+
   /// Stop all sync
   void stopSync() {
+    _notificationSubscription?.cancel();
+    _notificationSubscription = null;
     _synchronizer.stopBackgroundSync();
     _notificationListener.stopListening();
     state = state.copyWith(

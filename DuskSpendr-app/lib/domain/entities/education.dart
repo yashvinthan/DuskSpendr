@@ -1,4 +1,5 @@
 /// SS-090: Financial Education domain entities
+library;
 
 /// Financial topic categories
 enum FinancialTopic {

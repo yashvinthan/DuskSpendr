@@ -12,11 +12,14 @@ import '../../../providers/gamification_provider.dart';
 import '../../../providers/transaction_provider.dart';
 import '../../../providers/sync_providers.dart';
 import '../../../core/sync/sync_metrics_service.dart';
+import 'package:go_router/go_router.dart';
+
 import '../profile/profile_screen.dart';
 import '../settings/settings_screen.dart';
 import '../stats/stats_screen.dart';
 import '../transactions/add_transaction_screen.dart';
 import '../transactions/transactions_screen.dart';
+import '../../navigation/navigation.dart';
 
 /// SS-081: Student Dashboard wired with real providers
 
@@ -102,7 +105,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text('Add Transaction', style: AppTypography.h3),
+            const Text('Add Transaction', style: AppTypography.h3),
             const SizedBox(height: AppSpacing.lg),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -122,7 +125,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   color: AppColors.accent,
                   onTap: () {
                     Navigator.pop(context);
-                    // TODO: Navigate to add income
+                    // Reuse existing add-transaction flow (credit/income)
+                    setState(() => _index = 2);
                   },
                 ),
                 _QuickAddOption(
@@ -131,7 +135,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   color: AppColors.primary,
                   onTap: () {
                     Navigator.pop(context);
-                    // TODO: Navigate to transfer
+                    // Transfer UI not yet implemented; route to transactions for now
+                    setState(() => _index = 3);
                   },
                 ),
               ],
@@ -198,21 +203,21 @@ class _HomeDashboard extends ConsumerWidget {
             vertical: AppSpacing.screenVertical,
           ),
           child: ListView(
-            children: [
-              const _Header(),
-              const SizedBox(height: AppSpacing.lg),
-              const _BalanceCard(),
-              const SizedBox(height: AppSpacing.lg),
-              const _SpendingCard(),
-              const SizedBox(height: AppSpacing.lg),
-              const _SyncHealthCard(),
-              const SizedBox(height: AppSpacing.lg),
-              const _TransactionsCard(),
-              const SizedBox(height: AppSpacing.lg),
-              const _QuickActions(),
-              const SizedBox(height: AppSpacing.lg),
-              const _ScoreCard(),
-              const SizedBox(height: AppSpacing.xl),
+            children: const [
+              _Header(),
+              SizedBox(height: AppSpacing.lg),
+              _BalanceCard(),
+              SizedBox(height: AppSpacing.lg),
+              _SpendingCard(),
+              SizedBox(height: AppSpacing.lg),
+              _SyncHealthCard(),
+              SizedBox(height: AppSpacing.lg),
+              _TransactionsCard(),
+              SizedBox(height: AppSpacing.lg),
+              _QuickActions(),
+              SizedBox(height: AppSpacing.lg),
+              _ScoreCard(),
+              SizedBox(height: AppSpacing.xl),
             ],
           ),
         ),
@@ -244,7 +249,7 @@ class _SyncHealthCard extends ConsumerWidget {
             children: [
               Icon(Icons.sync, color: theme.colorScheme.onSurface),
               const SizedBox(width: AppSpacing.sm),
-              Text('Sync Health', style: AppTypography.h3),
+              const Text('Sync Health', style: AppTypography.h3),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -1052,7 +1057,7 @@ class _ScoreCard extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () {
-                // Navigate to score details
+                context.push(AppRoutes.financeScore);
               },
               child: const Text('Improve →'),
             ),

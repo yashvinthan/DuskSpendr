@@ -73,19 +73,5 @@ flutter:
     - assets/images/
     - assets/animations/
     - assets/icons/
-  
-  fonts:
-    - family: PlusJakartaSans
-      fonts:
-        - asset: assets/fonts/PlusJakartaSans-Regular.ttf
-        - asset: assets/fonts/PlusJakartaSans-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/PlusJakartaSans-SemiBold.ttf
-          weight: 600
-        - asset: assets/fonts/PlusJakartaSans-Bold.ttf
-          weight: 700
-    - family: SpaceMono
-      fonts:
-        - asset: assets/fonts/SpaceMono-Regular.ttf
-        - asset: assets/fonts/SpaceMono-Bold.ttf
-          weight: 700
+
+  # Fonts are provided via the `google_fonts` package.

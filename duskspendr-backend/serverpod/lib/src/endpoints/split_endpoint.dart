@@ -27,7 +27,8 @@ class SplitEndpoint extends Endpoint {
     for (final row in result) {
       final split = _mapSplit(row);
       // Get participants for each split
-      split['participants'] = await _getParticipants(session, split['id'] as int);
+      split['participants'] =
+          await _getParticipants(session, split['id'] as int);
       splits.add(split);
     }
 
@@ -349,18 +350,20 @@ class SplitEndpoint extends Endpoint {
       parameters: {'splitId': splitId},
     );
 
-    return result.map((row) => {
-      'id': row[0],
-      'splitId': row[1],
-      'userId': row[2],
-      'name': row[3],
-      'phone': row[4],
-      'email': row[5],
-      'amount': row[6],
-      'isPaid': row[7],
-      'paidAt': row[8],
-      'createdAt': row[9],
-    }).toList();
+    return result
+        .map((row) => {
+              'id': row[0],
+              'splitId': row[1],
+              'userId': row[2],
+              'name': row[3],
+              'phone': row[4],
+              'email': row[5],
+              'amount': row[6],
+              'isPaid': row[7],
+              'paidAt': row[8],
+              'createdAt': row[9],
+            })
+        .toList();
   }
 
   Map<String, dynamic> _mapSplit(List<dynamic> row) {

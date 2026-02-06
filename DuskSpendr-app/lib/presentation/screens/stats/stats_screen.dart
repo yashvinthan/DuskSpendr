@@ -148,15 +148,15 @@ class _LineChartCard extends StatelessWidget {
             height: 180,
             child: LineChart(
               LineChartData(
-                gridData: FlGridData(show: false),
-                titlesData: FlTitlesData(show: false),
+                gridData: const FlGridData(show: false),
+                titlesData: const FlTitlesData(show: false),
                 borderData: FlBorderData(show: false),
                 lineBarsData: [
                   LineChartBarData(
                     isCurved: true,
                     color: AppColors.sunset500,
                     barWidth: 3,
-                    dotData: FlDotData(show: false),
+                    dotData: const FlDotData(show: false),
                     belowBarData: BarAreaData(
                       show: true,
                       gradient: LinearGradient(
@@ -183,10 +183,10 @@ class _LineChartCard extends StatelessWidget {
 class _CategoryLegend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Wrap(
+    return const Wrap(
       spacing: 12,
       runSpacing: 12,
-      children: const [
+      children: [
         _LegendItem(label: 'Food 34%', color: AppColors.categoryFood),
         _LegendItem(label: 'Transport 17%', color: AppColors.categoryTransport),
         _LegendItem(

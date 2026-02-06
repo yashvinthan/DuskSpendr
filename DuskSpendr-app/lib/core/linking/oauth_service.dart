@@ -154,9 +154,9 @@ class ProviderOAuthConfigs {
   );
 
   // Google Pay OAuth Config
-  static OAuthConfig get gpay => OAuthConfig(
-        clientId: const String.fromEnvironment('OAUTH_GPAY_CLIENT_ID'),
-        clientSecret: const String.fromEnvironment('OAUTH_GPAY_CLIENT_SECRET'),
+  static OAuthConfig get gpay => const OAuthConfig(
+        clientId: String.fromEnvironment('OAUTH_GPAY_CLIENT_ID'),
+        clientSecret: String.fromEnvironment('OAUTH_GPAY_CLIENT_SECRET'),
         authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
         tokenEndpoint: 'https://oauth2.googleapis.com/token',
         redirectUri: '$_redirectScheme://oauth/gpay/callback',
@@ -167,73 +167,73 @@ class ProviderOAuthConfigs {
           'access_type': 'offline',
           'prompt': 'consent',
         },
-        enabled: const bool.fromEnvironment('FEATURE_GPAY', defaultValue: false),
+        enabled: bool.fromEnvironment('FEATURE_GPAY', defaultValue: false),
       );
 
   // PhonePe OAuth Config (simulated - actual API may vary)
-  static OAuthConfig get phonepe => OAuthConfig(
-        clientId: const String.fromEnvironment('OAUTH_PHONEPE_CLIENT_ID'),
-        clientSecret: const String.fromEnvironment('OAUTH_PHONEPE_CLIENT_SECRET'),
+  static OAuthConfig get phonepe => const OAuthConfig(
+        clientId: String.fromEnvironment('OAUTH_PHONEPE_CLIENT_ID'),
+        clientSecret: String.fromEnvironment('OAUTH_PHONEPE_CLIENT_SECRET'),
         authorizationEndpoint: 'https://api.phonepe.com/apps/oauth/authorize',
         tokenEndpoint: 'https://api.phonepe.com/apps/oauth/token',
         redirectUri: '$_redirectScheme://oauth/phonepe/callback',
         scopes: ['transactions.read', 'balance.read'],
-        enabled: const bool.fromEnvironment('FEATURE_PHONEPE', defaultValue: false),
+        enabled: bool.fromEnvironment('FEATURE_PHONEPE', defaultValue: false),
       );
 
   // Paytm OAuth Config
-  static OAuthConfig get paytm => OAuthConfig(
-        clientId: const String.fromEnvironment('OAUTH_PAYTM_CLIENT_ID'),
-        clientSecret: const String.fromEnvironment('OAUTH_PAYTM_CLIENT_SECRET'),
+  static OAuthConfig get paytm => const OAuthConfig(
+        clientId: String.fromEnvironment('OAUTH_PAYTM_CLIENT_ID'),
+        clientSecret: String.fromEnvironment('OAUTH_PAYTM_CLIENT_SECRET'),
         authorizationEndpoint: 'https://accounts.paytm.com/oauth2/authorize',
         tokenEndpoint: 'https://accounts.paytm.com/oauth2/token',
         redirectUri: '$_redirectScheme://oauth/paytm/callback',
         scopes: ['wallet', 'transaction_history'],
-        enabled: const bool.fromEnvironment('FEATURE_PAYTM_UPI', defaultValue: false),
+        enabled: bool.fromEnvironment('FEATURE_PAYTM_UPI', defaultValue: false),
       );
 
   // Zerodha Kite Connect Config
-  static OAuthConfig get zerodha => OAuthConfig(
-        clientId: const String.fromEnvironment('OAUTH_ZERODHA_CLIENT_ID'),
-        clientSecret: const String.fromEnvironment('OAUTH_ZERODHA_CLIENT_SECRET'),
+  static OAuthConfig get zerodha => const OAuthConfig(
+        clientId: String.fromEnvironment('OAUTH_ZERODHA_CLIENT_ID'),
+        clientSecret: String.fromEnvironment('OAUTH_ZERODHA_CLIENT_SECRET'),
         authorizationEndpoint: 'https://kite.zerodha.com/connect/login',
         tokenEndpoint: 'https://api.kite.trade/session/token',
         redirectUri: '$_redirectScheme://oauth/zerodha/callback',
         scopes: ['holdings', 'orders', 'positions'],
-        enabled: const bool.fromEnvironment('FEATURE_ZERODHA', defaultValue: false),
+        enabled: bool.fromEnvironment('FEATURE_ZERODHA', defaultValue: false),
       );
 
   // Groww OAuth Config (simulated)
-  static OAuthConfig get groww => OAuthConfig(
-        clientId: const String.fromEnvironment('OAUTH_GROWW_CLIENT_ID'),
-        clientSecret: const String.fromEnvironment('OAUTH_GROWW_CLIENT_SECRET'),
+  static OAuthConfig get groww => const OAuthConfig(
+        clientId: String.fromEnvironment('OAUTH_GROWW_CLIENT_ID'),
+        clientSecret: String.fromEnvironment('OAUTH_GROWW_CLIENT_SECRET'),
         authorizationEndpoint: 'https://groww.in/oauth/authorize',
         tokenEndpoint: 'https://api.groww.in/oauth/token',
         redirectUri: '$_redirectScheme://oauth/groww/callback',
         scopes: ['portfolio.read', 'transactions.read'],
-        enabled: const bool.fromEnvironment('FEATURE_GROWW', defaultValue: false),
+        enabled: bool.fromEnvironment('FEATURE_GROWW', defaultValue: false),
       );
 
   // Upstox OAuth Config
-  static OAuthConfig get upstox => OAuthConfig(
-        clientId: const String.fromEnvironment('OAUTH_UPSTOX_CLIENT_ID'),
-        clientSecret: const String.fromEnvironment('OAUTH_UPSTOX_CLIENT_SECRET'),
+  static OAuthConfig get upstox => const OAuthConfig(
+        clientId: String.fromEnvironment('OAUTH_UPSTOX_CLIENT_ID'),
+        clientSecret: String.fromEnvironment('OAUTH_UPSTOX_CLIENT_SECRET'),
         authorizationEndpoint: 'https://api.upstox.com/v2/login/authorization/dialog',
         tokenEndpoint: 'https://api.upstox.com/v2/login/authorization/token',
         redirectUri: '$_redirectScheme://oauth/upstox/callback',
         scopes: ['portfolio', 'orders'],
-        enabled: const bool.fromEnvironment('FEATURE_UPSTOX', defaultValue: false),
+        enabled: bool.fromEnvironment('FEATURE_UPSTOX', defaultValue: false),
       );
 
   // Angel One SmartAPI Config
-  static OAuthConfig get angelOne => OAuthConfig(
-        clientId: const String.fromEnvironment('OAUTH_ANGEL_ONE_CLIENT_ID'),
-        clientSecret: const String.fromEnvironment('OAUTH_ANGEL_ONE_CLIENT_SECRET'),
+  static OAuthConfig get angelOne => const OAuthConfig(
+        clientId: String.fromEnvironment('OAUTH_ANGEL_ONE_CLIENT_ID'),
+        clientSecret: String.fromEnvironment('OAUTH_ANGEL_ONE_CLIENT_SECRET'),
         authorizationEndpoint: 'https://smartapi.angelbroking.com/rest/auth/angelbroking/user/v1/loginByPassword',
         tokenEndpoint: 'https://smartapi.angelbroking.com/rest/auth/angelbroking/jwt/v1/generateTokens',
         redirectUri: '$_redirectScheme://oauth/angelone/callback',
         scopes: ['portfolio', 'orders', 'holdings'],
-        enabled: const bool.fromEnvironment('FEATURE_ANGEL_ONE', defaultValue: false),
+        enabled: bool.fromEnvironment('FEATURE_ANGEL_ONE', defaultValue: false),
       );
 
   static OAuthConfig? getConfig(AccountProviderType provider) {

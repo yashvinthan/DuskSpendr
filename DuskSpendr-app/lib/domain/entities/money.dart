@@ -52,7 +52,7 @@ class Money {
         groups.insert(0, remaining);
       }
 
-      formattedInt = '${groups.join(',')},${firstPart}';
+      formattedInt = '${groups.join(',')},$firstPart';
     }
 
     final sign = isNegative ? '-' : '';

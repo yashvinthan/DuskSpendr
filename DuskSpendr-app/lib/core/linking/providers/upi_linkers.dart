@@ -131,7 +131,7 @@ abstract class UpiLinker implements AccountLinker {
     try {
       // Most OAuth providers have a revoke endpoint
       await _httpClient.post(
-        Uri.parse('${oauthConfig.tokenEndpoint.replaceAll('/token', '/revoke')}'),
+        Uri.parse(oauthConfig.tokenEndpoint.replaceAll('/token', '/revoke')),
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': 'Bearer $accessToken',

@@ -136,7 +136,7 @@ class _SavingsSummaryCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          Row(
+          const Row(
             children: [
               Expanded(
                 child: _SavingStat(
@@ -146,7 +146,7 @@ class _SavingsSummaryCard extends StatelessWidget {
                   color: AppColors.dusk500,
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: _SavingStat(
                   label: 'Round-ups',
@@ -219,7 +219,7 @@ class _PiggyBanksTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      children: [
+      children: const [
         _PiggyBankCard(
           name: 'New Phone',
           emoji: '📱',
@@ -370,7 +370,7 @@ class _ChallengesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      children: [
+      children: const [
         _ChallengeCard(
           title: '52-Week Challenge',
           description: 'Save ₹1 week 1, ₹2 week 2...',
@@ -576,19 +576,19 @@ class _RoundUpsTab extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        _RoundUpEntry(
+        const _RoundUpEntry(
           merchant: 'Swiggy',
           amount: 287,
           roundUp: 13,
           date: 'Today, 2:30 PM',
         ),
-        _RoundUpEntry(
+        const _RoundUpEntry(
           merchant: 'Amazon',
           amount: 1542,
           roundUp: 58,
           date: 'Yesterday',
         ),
-        _RoundUpEntry(
+        const _RoundUpEntry(
           merchant: 'Uber',
           amount: 234,
           roundUp: 66,
@@ -638,7 +638,7 @@ class _RoundUpSettingsCard extends StatelessWidget {
             ],
           ),
           const Divider(color: AppColors.darkSurface, height: AppSpacing.lg),
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _RoundUpOption(label: '₹10', isSelected: false),
@@ -757,7 +757,7 @@ class _RecurringTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      children: [
+      children: const [
         _RecurringCard(
           name: 'Monthly Savings',
           amount: 5000,

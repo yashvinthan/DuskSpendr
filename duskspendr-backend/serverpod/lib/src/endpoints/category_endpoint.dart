@@ -6,20 +6,80 @@ import '../util/serverpod_helpers.dart';
 class CategoryEndpoint extends Endpoint {
   /// Default categories that are created for new users
   static const List<Map<String, dynamic>> defaultCategories = [
-    {'name': 'Food & Dining', 'icon': 'restaurant', 'color': '#FF5722', 'type': 'expense'},
-    {'name': 'Transportation', 'icon': 'directions_car', 'color': '#2196F3', 'type': 'expense'},
-    {'name': 'Shopping', 'icon': 'shopping_bag', 'color': '#9C27B0', 'type': 'expense'},
-    {'name': 'Entertainment', 'icon': 'movie', 'color': '#E91E63', 'type': 'expense'},
-    {'name': 'Bills & Utilities', 'icon': 'receipt', 'color': '#607D8B', 'type': 'expense'},
-    {'name': 'Healthcare', 'icon': 'local_hospital', 'color': '#4CAF50', 'type': 'expense'},
-    {'name': 'Education', 'icon': 'school', 'color': '#3F51B5', 'type': 'expense'},
+    {
+      'name': 'Food & Dining',
+      'icon': 'restaurant',
+      'color': '#FF5722',
+      'type': 'expense'
+    },
+    {
+      'name': 'Transportation',
+      'icon': 'directions_car',
+      'color': '#2196F3',
+      'type': 'expense'
+    },
+    {
+      'name': 'Shopping',
+      'icon': 'shopping_bag',
+      'color': '#9C27B0',
+      'type': 'expense'
+    },
+    {
+      'name': 'Entertainment',
+      'icon': 'movie',
+      'color': '#E91E63',
+      'type': 'expense'
+    },
+    {
+      'name': 'Bills & Utilities',
+      'icon': 'receipt',
+      'color': '#607D8B',
+      'type': 'expense'
+    },
+    {
+      'name': 'Healthcare',
+      'icon': 'local_hospital',
+      'color': '#4CAF50',
+      'type': 'expense'
+    },
+    {
+      'name': 'Education',
+      'icon': 'school',
+      'color': '#3F51B5',
+      'type': 'expense'
+    },
     {'name': 'Travel', 'icon': 'flight', 'color': '#00BCD4', 'type': 'expense'},
-    {'name': 'Personal Care', 'icon': 'spa', 'color': '#FF9800', 'type': 'expense'},
-    {'name': 'Groceries', 'icon': 'shopping_cart', 'color': '#8BC34A', 'type': 'expense'},
-    {'name': 'Salary', 'icon': 'payments', 'color': '#4CAF50', 'type': 'income'},
+    {
+      'name': 'Personal Care',
+      'icon': 'spa',
+      'color': '#FF9800',
+      'type': 'expense'
+    },
+    {
+      'name': 'Groceries',
+      'icon': 'shopping_cart',
+      'color': '#8BC34A',
+      'type': 'expense'
+    },
+    {
+      'name': 'Salary',
+      'icon': 'payments',
+      'color': '#4CAF50',
+      'type': 'income'
+    },
     {'name': 'Freelance', 'icon': 'work', 'color': '#2196F3', 'type': 'income'},
-    {'name': 'Investments', 'icon': 'trending_up', 'color': '#673AB7', 'type': 'income'},
-    {'name': 'Gift', 'icon': 'card_giftcard', 'color': '#E91E63', 'type': 'both'},
+    {
+      'name': 'Investments',
+      'icon': 'trending_up',
+      'color': '#673AB7',
+      'type': 'income'
+    },
+    {
+      'name': 'Gift',
+      'icon': 'card_giftcard',
+      'color': '#E91E63',
+      'type': 'both'
+    },
     {'name': 'Other', 'icon': 'more_horiz', 'color': '#9E9E9E', 'type': 'both'},
   ];
 
@@ -309,15 +369,17 @@ class CategoryEndpoint extends Endpoint {
       },
     );
 
-    return result.map((row) => {
-      'id': row[0],
-      'name': row[1],
-      'icon': row[2],
-      'color': row[3],
-      'type': row[4],
-      'totalAmount': row[5],
-      'transactionCount': row[6],
-    }).toList();
+    return result
+        .map((row) => {
+              'id': row[0],
+              'name': row[1],
+              'icon': row[2],
+              'color': row[3],
+              'type': row[4],
+              'totalAmount': row[5],
+              'transactionCount': row[6],
+            })
+        .toList();
   }
 
   Map<String, dynamic> _mapCategory(List<dynamic> row) {

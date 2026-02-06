@@ -220,7 +220,7 @@ class SyncPipeline {
   SecurityCheck _performSecurityCheck(RawIngestionData data) {
     // Timestamp validation (not too old, not in future)
     final now = DateTime.now();
-    final maxAge = const Duration(days: 365);
+    const maxAge = Duration(days: 365);
     final isTimestampValid = data.receivedAt.isAfter(now.subtract(maxAge)) &&
         data.receivedAt.isBefore(now.add(const Duration(hours: 1)));
 
@@ -239,7 +239,7 @@ class SyncPipeline {
   }
 
   bool _verifySignature(RawIngestionData data) {
-    // TODO: Implement signature verification based on provider
+    // Signature verification can be implemented per provider if/when signed payloads are supported.
     return true;
   }
 

@@ -63,13 +63,13 @@ class EducationalContentService {
 
   // ====== Spending Lessons ======
   static final _spendingLessons = [
-    EducationalLesson(
+    const EducationalLesson(
       id: 'spending_tracking',
       topic: FinancialTopic.spending,
       title: 'Track Every Rupee',
       subtitle: 'The foundation of financial awareness',
       durationMinutes: 5,
-      sections: const [
+      sections: [
         LessonSection(
           type: LessonSectionType.hook,
           title: 'Where Does Your Money Go?',
@@ -106,7 +106,7 @@ class EducationalContentService {
               'Track every purchase for just 7 days. You\'ll be surprised what you discover!',
         ),
       ],
-      quiz: const [
+      quiz: [
         QuizQuestion(
           question: 'How much do people typically underestimate their spending?',
           options: ['10-15%', '20-25%', '30-40%', '50-60%'],
@@ -128,13 +128,13 @@ class EducationalContentService {
         ),
       ],
     ),
-    EducationalLesson(
+    const EducationalLesson(
       id: 'spending_wants_needs',
       topic: FinancialTopic.spending,
       title: 'Wants vs Needs',
       subtitle: 'Learn to tell the difference',
       durationMinutes: 4,
-      sections: const [
+      sections: [
         LessonSection(
           type: LessonSectionType.hook,
           title: 'That "I Need It!" Feeling',
@@ -169,13 +169,13 @@ class EducationalContentService {
 
   // ====== Saving Lessons ======
   static final _savingLessons = [
-    EducationalLesson(
+    const EducationalLesson(
       id: 'saving_basics',
       topic: FinancialTopic.saving,
       title: 'Saving Made Simple',
       subtitle: 'Start with just ₹100',
       durationMinutes: 5,
-      sections: const [
+      sections: [
         LessonSection(
           type: LessonSectionType.hook,
           title: 'Small Amounts, Big Impact',
@@ -207,7 +207,7 @@ class EducationalContentService {
               'Start with any amount you can. Consistency matters more than amount!',
         ),
       ],
-      quiz: const [
+      quiz: [
         QuizQuestion(
           question: 'What does "Pay Yourself First" mean?',
           options: [
@@ -222,13 +222,13 @@ class EducationalContentService {
         ),
       ],
     ),
-    EducationalLesson(
+    const EducationalLesson(
       id: 'saving_emergency_fund',
       topic: FinancialTopic.saving,
       title: 'Emergency Fund',
       subtitle: 'Your financial safety net',
       durationMinutes: 5,
-      sections: const [
+      sections: [
         LessonSection(
           type: LessonSectionType.hook,
           title: 'When Life Happens',
@@ -264,13 +264,13 @@ class EducationalContentService {
 
   // ====== Budgeting Lessons ======
   static final _budgetingLessons = [
-    EducationalLesson(
+    const EducationalLesson(
       id: 'budgeting_basics',
       topic: FinancialTopic.budgeting,
       title: 'Budgeting 101',
       subtitle: 'Take control of your money',
       durationMinutes: 6,
-      sections: const [
+      sections: [
         LessonSection(
           type: LessonSectionType.hook,
           title: 'What\'s a Budget?',
@@ -318,7 +318,7 @@ class EducationalContentService {
               'Start with the 50/30/20 rule and adjust based on your needs.',
         ),
       ],
-      quiz: const [
+      quiz: [
         QuizQuestion(
           question: 'In the 50/30/20 rule, what percentage goes to savings?',
           options: ['50%', '30%', '20%', '10%'],
@@ -339,13 +339,13 @@ class EducationalContentService {
         ),
       ],
     ),
-    EducationalLesson(
+    const EducationalLesson(
       id: 'budgeting_envelope',
       topic: FinancialTopic.budgeting,
       title: 'Envelope Method',
       subtitle: 'Digital envelopes for spending control',
       durationMinutes: 4,
-      sections: const [
+      sections: [
         LessonSection(
           type: LessonSectionType.hook,
           title: 'The Cash Envelope Trick',
@@ -374,13 +374,13 @@ class EducationalContentService {
 
   // ====== Credit Lessons ======
   static final _creditLessons = [
-    EducationalLesson(
+    const EducationalLesson(
       id: 'credit_basics',
       topic: FinancialTopic.credit,
       title: 'Credit Score Basics',
       subtitle: 'Why your score matters',
       durationMinutes: 6,
-      sections: const [
+      sections: [
         LessonSection(
           type: LessonSectionType.hook,
           title: 'Your Financial Reputation',
@@ -422,7 +422,7 @@ class EducationalContentService {
               'Always pay bills on time and keep credit card usage under 30%.',
         ),
       ],
-      quiz: const [
+      quiz: [
         QuizQuestion(
           question: 'What\'s the biggest factor affecting your credit score?',
           options: [
@@ -441,13 +441,13 @@ class EducationalContentService {
 
   // ====== Investing Lessons ======
   static final _investingLessons = [
-    EducationalLesson(
+    const EducationalLesson(
       id: 'investing_compound',
       topic: FinancialTopic.investing,
       title: 'Compound Interest Magic',
       subtitle: 'How money grows money',
       durationMinutes: 5,
-      sections: const [
+      sections: [
         LessonSection(
           type: LessonSectionType.hook,
           title: 'The Eighth Wonder',
@@ -480,7 +480,7 @@ class EducationalContentService {
               'Start investing early, even small amounts. Time is your biggest advantage!',
         ),
       ],
-      quiz: const [
+      quiz: [
         QuizQuestion(
           question: 'What makes compound interest special?',
           options: [
@@ -499,13 +499,13 @@ class EducationalContentService {
 
   // ====== Banking Lessons ======
   static final _bankingLessons = [
-    EducationalLesson(
+    const EducationalLesson(
       id: 'banking_account_types',
       topic: FinancialTopic.banking,
       title: 'Bank Account Basics',
       subtitle: 'Which account for what purpose',
       durationMinutes: 4,
-      sections: const [
+      sections: [
         LessonSection(
           type: LessonSectionType.hook,
           title: 'Not All Accounts Are Equal',
@@ -546,13 +546,13 @@ class EducationalContentService {
 
   // ====== Goals Lessons ======
   static final _goalsLessons = [
-    EducationalLesson(
+    const EducationalLesson(
       id: 'goals_smart',
       topic: FinancialTopic.goals,
       title: 'Setting SMART Goals',
       subtitle: 'Turn dreams into achievable targets',
       durationMinutes: 5,
-      sections: const [
+      sections: [
         LessonSection(
           type: LessonSectionType.hook,
           title: 'Goals Without Plans Are Dreams',
@@ -583,7 +583,7 @@ class EducationalContentService {
           content: 'Make every financial goal SMART for better success rates!',
         ),
       ],
-      quiz: const [
+      quiz: [
         QuizQuestion(
           question: 'What does the "T" in SMART goals stand for?',
           options: ['Trackable', 'Time-bound', 'Tangible', 'Transparent'],

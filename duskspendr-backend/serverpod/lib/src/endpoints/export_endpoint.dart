@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../util/serverpod_helpers.dart';
+
 /// Export endpoint for data portability
 class ExportEndpoint extends Endpoint {
   /// Export all user data as JSON
@@ -84,7 +85,8 @@ class ExportEndpoint extends Endpoint {
       final account = _escapeCsv(tx['accountName'] as String? ?? '');
       final source = tx['source'] as String? ?? '';
 
-      buffer.writeln('${date.toIso8601String()},$amount,$merchant,$category,$description,$account,$source');
+      buffer.writeln(
+          '${date.toIso8601String()},$amount,$merchant,$category,$description,$account,$source');
     }
 
     return buffer.toString();
@@ -135,7 +137,8 @@ class ExportEndpoint extends Endpoint {
     return {
       'requestId': requestId,
       'status': 'pending',
-      'message': 'Your data deletion request has been submitted. You will receive confirmation within 30 days.',
+      'message':
+          'Your data deletion request has been submitted. You will receive confirmation within 30 days.',
     };
   }
 
@@ -233,20 +236,22 @@ class ExportEndpoint extends Endpoint {
       parameters: params,
     );
 
-    return result.map((row) => {
-      'id': row[0],
-      'amount': row[1],
-      'merchantName': row[2],
-      'description': row[3],
-      'date': (row[4] as DateTime).toIso8601String(),
-      'source': row[5],
-      'isRecurring': row[6],
-      'tags': row[7],
-      'location': row[8],
-      'createdAt': (row[9] as DateTime).toIso8601String(),
-      'categoryName': row[10],
-      'accountName': row[11],
-    }).toList();
+    return result
+        .map((row) => {
+              'id': row[0],
+              'amount': row[1],
+              'merchantName': row[2],
+              'description': row[3],
+              'date': (row[4] as DateTime).toIso8601String(),
+              'source': row[5],
+              'isRecurring': row[6],
+              'tags': row[7],
+              'location': row[8],
+              'createdAt': (row[9] as DateTime).toIso8601String(),
+              'categoryName': row[10],
+              'accountName': row[11],
+            })
+        .toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportBudgets(
@@ -266,20 +271,24 @@ class ExportEndpoint extends Endpoint {
       parameters: {'userId': userId},
     );
 
-    return result.map((row) => {
-      'id': row[0],
-      'name': row[1],
-      'amount': row[2],
-      'spent': row[3],
-      'period': row[4],
-      'startDate': (row[5] as DateTime).toIso8601String(),
-      'endDate': row[6] != null ? (row[6] as DateTime).toIso8601String() : null,
-      'alertThreshold': row[7],
-      'isActive': row[8],
-      'rollover': row[9],
-      'createdAt': (row[10] as DateTime).toIso8601String(),
-      'categoryName': row[11],
-    }).toList();
+    return result
+        .map((row) => {
+              'id': row[0],
+              'name': row[1],
+              'amount': row[2],
+              'spent': row[3],
+              'period': row[4],
+              'startDate': (row[5] as DateTime).toIso8601String(),
+              'endDate': row[6] != null
+                  ? (row[6] as DateTime).toIso8601String()
+                  : null,
+              'alertThreshold': row[7],
+              'isActive': row[8],
+              'rollover': row[9],
+              'createdAt': (row[10] as DateTime).toIso8601String(),
+              'categoryName': row[11],
+            })
+        .toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportAccounts(
@@ -296,16 +305,18 @@ class ExportEndpoint extends Endpoint {
       parameters: {'userId': userId},
     );
 
-    return result.map((row) => {
-      'id': row[0],
-      'name': row[1],
-      'type': row[2],
-      'balance': row[3],
-      'currency': row[4],
-      'institution': row[5],
-      'isDefault': row[6],
-      'createdAt': (row[7] as DateTime).toIso8601String(),
-    }).toList();
+    return result
+        .map((row) => {
+              'id': row[0],
+              'name': row[1],
+              'type': row[2],
+              'balance': row[3],
+              'currency': row[4],
+              'institution': row[5],
+              'isDefault': row[6],
+              'createdAt': (row[7] as DateTime).toIso8601String(),
+            })
+        .toList();
   }
 
   Future<List<Map<String, dynamic>>> _exportSplits(
@@ -340,14 +351,17 @@ class ExportEndpoint extends Endpoint {
         'description': row[2],
         'status': row[3],
         'createdAt': (row[4] as DateTime).toIso8601String(),
-        'settledAt': row[5] != null ? (row[5] as DateTime).toIso8601String() : null,
-        'participants': participants.map((p) => {
-          'name': p[0],
-          'phone': p[1],
-          'email': p[2],
-          'amount': p[3],
-          'isPaid': p[4],
-        }).toList(),
+        'settledAt':
+            row[5] != null ? (row[5] as DateTime).toIso8601String() : null,
+        'participants': participants
+            .map((p) => {
+                  'name': p[0],
+                  'phone': p[1],
+                  'email': p[2],
+                  'amount': p[3],
+                  'isPaid': p[4],
+                })
+            .toList(),
       });
     }
 

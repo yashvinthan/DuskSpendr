@@ -54,7 +54,7 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
             gradient: LinearGradient(
               begin: Alignment(_animation.value - 1, 0),
               end: Alignment(_animation.value + 1, 0),
-              colors: [
+              colors: const [
                 AppColors.darkSurface,
                 AppColors.darkCard,
                 AppColors.darkSurface,
@@ -218,14 +218,14 @@ class CardSkeleton extends StatelessWidget {
         color: AppColors.darkCard,
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const ShimmerLoading(width: 100, height: 14),
-          const SizedBox(height: AppSpacing.md),
-          const ShimmerLoading(width: 150, height: 32),
-          const Spacer(),
-          const ShimmerLoading(height: 8),
+          ShimmerLoading(width: 100, height: 14),
+          SizedBox(height: AppSpacing.md),
+          ShimmerLoading(width: 150, height: 32),
+          Spacer(),
+          ShimmerLoading(height: 8),
         ],
       ),
     );

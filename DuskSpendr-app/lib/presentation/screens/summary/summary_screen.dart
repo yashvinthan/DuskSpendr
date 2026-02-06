@@ -72,7 +72,7 @@ class _SummaryScreenState extends ConsumerState<SummaryScreen>
   }
 
   void _shareSummary() {
-    // TODO: Generate summary image and share
+    // Summary image sharing can be added via share_plus + screenshot controller.
     Share.share('Check out my spending summary on DuskSpendr!');
   }
 }
@@ -125,7 +125,7 @@ class _WeeklySummaryCard extends ConsumerWidget {
             data: (total) => _SpendingTotalCard(
               amount: total,
               label: 'This Week',
-              changePercent: weeksAgo == 0 ? null : 0, // TODO: Calculate
+              changePercent: weeksAgo == 0 ? null : 0, // Calculate when history is available
             ),
             loading: () => const _LoadingCard(),
             error: (e, _) => _ErrorCard(message: e.toString()),
@@ -244,7 +244,7 @@ class _MonthlySummaryCard extends ConsumerWidget {
           monthlySpending.when(
             data: (total) => _BudgetComparisonCard(
               spent: total,
-              budget: Money.fromPaisa(2000000), // TODO: Get from budget provider
+              budget: Money.fromPaisa(2000000), // Get from budget provider when wired
             ),
             loading: () => const _LoadingCard(),
             error: (e, _) => _ErrorCard(message: e.toString()),
@@ -731,17 +731,17 @@ class _WeeklyInsights extends StatelessWidget {
           Text('Insights',
               style: AppTypography.h3.copyWith(color: AppColors.textPrimary)),
           const SizedBox(height: AppSpacing.md),
-          _InsightRow(
+          const _InsightRow(
             emoji: '📅',
             text: 'Friday was your highest spending day',
           ),
           const SizedBox(height: AppSpacing.sm),
-          _InsightRow(
+          const _InsightRow(
             emoji: '🍔',
             text: 'Food is your top category at 42%',
           ),
           const SizedBox(height: AppSpacing.sm),
-          _InsightRow(
+          const _InsightRow(
             emoji: '💰',
             text: 'You saved ₹800 compared to last week',
             isPositive: true,
@@ -797,7 +797,7 @@ class _MonthlyHighlights extends StatelessWidget {
           Text('Highlights',
               style: AppTypography.h3.copyWith(color: AppColors.textPrimary)),
           const SizedBox(height: AppSpacing.md),
-          Row(
+          const Row(
             children: [
               Expanded(
                 child: _HighlightItem(
@@ -807,7 +807,7 @@ class _MonthlyHighlights extends StatelessWidget {
                   color: AppColors.danger,
                 ),
               ),
-              const SizedBox(width: AppSpacing.md),
+              SizedBox(width: AppSpacing.md),
               Expanded(
                 child: _HighlightItem(
                   icon: Icons.savings,

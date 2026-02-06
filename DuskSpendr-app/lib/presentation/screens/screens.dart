@@ -27,3 +27,9 @@ export 'learning/learning.dart';
 // Utility screens
 export 'notifications/notifications.dart';
 export 'settings/settings.dart';
+export 'sync_status/sync_status.dart';
+export 'categories/categories.dart';
+export 'alerts/alerts.dart';
+export 'gamification/gamification.dart';
+export 'credit_score/credit_score.dart';
+export 'health/health.dart';

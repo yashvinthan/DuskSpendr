@@ -263,7 +263,7 @@ class _ContinueLessonCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.timer, size: 14, color: AppColors.textMuted),
+                      const Icon(Icons.timer, size: 14, color: AppColors.textMuted),
                       const SizedBox(width: 4),
                       Text(
                         '${lesson.durationMinutes} min',
@@ -480,7 +480,7 @@ class _LessonListItem extends StatelessWidget {
             ),
             Row(
               children: [
-                Icon(Icons.timer, size: 14, color: AppColors.textMuted),
+                const Icon(Icons.timer, size: 14, color: AppColors.textMuted),
                 const SizedBox(width: 4),
                 Text(
                   '${lesson.durationMinutes}m',
@@ -488,7 +488,7 @@ class _LessonListItem extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 if (lesson.quiz.isNotEmpty)
-                  Icon(Icons.quiz, size: 14, color: AppColors.textMuted),
+                  const Icon(Icons.quiz, size: 14, color: AppColors.textMuted),
               ],
             ),
           ],
@@ -515,7 +515,7 @@ class AchievementsScreen extends ConsumerWidget {
       ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
-        children: [
+        children: const [
           _AchievementCard(
             icon: Icons.school,
             title: 'First Steps',
@@ -523,7 +523,7 @@ class AchievementsScreen extends ConsumerWidget {
             isUnlocked: true,
             color: AppColors.success,
           ),
-          const SizedBox(height: AppSpacing.sm),
+          SizedBox(height: AppSpacing.sm),
           _AchievementCard(
             icon: Icons.local_fire_department,
             title: 'On Fire!',
@@ -531,7 +531,7 @@ class AchievementsScreen extends ConsumerWidget {
             isUnlocked: false,
             color: AppColors.error,
           ),
-          const SizedBox(height: AppSpacing.sm),
+          SizedBox(height: AppSpacing.sm),
           _AchievementCard(
             icon: Icons.quiz,
             title: 'Quiz Master',
@@ -539,7 +539,7 @@ class AchievementsScreen extends ConsumerWidget {
             isUnlocked: false,
             color: AppColors.amber500,
           ),
-          const SizedBox(height: AppSpacing.sm),
+          SizedBox(height: AppSpacing.sm),
           _AchievementCard(
             icon: Icons.emoji_events,
             title: 'Financial Expert',
@@ -623,7 +623,7 @@ class _AchievementCard extends StatelessWidget {
               ),
             )
           else
-            Icon(Icons.lock, color: AppColors.textMuted),
+            const Icon(Icons.lock, color: AppColors.textMuted),
         ],
       ),
     );

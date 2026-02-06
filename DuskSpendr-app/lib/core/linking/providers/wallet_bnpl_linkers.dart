@@ -204,9 +204,13 @@ class AmazonPayLinker implements AccountLinker {
 /// SS-020: Paytm Wallet
 class PaytmWalletLinker implements AccountLinker {
   final http.Client _httpClient;
+  final OAuthService _oauthService;
 
-  PaytmWalletLinker({http.Client? httpClient}) 
-      : _httpClient = httpClient ?? http.Client();
+  PaytmWalletLinker({
+    http.Client? httpClient,
+    OAuthService? oauthService,
+  })  : _httpClient = httpClient ?? http.Client(),
+        _oauthService = oauthService ?? OAuthService();
 
   @override
   AccountProviderType get providerType => AccountProviderType.paytmWallet;
@@ -228,24 +232,95 @@ class PaytmWalletLinker implements AccountLinker {
     if (!config.isValid) {
       return AuthorizationResult.failure('Provider not configured');
     }
+    final state = _oauthService.generateState();
+    final verifier = _oauthService.generateCodeVerifier();
+    final challenge = _oauthService.generateCodeChallenge(verifier);
     return AuthorizationResult.success(
       authorizationUrl: '${config.authorizationEndpoint}?'
           'client_id=${config.clientId}'
           '&redirect_uri=${config.redirectUri}'
-          '&scope=wallet,balance'
-          '&response_type=code',
+          '&scope=wallet%20balance%20transaction_history'
+          '&response_type=code'
+          '&state=$state'
+          '&code_challenge=$challenge'
+          '&code_challenge_method=S256',
+      state: state,
+      codeVerifier: verifier,
     );
   }
 
   @override
   Future<TokenResult> exchangeAuthorizationCode(String code, String? verifier) async {
-    // Similar to Paytm UPI
-    return TokenResult.failure('Not implemented');
+    final config = ProviderOAuthConfigs.paytm;
+    if (!config.isValid) {
+      return TokenResult.failure('Provider not configured');
+    }
+    try {
+      final body = <String, String>{
+        'grant_type': 'authorization_code',
+        'code': code,
+        'client_id': config.clientId,
+        'redirect_uri': config.redirectUri,
+        if (config.clientSecret.isNotEmpty) 'client_secret': config.clientSecret,
+        if (verifier != null) 'code_verifier': verifier,
+      };
+      final response = await _httpClient.post(
+        Uri.parse(config.tokenEndpoint),
+        headers: <String, String>{'Content-Type': 'application/x-www-form-urlencoded'},
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return TokenResult.success(
+          accessToken: data['access_token'] as String,
+          refreshToken: data['refresh_token'] as String?,
+          expiresAt: DateTime.now().add(
+            Duration(seconds: (data['expires_in'] as num?)?.toInt() ?? 3600),
+          ),
+        );
+      }
+      return TokenResult.failure(
+        'Token exchange failed: ${response.statusCode}',
+      );
+    } catch (e) {
+      return TokenResult.failure('Token exchange error: $e');
+    }
   }
 
   @override
   Future<TokenResult> refreshAccessToken(String refreshToken) async {
-    return TokenResult.failure('Not implemented');
+    final config = ProviderOAuthConfigs.paytm;
+    if (!config.isValid) {
+      return TokenResult.failure('Provider not configured');
+    }
+    try {
+      final body = <String, String>{
+        'grant_type': 'refresh_token',
+        'refresh_token': refreshToken,
+        'client_id': config.clientId,
+        if (config.clientSecret.isNotEmpty) 'client_secret': config.clientSecret,
+      };
+      final response = await _httpClient.post(
+        Uri.parse(config.tokenEndpoint),
+        headers: <String, String>{'Content-Type': 'application/x-www-form-urlencoded'},
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return TokenResult.success(
+          accessToken: data['access_token'] as String,
+          refreshToken: data['refresh_token'] as String? ?? refreshToken,
+          expiresAt: DateTime.now().add(
+            Duration(seconds: (data['expires_in'] as num?)?.toInt() ?? 3600),
+          ),
+        );
+      }
+      return TokenResult.failure('Token refresh failed');
+    } catch (e) {
+      return TokenResult.failure('Token refresh error: $e');
+    }
   }
 
   @override
@@ -420,6 +495,11 @@ class LazypayLinker implements AccountLinker {
 
 /// SS-022: Simpl BNPL
 class SimplLinker implements AccountLinker {
+  final http.Client _httpClient;
+
+  SimplLinker({http.Client? httpClient})
+      : _httpClient = httpClient ?? http.Client();
+
   @override
   AccountProviderType get providerType => AccountProviderType.simpl;
 
@@ -431,6 +511,8 @@ class SimplLinker implements AccountLinker {
 
   @override
   bool get supportsRealTimeSync => false;
+
+  static const _baseUrl = 'https://api.getsimpl.com/v1';
 
   @override
   Future<AuthorizationResult> initiateAuthorization() async {
@@ -456,13 +538,69 @@ class SimplLinker implements AccountLinker {
     DateTime? to,
     String? cursor,
   }) async {
-    // Similar implementation to LazyPay
-    return TransactionFetchResult.failure('Not implemented');
+    try {
+      final queryParams = <String, String>{
+        if (from != null) 'from': from.toIso8601String(),
+        if (to != null) 'to': to.toIso8601String(),
+        if (cursor != null) 'cursor': cursor,
+        'limit': '100',
+      };
+      final response = await _httpClient.get(
+        Uri.parse('$_baseUrl/transactions').replace(queryParameters: queryParams),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final list = data['transactions'] as List? ?? [];
+        final transactions = list
+            .map((tx) => ProviderTransaction(
+                  providerId: tx['id']?.toString() ?? '',
+                  amountPaisa: ((tx['amount'] ?? 0) * 100).round(),
+                  isDebit: tx['type'] != 'CREDIT',
+                  timestamp: DateTime.parse(
+                      tx['created_at'] ?? DateTime.now().toIso8601String()),
+                  merchantName: tx['merchant_name']?.toString(),
+                  description: tx['description']?.toString(),
+                  rawData: tx as Map<String, dynamic>,
+                ))
+            .toList();
+
+        return TransactionFetchResult.success(
+          transactions: transactions,
+          nextCursor: data['next_cursor'],
+          hasMore: data['has_more'] ?? false,
+        );
+      }
+      return TransactionFetchResult.failure('Failed to fetch Simpl transactions');
+    } catch (e) {
+      return TransactionFetchResult.failure('Simpl fetch error: $e');
+    }
   }
 
   @override
   Future<BalanceResult> fetchBalance(String accessToken) async {
-    return BalanceResult.failure('Not implemented');
+    try {
+      final response = await _httpClient.get(
+        Uri.parse('$_baseUrl/credit/outstanding'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final outstanding = ((data['outstanding'] ?? 0) * 100).round();
+        return BalanceResult.success(balancePaisa: -outstanding);
+      }
+      return BalanceResult.failure('Failed to fetch Simpl credit info');
+    } catch (e) {
+      return BalanceResult.failure('Simpl balance error: $e');
+    }
   }
 
   @override
@@ -474,6 +612,11 @@ class SimplLinker implements AccountLinker {
 
 /// SS-023: Amazon Pay Later
 class AmazonPayLaterLinker implements AccountLinker {
+  final http.Client _httpClient;
+
+  AmazonPayLaterLinker({http.Client? httpClient})
+      : _httpClient = httpClient ?? http.Client();
+
   static const _amazonClientId = String.fromEnvironment('OAUTH_AMAZON_CLIENT_ID');
   static const _amazonRedirectUri = String.fromEnvironment(
     'OAUTH_AMAZON_REDIRECT_URI',
@@ -523,12 +666,60 @@ class AmazonPayLaterLinker implements AccountLinker {
     DateTime? to,
     String? cursor,
   }) async {
-    return TransactionFetchResult.failure('Not implemented');
+    if (_amazonClientId.isEmpty) {
+      return TransactionFetchResult.failure('Provider not configured');
+    }
+    try {
+      final response = await _httpClient.get(
+        Uri.parse('https://api.amazon.in/pay/v1/pay_later/transactions'),
+        headers: <String, String>{'Authorization': 'Bearer $accessToken'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final list = data['transactions'] as List? ?? [];
+        final transactions = list
+            .map((tx) => ProviderTransaction(
+                  providerId: tx['transactionId'] ?? '',
+                  amountPaisa: ((tx['amount'] ?? 0) * 100).round(),
+                  isDebit: tx['type'] == 'DEBIT',
+                  timestamp: DateTime.parse(
+                      tx['date'] ?? DateTime.now().toIso8601String()),
+                  merchantName: tx['merchant'],
+                  description: tx['description'],
+                  rawData: tx as Map<String, dynamic>,
+                ))
+            .toList();
+
+        return TransactionFetchResult.success(transactions: transactions);
+      }
+      return TransactionFetchResult.failure('Failed to fetch Pay Later transactions');
+    } catch (e) {
+      return TransactionFetchResult.failure('Pay Later fetch error: $e');
+    }
   }
 
   @override
   Future<BalanceResult> fetchBalance(String accessToken) async {
-    return BalanceResult.failure('Not implemented');
+    if (_amazonClientId.isEmpty) {
+      return BalanceResult.failure('Provider not configured');
+    }
+    try {
+      final response = await _httpClient.get(
+        Uri.parse('https://api.amazon.in/pay/v1/pay_later/limit'),
+        headers: <String, String>{'Authorization': 'Bearer $accessToken'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final limit = ((data['creditLimit'] ?? 0) * 100).round();
+        final used = ((data['usedLimit'] ?? 0) * 100).round();
+        return BalanceResult.success(balancePaisa: limit - used);
+      }
+      return BalanceResult.failure('Failed to fetch Pay Later limit');
+    } catch (e) {
+      return BalanceResult.failure('Pay Later balance error: $e');
+    }
   }
 
   @override

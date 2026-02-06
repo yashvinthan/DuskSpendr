@@ -1,4 +1,5 @@
 /// SS-070: Financial Calculators
+library;
 import 'dart:math';
 
 /// Financial Calculators

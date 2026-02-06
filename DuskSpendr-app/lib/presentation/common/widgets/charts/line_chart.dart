@@ -164,7 +164,7 @@ class _LineChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (points.isEmpty) return;
 
-    final padding = const EdgeInsets.only(left: 8, right: 8, top: 16, bottom: 24);
+    const padding = EdgeInsets.only(left: 8, right: 8, top: 16, bottom: 24);
     final chartRect = Rect.fromLTWH(
       padding.left,
       padding.top,

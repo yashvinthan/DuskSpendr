@@ -284,9 +284,9 @@ class _RewardPopupState extends State<RewardPopup>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // Confetti icon
-                  Text(
+                  const Text(
                     '🎊',
-                    style: const TextStyle(fontSize: 48),
+                    style: TextStyle(fontSize: 48),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(

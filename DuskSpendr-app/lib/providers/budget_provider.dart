@@ -329,7 +329,7 @@ final loanTrackerProvider = Provider<LoanTracker>((ref) {
 /// Loan insights
 final loanInsightsProvider = FutureProvider<LoanInsights?>((ref) async {
   // Removed unused variable: tracker
-  // TODO: Load active loan from database
+  // Load active loan from database when loan DAO is wired
   return null;
 });
 
