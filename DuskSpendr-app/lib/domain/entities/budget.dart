@@ -185,10 +185,9 @@ class BudgetAlert {
     required this.message,
     required this.severity,
     this.percentUsed,
-    DateTime? timestamp,
+    required DateTime timestamp,
     this.prediction,
-  }) : timestamp =
-            timestamp ?? DateTime.now(); // Default to now if not provided
+  }) : timestamp = timestamp;
 }
 
 /// Unified Spending Prediction class

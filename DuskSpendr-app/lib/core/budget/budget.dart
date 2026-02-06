@@ -15,8 +15,8 @@
 
 library budget;
 
-// Core services
-export 'budget_service.dart';
+// Core services (hide AlertSeverity from one to avoid ambiguous_export)
+export 'budget_service.dart' hide AlertSeverity;
 export 'budget_alert_service.dart';
 export 'balance_tracking_service.dart';
 export 'bill_reminder_service.dart';
