@@ -18,16 +18,16 @@ import (
   "github.com/google/uuid"
   "github.com/jackc/pgx/v5/pgxpool"
 
-  "duskspendr-gateway/internal/config"
-  "duskspendr-gateway/internal/models"
+  "duskspendr/gateway/internal/config"
+  "duskspendr/gateway/internal/models"
 )
 
-type AuthHandler struct {
+type HTTPAuthHandler struct {
   Pool *pgxpool.Pool
   Config config.Config
 }
 
-func (h *AuthHandler) Start(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPAuthHandler) Start(w http.ResponseWriter, r *http.Request) {
   var input models.AuthStartInput
   decoder := json.NewDecoder(r.Body)
   decoder.DisallowUnknownFields()
@@ -36,7 +36,7 @@ func (h *AuthHandler) Start(w http.ResponseWriter, r *http.Request) {
     return
   }
   input.Phone = strings.TrimSpace(input.Phone)
-  if !validatePhoneE164(input.Phone) {
+  if !validatePhoneE164_HTTP(input.Phone) {
     writeError(w, http.StatusBadRequest, "invalid phone")
     return
   }
@@ -56,7 +56,7 @@ func (h *AuthHandler) Start(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  code, err := generateOTP(6)
+  code, err := generateOTP_HTTP(6)
   if err != nil {
     writeError(w, http.StatusInternalServerError, "otp generation failed")
     return
@@ -64,7 +64,7 @@ func (h *AuthHandler) Start(w http.ResponseWriter, r *http.Request) {
   otpID := uuid.New().String()
   expiresAt := time.Now().UTC().Add(5 * time.Minute)
   now := time.Now().UTC()
-  sendIP := clientIP(r)
+  sendIP := clientIP_HTTP(r)
 
   _, _ = h.Pool.Exec(r.Context(), `
     UPDATE auth_otps
@@ -72,7 +72,7 @@ func (h *AuthHandler) Start(w http.ResponseWriter, r *http.Request) {
      WHERE phone = $2 AND consumed_at IS NULL
   `, now, input.Phone)
 
-  codeHash := hashOTP(h.Config.AuthPepper, otpID, code)
+  codeHash := hashOTP_HTTP(h.Config.AuthPepper, otpID, code)
 
   _, err = h.Pool.Exec(r.Context(), `
     INSERT INTO auth_otps (id, user_id, phone, code, code_hash, expires_at, created_at, attempts_remaining, send_ip)
@@ -83,18 +83,13 @@ func (h *AuthHandler) Start(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  var devCode string
-  if h.Config.Env == "local" {
-    devCode = code
-  }
   writeJSON(w, http.StatusOK, models.AuthStartResponse{
     OTPID:     otpID,
     ExpiresAt: expiresAt,
-    DevCode:   devCode,
   })
 }
 
-func (h *AuthHandler) Verify(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPAuthHandler) Verify(w http.ResponseWriter, r *http.Request) {
   var input models.AuthVerifyInput
   decoder := json.NewDecoder(r.Body)
   decoder.DisallowUnknownFields()
@@ -104,7 +99,7 @@ func (h *AuthHandler) Verify(w http.ResponseWriter, r *http.Request) {
   }
   input.Phone = strings.TrimSpace(input.Phone)
   input.Code = strings.TrimSpace(input.Code)
-  if !validatePhoneE164(input.Phone) || input.Code == "" {
+  if !validatePhoneE164_HTTP(input.Phone) || input.Code == "" {
     writeError(w, http.StatusBadRequest, "phone and code are required")
     return
   }
@@ -138,8 +133,8 @@ func (h *AuthHandler) Verify(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  expectedHash := hashOTP(h.Config.AuthPepper, otpID, input.Code)
-  if !safeCompare(codeHash, expectedHash) {
+  expectedHash := hashOTP_HTTP(h.Config.AuthPepper, otpID, input.Code)
+  if !safeCompare_HTTP(codeHash, expectedHash) {
     _, _ = h.Pool.Exec(r.Context(), `
       UPDATE auth_otps
          SET attempts_remaining = GREATEST(attempts_remaining - 1, 0)
@@ -149,7 +144,7 @@ func (h *AuthHandler) Verify(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  token, tokenHash, err := generateToken()
+  token, tokenHash, err := generateToken_HTTP()
   if err != nil {
     writeError(w, http.StatusInternalServerError, "token generation failed")
     return
@@ -171,7 +166,7 @@ func (h *AuthHandler) Verify(w http.ResponseWriter, r *http.Request) {
     UPDATE auth_otps
        SET consumed_at = $1, verify_ip = $2
      WHERE id = $3
-  `, time.Now().UTC(), clientIP(r), otpID)
+  `, time.Now().UTC(), clientIP_HTTP(r), otpID)
 
   writeJSON(w, http.StatusOK, models.AuthVerifyResponse{
     Token:     token,
@@ -180,7 +175,7 @@ func (h *AuthHandler) Verify(w http.ResponseWriter, r *http.Request) {
   })
 }
 
-func (h *AuthHandler) ensureUser(r *http.Request, phone string) (uuid.UUID, error) {
+func (h *HTTPAuthHandler) ensureUser(r *http.Request, phone string) (uuid.UUID, error) {
   id := uuid.New()
   var userID uuid.UUID
   err := h.Pool.QueryRow(r.Context(), `
@@ -193,7 +188,7 @@ func (h *AuthHandler) ensureUser(r *http.Request, phone string) (uuid.UUID, erro
   return userID, err
 }
 
-func (h *AuthHandler) enforceOTPSendLimits(r *http.Request, phone string) error {
+func (h *HTTPAuthHandler) enforceOTPSendLimits(r *http.Request, phone string) error {
   var recentCount int
   err := h.Pool.QueryRow(r.Context(), `
     SELECT COUNT(*)
@@ -207,7 +202,7 @@ func (h *AuthHandler) enforceOTPSendLimits(r *http.Request, phone string) error 
     return fmt.Errorf("too many otp requests")
   }
 
-  ip := clientIP(r)
+  ip := clientIP_HTTP(r)
   if ip != "" {
     var ipCount int
     err = h.Pool.QueryRow(r.Context(), `
@@ -236,7 +231,7 @@ func (h *AuthHandler) enforceOTPSendLimits(r *http.Request, phone string) error 
   return nil
 }
 
-func generateOTP(length int) (string, error) {
+func generateOTP_HTTP(length int) (string, error) {
   if length <= 0 {
     return "", fmt.Errorf("invalid otp length")
   }
@@ -252,7 +247,7 @@ func generateOTP(length int) (string, error) {
   return string(buf), nil
 }
 
-func generateToken() (string, string, error) {
+func generateToken_HTTP() (string, string, error) {
   raw := make([]byte, 32)
   if _, err := rand.Read(raw); err != nil {
     return "", "", err
@@ -261,24 +256,24 @@ func generateToken() (string, string, error) {
   return token, hashToken(token), nil
 }
 
-func validatePhoneE164(phone string) bool {
+func validatePhoneE164_HTTP(phone string) bool {
   re := regexp.MustCompile(`^\+[1-9]\d{7,14}$`)
   return re.MatchString(phone)
 }
 
-func hashOTP(pepper, otpID, code string) string {
+func hashOTP_HTTP(pepper, otpID, code string) string {
   sum := sha256.Sum256([]byte(pepper + ":" + otpID + ":" + code))
   return hex.EncodeToString(sum[:])
 }
 
-func safeCompare(a, b string) bool {
+func safeCompare_HTTP(a, b string) bool {
   if len(a) != len(b) {
     return false
   }
   return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
 }
 
-func clientIP(r *http.Request) string {
+func clientIP_HTTP(r *http.Request) string {
   if r.RemoteAddr == "" {
     return ""
   }
