@@ -1,6 +1,7 @@
 """Transaction categorizer ML model."""
-import re
-from typing import Any
+import asyncio
+import re  # noqa: F401
+from typing import Any  # noqa: F401
 
 from app.core.config import settings
 from app.core.logging import get_logger
@@ -89,6 +90,11 @@ class TransactionCategorizer:
     
     async def predict(self, transaction: TransactionInput) -> CategoryPrediction:
         """Predict category for a transaction."""
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, self._predict_sync, transaction)
+
+    def _predict_sync(self, transaction: TransactionInput) -> CategoryPrediction:
+        """Synchronous prediction logic to be run in executor."""
         text = f"{transaction.merchant_name} {transaction.description or ''}".lower()
         
         # Score each category
