@@ -6,6 +6,7 @@ import (
   "crypto/hmac"
   "crypto/sha256"
   "encoding/base64"
+  "io"
   "net/http"
   "strconv"
   "time"
@@ -57,7 +58,7 @@ func (c *Client) SyncTransactions(ctx context.Context, userID string, payload []
     return false
   }
   if len(payload) > 0 {
-    req.Body = http.NopCloser(bytes.NewReader(payload))
+    req.Body = io.NopCloser(bytes.NewReader(payload))
     req.ContentLength = int64(len(payload))
     req.Header.Set("Content-Type", "application/json")
   }

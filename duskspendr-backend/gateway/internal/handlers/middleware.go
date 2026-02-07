@@ -2,14 +2,14 @@ package handlers
 
 import (
   "context"
-  "crypto/sha256"
-  "encoding/hex"
   "encoding/json"
   "net/http"
   "strings"
 
   "github.com/google/uuid"
   "github.com/jackc/pgx/v5/pgxpool"
+
+  "duskspendr/gateway/internal/utils"
 )
 
 type ctxKey string
@@ -39,7 +39,7 @@ func RequireUserID(pool *pgxpool.Pool) func(http.Handler) http.Handler {
         return
       }
 
-      tokenHash := hashToken(token)
+      tokenHash := utils.HashToken(token)
       var userID uuid.UUID
       err := pool.QueryRow(r.Context(), `
         SELECT user_id
@@ -55,11 +55,6 @@ func RequireUserID(pool *pgxpool.Pool) func(http.Handler) http.Handler {
       next.ServeHTTP(w, r.WithContext(ctx))
     })
   }
-}
-
-func hashToken(token string) string {
-  sum := sha256.Sum256([]byte(token))
-  return hex.EncodeToString(sum[:])
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
