@@ -1,6 +1,7 @@
-import 'package:serverpod/serverpod.dart';
+import 'package:serverpod/serverpod.dart' hide Transaction;
 
 import '../util/serverpod_helpers.dart';
+import '../generated/protocol.dart';
 
 /// Transaction endpoint for CRUD operations
 class TransactionEndpoint extends Endpoint {
@@ -19,44 +20,35 @@ class TransactionEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final conditions = <String>['user_id = @userId'];
-    final params = <String, dynamic>{
-      'userId': userId,
-      'limit': limit ?? 50,
-      'offset': offset ?? 0,
-    };
+    var where = Transaction.t.userId.equals(userId);
 
     if (startDate != null) {
-      conditions.add('date >= @startDate');
-      params['startDate'] = startDate;
+      where = where & (Transaction.t.date >= startDate);
     }
     if (endDate != null) {
-      conditions.add('date <= @endDate');
-      params['endDate'] = endDate;
+      where = where & (Transaction.t.date <= endDate);
     }
     if (categoryId != null) {
-      conditions.add('category_id = @categoryId');
-      params['categoryId'] = categoryId;
+      where = where & Transaction.t.categoryId.equals(categoryId);
     }
     if (source != null) {
-      conditions.add('source = @source');
-      params['source'] = source;
+      where = where & Transaction.t.source.equals(source);
     }
 
-    final result = await session.query(
-      '''
-      SELECT id, user_id, amount, merchant_name, category_id, subcategory_id,
-             description, date, source, account_id, is_recurring, recurring_id,
-             tags, location, latitude, longitude, created_at, updated_at
-      FROM transactions
-      WHERE ${conditions.join(' AND ')}
-      ORDER BY date DESC
-      LIMIT @limit OFFSET @offset
-      ''',
-      parameters: params,
+    final transactions = await session.db.find<Transaction>(
+      where: where,
+      limit: limit ?? 50,
+      offset: offset ?? 0,
+      orderBy: Transaction.t.date,
+      orderDescending: true,
     );
 
-    return result.map((row) => _mapTransaction(row)).toList();
+    return transactions.map((t) {
+      final map = t.toJson();
+      map.remove('smsHash');
+      map.remove('syncedAt');
+      return map;
+    }).toList();
   }
 
   /// Get a single transaction by ID
