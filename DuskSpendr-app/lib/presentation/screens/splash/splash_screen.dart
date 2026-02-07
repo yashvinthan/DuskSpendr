@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/theme/typography.dart';
+import '../debug/sms_debug_screen.dart';
 import '../onboarding/onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -61,42 +62,58 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppColors.gradientNight,
-        ),
-        child: SafeArea(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, _) {
-                    return Transform.scale(
-                      scale: 0.8 + (_logoScale.value * 0.4),
-                      child: _LogoMark(glow: _glowOpacity.value),
-                    );
-                  },
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                FadeTransition(
-                  opacity: _taglineOpacity,
-                  child: Text(
-                    'Your AI Finance Buddy',
-                    style: AppTypography.bodyLarge.copyWith(
-                      color: AppColors.textSecondary,
+      body: Stack(
+        children: [
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: AppColors.gradientNight,
+            ),
+            child: SafeArea(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AnimatedBuilder(
+                      animation: _controller,
+                      builder: (context, _) {
+                        return Transform.scale(
+                          scale: 0.8 + (_logoScale.value * 0.4),
+                          child: _LogoMark(glow: _glowOpacity.value),
+                        );
+                      },
                     ),
-                  ),
+                    const SizedBox(height: AppSpacing.lg),
+                    FadeTransition(
+                      opacity: _taglineOpacity,
+                      child: Text(
+                        'Your AI Finance Buddy',
+                        style: AppTypography.bodyLarge.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    _ProgressDots(animation: _controller),
+                  ],
                 ),
-                const SizedBox(height: AppSpacing.xl),
-                _ProgressDots(animation: _controller),
-              ],
+              ),
             ),
           ),
-        ),
+          Positioned(
+            top: 40,
+            right: 20,
+            child: IconButton(
+              icon: const Icon(Icons.bug_report, color: Colors.white),
+              onPressed: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const SmsDebugScreen()),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
