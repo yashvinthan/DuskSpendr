@@ -26,8 +26,10 @@ type Config struct {
 
 	// JWT
 	JWTSecret            string
+	JWTRefreshSecret     string
 	JWTAccessExpiry      time.Duration
 	JWTRefreshExpiry     time.Duration
+	AllowedOrigins       string
 
 	// Auth
 	AuthPepper           string
@@ -49,6 +51,10 @@ type Config struct {
 	SyncIngestRPM    int
 	SyncIngestBurst  int
 	SyncIngestIPRPM  int
+
+	// Integrations
+	ZerodhaApiKey    string
+	ZerodhaApiSecret string
 }
 
 func Load() Config {
@@ -72,8 +78,10 @@ func Load() Config {
 
 		// JWT
 		JWTSecret:        getEnv("JWT_SECRET", "your-super-secret-key-change-in-production"),
+		JWTRefreshSecret: getEnv("JWT_REFRESH_SECRET", "your-refresh-secret"),
 		JWTAccessExpiry:  getDurationEnv("JWT_ACCESS_EXPIRY", 15*time.Minute),
 		JWTRefreshExpiry: getDurationEnv("JWT_REFRESH_EXPIRY", 7*24*time.Hour),
+		AllowedOrigins:   getEnv("CORS_ALLOWED_ORIGINS", "*"),
 
 		// Auth
 		AuthPepper:           getEnv("AUTH_PEPPER", ""),
@@ -95,6 +103,10 @@ func Load() Config {
 		SyncIngestRPM:    getEnvInt("SYNC_INGEST_RPM", 120),
 		SyncIngestBurst:  getEnvInt("SYNC_INGEST_BURST", 60),
 		SyncIngestIPRPM:  getEnvInt("SYNC_INGEST_IP_RPM", 600),
+
+		// Integrations
+		ZerodhaApiKey:    getEnv("ZERODHA_API_KEY", ""),
+		ZerodhaApiSecret: getEnv("ZERODHA_API_SECRET", ""),
 	}
 }
 

@@ -2,8 +2,6 @@ package handlers
 
 import (
   "context"
-  "crypto/sha256"
-  "encoding/hex"
   "encoding/json"
   "net/http"
   "strings"
@@ -55,11 +53,6 @@ func RequireUserID(pool *pgxpool.Pool) func(http.Handler) http.Handler {
       next.ServeHTTP(w, r.WithContext(ctx))
     })
   }
-}
-
-func hashToken(token string) string {
-  sum := sha256.Sum256([]byte(token))
-  return hex.EncodeToString(sum[:])
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

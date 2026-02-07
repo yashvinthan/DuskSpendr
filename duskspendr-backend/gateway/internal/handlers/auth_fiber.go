@@ -269,8 +269,8 @@ func (h *AuthHandler) Verify(c *fiber.Ctx) error {
 			AccessToken:  tokenPair.AccessToken,
 			RefreshToken: tokenPair.RefreshToken,
 			UserID:       userID.String(),
-			ExpiresIn:    int(tokenPair.ExpiresIn.Seconds()),
-			ExpiresAt:    tokenPair.ExpiresAt,
+			ExpiresIn:    int(tokenPair.ExpiresIn),
+			ExpiresAt:    time.Now().UTC().Add(time.Duration(tokenPair.ExpiresIn) * time.Second),
 		},
 	})
 }
@@ -306,7 +306,7 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 		"data": RefreshResponse{
 			AccessToken:  tokenPair.AccessToken,
 			RefreshToken: tokenPair.RefreshToken,
-			ExpiresIn:    int(tokenPair.ExpiresIn.Seconds()),
+			ExpiresIn:    int(tokenPair.ExpiresIn),
 		},
 	})
 }

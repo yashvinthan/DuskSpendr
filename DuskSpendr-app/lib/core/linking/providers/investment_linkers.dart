@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 
+import '../../config/app_config.dart';
 import '../account_linker.dart';
 import '../oauth_service.dart';
 
@@ -34,12 +34,11 @@ class ZerodhaLinker extends InvestmentLinker {
   String get iconPath => 'assets/icons/providers/zerodha.png';
 
   final _apiKey = const String.fromEnvironment('OAUTH_ZERODHA_CLIENT_ID');
-  final _apiSecret = const String.fromEnvironment('OAUTH_ZERODHA_CLIENT_SECRET');
   final _baseUrl = 'https://api.kite.trade';
 
   @override
   Future<AuthorizationResult> initiateAuthorization() async {
-    if (_apiKey.isEmpty || _apiSecret.isEmpty) {
+    if (_apiKey.isEmpty) {
       return AuthorizationResult.failure('Provider not configured');
     }
     final state = _oauthService.generateState();
@@ -54,44 +53,37 @@ class ZerodhaLinker extends InvestmentLinker {
 
   @override
   Future<TokenResult> exchangeAuthorizationCode(String code, String? verifier) async {
-    if (_apiKey.isEmpty || _apiSecret.isEmpty) {
+    if (_apiKey.isEmpty) {
       return TokenResult.failure('Provider not configured');
     }
     try {
-      // Kite uses a different auth mechanism with checksum
-      final checksum = _generateChecksum(_apiKey, code, _apiSecret);
+      // Exchange token via backend to keep secret secure
+      final backendUrl = '${AppConfig.apiBaseUrl}/api/v1/investments/zerodha/exchange';
 
       final response = await _httpClient.post(
-        Uri.parse('$_baseUrl/session/token'),
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {
-          'api_key': _apiKey,
-          'request_token': code,
-          'checksum': checksum,
-        },
+        Uri.parse(backendUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'code': code}),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return TokenResult.success(
-          accessToken: data['data']['access_token'],
-          metadata: {
-            'user_id': data['data']['user_id'],
-            'user_name': data['data']['user_name'],
-          },
-        );
+        // The backend proxies the Zerodha response directly
+        // { "status": "success", "data": { ... } }
+        if (data['status'] == 'success') {
+          return TokenResult.success(
+            accessToken: data['data']['access_token'],
+            metadata: {
+              'user_id': data['data']['user_id'],
+              'user_name': data['data']['user_name'],
+            },
+          );
+        }
       }
       return TokenResult.failure('Token exchange failed');
     } catch (e) {
       return TokenResult.failure('Token exchange error: $e');
     }
-  }
-
-  String _generateChecksum(String apiKey, String requestToken, String apiSecret) {
-    // SHA256 hash of api_key + request_token + api_secret
-    final input = '$apiKey$requestToken$apiSecret';
-    final digest = sha256.convert(utf8.encode(input));
-    return digest.toString();
   }
 
   @override
