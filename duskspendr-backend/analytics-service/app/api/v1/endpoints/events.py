@@ -42,7 +42,7 @@ class BatchEventResponse(BaseModel):
 
 
 # In-memory storage for demo (replace with database)
-events_store: list[dict[str, Any]] = []
+events_store: dict[str, dict[str, Any]] = {}
 
 
 @router.post("", response_model=EventResponse, status_code=status.HTTP_201_CREATED)
@@ -66,7 +66,7 @@ async def track_event(event: EventCreate) -> EventResponse:
         "device_info": event.device_info,
     }
 
-    events_store.append(event_data)
+    events_store[event_id] = event_data
 
     logger.info(
         "Event tracked",
@@ -107,7 +107,7 @@ async def track_events_batch(batch: BatchEventCreate) -> BatchEventResponse:
                 "session_id": event.session_id,
                 "device_info": event.device_info,
             }
-            events_store.append(event_data)
+            events_store[event_id] = event_data
             event_ids.append(event_id)
             accepted += 1
         except Exception as e:
@@ -127,7 +127,7 @@ async def track_events_batch(batch: BatchEventCreate) -> BatchEventResponse:
 async def get_event_types() -> dict[str, Any]:
     """Get all tracked event types with counts."""
     type_counts: dict[str, int] = {}
-    for event in events_store:
+    for event in events_store.values():
         event_type = event.get("event_type", "unknown")
         type_counts[event_type] = type_counts.get(event_type, 0) + 1
 
@@ -142,9 +142,9 @@ async def get_event_types() -> dict[str, Any]:
 @router.get("/{event_id}")
 async def get_event(event_id: str) -> dict[str, Any]:
     """Get a specific event by ID."""
-    for event in events_store:
-        if event.get("id") == event_id:
-            return event
+    event = events_store.get(event_id)
+    if event:
+        return event
 
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
