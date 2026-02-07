@@ -43,6 +43,7 @@ class BatchEventResponse(BaseModel):
 
 # In-memory storage for demo (replace with database)
 events_store: list[dict[str, Any]] = []
+type_counts: dict[str, int] = {}
 
 
 @router.post("", response_model=EventResponse, status_code=status.HTTP_201_CREATED)
@@ -67,6 +68,7 @@ async def track_event(event: EventCreate) -> EventResponse:
     }
 
     events_store.append(event_data)
+    type_counts[event.event_type] = type_counts.get(event.event_type, 0) + 1
 
     logger.info(
         "Event tracked",
@@ -108,6 +110,7 @@ async def track_events_batch(batch: BatchEventCreate) -> BatchEventResponse:
                 "device_info": event.device_info,
             }
             events_store.append(event_data)
+            type_counts[event.event_type] = type_counts.get(event.event_type, 0) + 1
             event_ids.append(event_id)
             accepted += 1
         except Exception as e:
@@ -126,11 +129,6 @@ async def track_events_batch(batch: BatchEventCreate) -> BatchEventResponse:
 @router.get("/types")
 async def get_event_types() -> dict[str, Any]:
     """Get all tracked event types with counts."""
-    type_counts: dict[str, int] = {}
-    for event in events_store:
-        event_type = event.get("event_type", "unknown")
-        type_counts[event_type] = type_counts.get(event_type, 0) + 1
-
     return {
         "event_types": [
             {"name": name, "count": count}
