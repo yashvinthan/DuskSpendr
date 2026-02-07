@@ -6,7 +6,7 @@ import (
   "sync"
   "time"
 
-  "duskspendr-gateway/internal/config"
+  "duskspendr/gateway/internal/config"
 )
 
 type tokenBucket struct {
@@ -24,12 +24,17 @@ type rateLimiter struct {
 
 func newRateLimiter(ratePerMin int, burst int) *rateLimiter {
   ratePerSec := float64(ratePerMin) / 60.0
-  return &rateLimiter{
+  l := &rateLimiter{
     rate:   ratePerSec,
     burst:  float64(burst),
     ttl:    10 * time.Minute,
     buckets: make(map[string]*tokenBucket),
   }
+
+  // Start background cleanup
+  go l.backgroundCleanup()
+
+  return l
 }
 
 func (l *rateLimiter) allow(key string) bool {
@@ -56,11 +61,24 @@ func (l *rateLimiter) allow(key string) bool {
   }
 
   b.tokens -= 1
-  l.cleanupLocked(now)
+  // Cleanup is now handled in background
   return true
 }
 
-func (l *rateLimiter) cleanupLocked(now time.Time) {
+func (l *rateLimiter) backgroundCleanup() {
+  ticker := time.NewTicker(time.Minute)
+  defer ticker.Stop()
+
+  for range ticker.C {
+    l.cleanup()
+  }
+}
+
+func (l *rateLimiter) cleanup() {
+  l.mu.Lock()
+  defer l.mu.Unlock()
+
+  now := time.Now()
   for key, bucket := range l.buckets {
     if now.Sub(bucket.last) > l.ttl {
       delete(l.buckets, key)
