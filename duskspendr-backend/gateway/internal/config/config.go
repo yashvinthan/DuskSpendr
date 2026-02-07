@@ -49,6 +49,11 @@ type Config struct {
 	SyncIngestRPM    int
 	SyncIngestBurst  int
 	SyncIngestIPRPM  int
+
+	// Integrations
+	UpstoxClientID     string
+	UpstoxClientSecret string
+	UpstoxRedirectURI  string
 }
 
 func Load() Config {
@@ -95,6 +100,11 @@ func Load() Config {
 		SyncIngestRPM:    getEnvInt("SYNC_INGEST_RPM", 120),
 		SyncIngestBurst:  getEnvInt("SYNC_INGEST_BURST", 60),
 		SyncIngestIPRPM:  getEnvInt("SYNC_INGEST_IP_RPM", 600),
+
+		// Integrations
+		UpstoxClientID:     getEnv("UPSTOX_CLIENT_ID", ""),
+		UpstoxClientSecret: getEnv("UPSTOX_CLIENT_SECRET", ""),
+		UpstoxRedirectURI:  getEnv("UPSTOX_REDIRECT_URI", ""),
 	}
 }
 

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 
+import '../../config/app_config.dart';
 import '../account_linker.dart';
 import '../oauth_service.dart';
 
@@ -371,25 +372,26 @@ class UpstoxLinker extends InvestmentLinker {
       return TokenResult.failure('Provider not configured');
     }
     try {
+      // Use backend proxy to avoid exposing client secret
       final response = await _httpClient.post(
-        Uri.parse(config.tokenEndpoint),
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {
+        Uri.parse('${AppConfig.gatewayUrl}/api/v1/integrations/upstox/token'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
           'code': code,
-          'client_id': config.clientId,
-          'client_secret': config.clientSecret,
           'redirect_uri': config.redirectUri,
-          'grant_type': 'authorization_code',
-        },
+        }),
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return TokenResult.success(
-          accessToken: data['access_token'],
-          refreshToken: data['refresh_token'],
-          expiresAt: DateTime.now().add(Duration(seconds: data['expires_in'] ?? 86400)),
-        );
+        final body = jsonDecode(response.body);
+        if (body['success'] == true) {
+          final data = body['data'];
+          return TokenResult.success(
+            accessToken: data['access_token'],
+            refreshToken: data['refresh_token'],
+            expiresAt: DateTime.now().add(Duration(seconds: data['expires_in'] ?? 86400)),
+          );
+        }
       }
       return TokenResult.failure('Token exchange failed');
     } catch (e) {

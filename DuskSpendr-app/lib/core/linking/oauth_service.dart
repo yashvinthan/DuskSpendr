@@ -217,7 +217,7 @@ class ProviderOAuthConfigs {
   // Upstox OAuth Config
   static OAuthConfig get upstox => const OAuthConfig(
         clientId: String.fromEnvironment('OAUTH_UPSTOX_CLIENT_ID'),
-        clientSecret: String.fromEnvironment('OAUTH_UPSTOX_CLIENT_SECRET'),
+        clientSecret: '', // Secret moved to backend
         authorizationEndpoint: 'https://api.upstox.com/v2/login/authorization/dialog',
         tokenEndpoint: 'https://api.upstox.com/v2/login/authorization/token',
         redirectUri: '$_redirectScheme://oauth/upstox/callback',
