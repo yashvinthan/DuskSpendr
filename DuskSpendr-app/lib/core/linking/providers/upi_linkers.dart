@@ -165,6 +165,12 @@ abstract class UpiLinker implements AccountLinker {
 
 /// SS-016: Google Pay Integration
 class GpayLinker extends UpiLinker {
+  final bool isMockMode;
+
+  GpayLinker({
+    this.isMockMode = const bool.fromEnvironment('use_mock_linking', defaultValue: false),
+  });
+
   @override
   AccountProviderType get providerType => AccountProviderType.gpay;
 
@@ -181,12 +187,73 @@ class GpayLinker extends UpiLinker {
   String get apiBaseUrl => 'https://payments.googleapis.com/v1';
 
   @override
+  Future<AuthorizationResult> initiateAuthorization() async {
+    if (isMockMode) {
+      return AuthorizationResult.success(
+        authorizationUrl: 'https://duskspendr.mock/gpay/auth?state=mock_state',
+        codeVerifier: 'mock_verifier',
+        state: 'mock_state',
+      );
+    }
+    return super.initiateAuthorization();
+  }
+
+  @override
+  Future<TokenResult> exchangeAuthorizationCode(
+      String code, String? verifier) async {
+    if (isMockMode) {
+      return TokenResult.success(
+        accessToken: 'mock_gpay_access_token',
+        refreshToken: 'mock_gpay_refresh_token',
+        expiresAt: DateTime.now().add(const Duration(days: 30)),
+        metadata: {'token_type': 'Bearer', 'scope': 'transactions.readonly'},
+      );
+    }
+    return super.exchangeAuthorizationCode(code, verifier);
+  }
+
+  @override
   Future<TransactionFetchResult> fetchTransactions({
     required String accessToken,
     DateTime? from,
     DateTime? to,
     String? cursor,
   }) async {
+    if (isMockMode) {
+      final now = DateTime.now();
+      return TransactionFetchResult.success(
+        transactions: [
+          ProviderTransaction(
+            providerId: 'gpay_tx1',
+            amountPaisa: 25000, // ₹250.00
+            isDebit: true,
+            timestamp: now.subtract(const Duration(minutes: 30)),
+            merchantName: 'Zomato',
+            description: 'Food Delivery',
+            upiId: 'zomato@upi',
+          ),
+          ProviderTransaction(
+            providerId: 'gpay_tx2',
+            amountPaisa: 12000, // ₹120.00
+            isDebit: true,
+            timestamp: now.subtract(const Duration(days: 1)),
+            merchantName: 'Uber',
+            description: 'Ride',
+            upiId: 'uber@upi',
+          ),
+          ProviderTransaction(
+            providerId: 'gpay_tx3',
+            amountPaisa: 50000, // ₹500.00
+            isDebit: false,
+            timestamp: now.subtract(const Duration(days: 3)),
+            merchantName: 'Alice Smith',
+            description: 'Lunch split',
+            upiId: 'alice@upi',
+          ),
+        ],
+        hasMore: false,
+      );
+    }
     try {
       final queryParams = {
         if (from != null) 'startTime': from.toIso8601String(),
@@ -240,6 +307,12 @@ class GpayLinker extends UpiLinker {
 
   @override
   Future<BalanceResult> fetchBalance(String accessToken) async {
+    if (isMockMode) {
+      return BalanceResult.success(
+        balancePaisa: 0,
+        updatedAt: DateTime.now(),
+      );
+    }
     // GPay doesn't expose wallet balance directly
     return BalanceResult.failure('Balance not available for Google Pay');
   }
@@ -423,10 +496,15 @@ class PaytmUpiLinker extends UpiLinker {
 
 /// Factory for creating UPI linkers
 class UpiLinkerFactory {
+  /// Test hook to force mock mode
+  static bool? forceMockMode;
+
   static AccountLinker? create(AccountProviderType type) {
     switch (type) {
       case AccountProviderType.gpay:
-        return GpayLinker();
+        return forceMockMode != null
+            ? GpayLinker(isMockMode: forceMockMode!)
+            : GpayLinker();
       case AccountProviderType.phonepe:
         return PhonepeLinker();
       case AccountProviderType.paytmUpi:
@@ -437,7 +515,9 @@ class UpiLinkerFactory {
   }
 
   static List<AccountLinker> getAllUpiLinkers() => [
-        GpayLinker(),
+        forceMockMode != null
+            ? GpayLinker(isMockMode: forceMockMode!)
+            : GpayLinker(),
         PhonepeLinker(),
         PaytmUpiLinker(),
       ];

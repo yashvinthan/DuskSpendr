@@ -10,3 +10,4 @@ export 'repository_providers.dart';
 export 'shared_expense_provider.dart';
 export 'sync_providers.dart';
 export 'transaction_provider.dart';
+export 'feature_providers.dart';

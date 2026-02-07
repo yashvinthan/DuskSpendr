@@ -50,6 +50,7 @@ dependencies:
   permission_handler: ^11.3.0
   share_plus: ^7.2.2
   timezone: ^0.9.3
+  url_launcher: ^6.2.0
   
   # Icons & Fonts
   cupertino_icons: ^1.0.6

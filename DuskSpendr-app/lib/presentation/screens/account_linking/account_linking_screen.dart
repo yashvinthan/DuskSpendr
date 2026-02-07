@@ -1,26 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/theme/typography.dart';
 import '../../common/widgets/navigation/top_app_bar.dart';
 import '../../common/widgets/cards/glass_card.dart';
 import '../../common/widgets/buttons/primary_button.dart';
+import '../../../domain/entities/linked_account.dart';
+import '../../../core/linking/account_linker.dart';
+import '../../../core/linking/account_linking_manager.dart';
+import '../../../providers/providers.dart';
 
 /// Account Linking screen for connecting bank accounts via Account Aggregator
-class AccountLinkingScreen extends StatefulWidget {
+class AccountLinkingScreen extends ConsumerStatefulWidget {
   const AccountLinkingScreen({super.key});
 
   @override
-  State<AccountLinkingScreen> createState() => _AccountLinkingScreenState();
+  ConsumerState<AccountLinkingScreen> createState() => _AccountLinkingScreenState();
 }
 
-class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
-  final List<LinkedAccount> _linkedAccounts = [];
-  final bool _isLinking = false;
+class _AccountLinkingScreenState extends ConsumerState<AccountLinkingScreen> {
+  bool _isLinking = false;
 
   @override
   Widget build(BuildContext context) {
+    final linkedAccountsAsync = ref.watch(linkedAccountsProvider);
+
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
       appBar: AppTopBar(
@@ -32,7 +39,11 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
           ),
         ],
       ),
-      body: _linkedAccounts.isEmpty ? _buildEmptyState() : _buildAccountsList(),
+      body: linkedAccountsAsync.when(
+        data: (accounts) => accounts.isEmpty ? _buildEmptyState() : _buildAccountsList(accounts),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+      ),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -95,11 +106,11 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
     );
   }
 
-  Widget _buildAccountsList() {
+  Widget _buildAccountsList(List<LinkedAccount> accounts) {
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
-        _TotalBalanceCard(accounts: _linkedAccounts),
+        _TotalBalanceCard(accounts: accounts),
         const SizedBox(height: AppSpacing.lg),
         Text(
           'Linked Accounts',
@@ -108,7 +119,7 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        ..._linkedAccounts.map((account) => Padding(
+        ...accounts.map((account) => Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
               child: _LinkedAccountCard(
                 account: account,
@@ -199,26 +210,6 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
   }
 }
 
-class LinkedAccount {
-  final String id;
-  final String bankName;
-  final String accountType;
-  final String maskedNumber;
-  final double balance;
-  final DateTime lastSynced;
-  final Color color;
-
-  LinkedAccount({
-    required this.id,
-    required this.bankName,
-    required this.accountType,
-    required this.maskedNumber,
-    required this.balance,
-    required this.lastSynced,
-    required this.color,
-  });
-}
-
 class _TotalBalanceCard extends StatelessWidget {
   final List<LinkedAccount> accounts;
 
@@ -226,10 +217,14 @@ class _TotalBalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = accounts.fold<double>(
+    // Assuming balance is available in Money object and converting to double for display logic
+    // Or reusing Money formatting if available.
+    // Here we sum paisa and convert to double.
+    final totalPaisa = accounts.fold<int>(
       0,
-      (sum, account) => sum + account.balance,
+      (sum, account) => sum + (account.balance?.paisa ?? 0),
     );
+    final total = totalPaisa / 100.0;
 
     return GlassCard(
       child: Column(
@@ -259,7 +254,7 @@ class _TotalBalanceCard extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               Text(
-                'Last synced 2 min ago',
+                'Last synced Just now',
                 style: AppTypography.caption.copyWith(
                   color: AppColors.success,
                 ),
@@ -296,6 +291,9 @@ class _LinkedAccountCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final balance = (account.balance?.paisa ?? 0) / 100.0;
+    final color = account.provider.brandColor;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -304,7 +302,7 @@ class _LinkedAccountCard extends StatelessWidget {
           color: AppColors.darkCard,
           borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(
-            color: account.color.withValues(alpha: 0.3),
+            color: color.withValues(alpha: 0.3),
           ),
         ),
         child: Row(
@@ -313,12 +311,12 @@ class _LinkedAccountCard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: account.color.withValues(alpha: 0.2),
+                color: color.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: Icon(
-                Icons.account_balance,
-                color: account.color,
+                account.type.icon,
+                color: color,
               ),
             ),
             const SizedBox(width: AppSpacing.md),
@@ -327,13 +325,13 @@ class _LinkedAccountCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    account.bankName,
+                    account.displayName,
                     style: AppTypography.titleMedium.copyWith(
                       color: AppColors.textPrimary,
                     ),
                   ),
                   Text(
-                    '${account.accountType} • ${account.maskedNumber}',
+                    '${account.type.label} • ${account.status.label}',
                     style: AppTypography.caption.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -345,7 +343,7 @@ class _LinkedAccountCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '₹${account.balance.toStringAsFixed(0)}',
+                  '₹${balance.toStringAsFixed(0)}',
                   style: AppTypography.titleMedium.copyWith(
                     color: AppColors.textPrimary,
                     fontWeight: FontWeight.w600,
@@ -455,11 +453,11 @@ class _PrivacyPoint extends StatelessWidget {
   }
 }
 
-class _LinkAccountSheet extends StatelessWidget {
+class _LinkAccountSheet extends ConsumerWidget {
   const _LinkAccountSheet();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.darkSurface,
@@ -487,35 +485,31 @@ class _LinkAccountSheet extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.lg),
           Text(
-            'Link Bank Account',
+            'Link Account',
             style: AppTypography.headlineSmall.copyWith(
               color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Select your Account Aggregator to proceed',
+            'Select a provider to connect safely',
             style: AppTypography.bodyMedium.copyWith(
               color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          _AAOption(
-            name: 'Finvu',
-            description: 'Most banks supported',
-            onTap: () => Navigator.pop(context),
+          _ProviderOption(
+            name: 'State Bank of India',
+            description: 'Via AA Framework',
+            icon: Icons.account_balance,
+            onTap: () => _handleLinking(context, ref, AccountProviderType.sbi),
           ),
           const SizedBox(height: AppSpacing.sm),
-          _AAOption(
-            name: 'OneMoney',
-            description: 'Fast linking',
-            onTap: () => Navigator.pop(context),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _AAOption(
-            name: 'Saafe',
-            description: 'Premium experience',
-            onTap: () => Navigator.pop(context),
+          _ProviderOption(
+            name: 'Google Pay',
+            description: 'Via UPI Integration',
+            icon: Icons.payment,
+            onTap: () => _handleLinking(context, ref, AccountProviderType.gpay),
           ),
           const SizedBox(height: AppSpacing.lg),
           Row(
@@ -536,16 +530,93 @@ class _LinkAccountSheet extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> _handleLinking(BuildContext context, WidgetRef ref, AccountProviderType type) async {
+    Navigator.pop(context); // Close sheet
+
+    // Show loading indicator
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Initiating linking for ${type.name}...')),
+    );
+
+    try {
+      final manager = ref.read(accountLinkingManagerProvider);
+      final result = await manager.startLinking(type);
+
+      if (result.status == LinkingFlowStatus.failed) {
+        if (context.mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed: ${result.error}')),
+          );
+        }
+        return;
+      }
+
+      // In a real app, we would launch result.authorizationUrl here.
+      // Since we are in mock mode, we assume success and complete linking.
+
+      // Simulate user auth delay
+      await Future.delayed(const Duration(seconds: 2));
+
+      // Check if it was a mock URL (optional, but good for verification)
+      if (result.authorizationUrl?.contains('duskspendr.mock') == true) {
+        final completeResult = await manager.completeLinking(
+          type: type,
+          authorizationCode: 'mock_code',
+          codeVerifier: result.codeVerifier,
+          expectedState: result.state,
+          receivedState: 'mock_state' // Needs to match what SbiBankLinker/GpayLinker returned
+        );
+
+        if (context.mounted) {
+          if (completeResult.status == LinkingFlowStatus.success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Account linked successfully!')),
+            );
+            // Invalidate provider to refresh list
+            ref.invalidate(linkedAccountsProvider);
+            // Also fetch transactions
+             await manager.fetchTransactions(type: type);
+          } else {
+             ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Linking failed: ${completeResult.error}')),
+            );
+          }
+        }
+      } else {
+        // Real URL handling
+        final url = Uri.parse(result.authorizationUrl!);
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url, mode: LaunchMode.externalApplication);
+        } else {
+           if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Could not launch authorization URL')),
+            );
+          }
+        }
+      }
+
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
 }
 
-class _AAOption extends StatelessWidget {
+class _ProviderOption extends StatelessWidget {
   final String name;
   final String description;
+  final IconData icon;
   final VoidCallback onTap;
 
-  const _AAOption({
+  const _ProviderOption({
     required this.name,
     required this.description,
+    required this.icon,
     required this.onTap,
   });
 
@@ -569,8 +640,8 @@ class _AAOption extends StatelessWidget {
                 color: AppColors.dusk500.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
-              child: const Icon(
-                Icons.security,
+              child: Icon(
+                icon,
                 color: AppColors.dusk500,
               ),
             ),
