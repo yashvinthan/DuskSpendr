@@ -9,10 +9,10 @@ import (
   "syscall"
   "time"
 
-  "duskspendr-gateway/internal/config"
-  "duskspendr-gateway/internal/db"
-  httpapi "duskspendr-gateway/internal/http"
-  "duskspendr-gateway/internal/serverpod"
+  "duskspendr/gateway/internal/config"
+  "duskspendr/gateway/internal/db"
+  httpapi "duskspendr/gateway/internal/http"
+  "duskspendr/gateway/internal/serverpod"
 )
 
 func main() {

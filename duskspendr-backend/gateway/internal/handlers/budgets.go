@@ -9,7 +9,7 @@ import (
   "github.com/google/uuid"
   "github.com/jackc/pgx/v5/pgxpool"
 
-  "duskspendr-gateway/internal/models"
+  "duskspendr/gateway/internal/models"
 )
 
 type BudgetHandler struct {
