@@ -110,7 +110,9 @@ async def predict_cash_flow(
     
     Considers regular income, recurring expenses, and seasonal patterns.
     """
-    predictions = []
+    predictions_data = []
+    total_balance = 0.0
+    risk_months = []
     now = datetime.now()
     
     for i in range(1, months_ahead + 1):
@@ -122,16 +124,22 @@ async def predict_cash_flow(
             predicted_balance=40000.0 - (i % 3) * 2000,
             confidence=0.85 - (i * 0.05),  # Confidence decreases with time
         )
-        predictions.append(pred)
+
+        predictions_data.append(pred.model_dump())
+        total_balance += pred.predicted_balance
+        if pred.predicted_balance < 30000:
+            risk_months.append(pred.period)
+
+    avg_balance = total_balance / len(predictions_data) if predictions_data else 0.0
     
     return {
         "success": True,
         "data": {
-            "predictions": [p.model_dump() for p in predictions],
+            "predictions": predictions_data,
             "summary": {
-                "average_monthly_balance": sum(p.predicted_balance for p in predictions) / len(predictions),
-                "total_predicted_savings": sum(p.predicted_balance for p in predictions),
-                "risk_months": [p.period for p in predictions if p.predicted_balance < 30000],
+                "average_monthly_balance": avg_balance,
+                "total_predicted_savings": total_balance,
+                "risk_months": risk_months,
             },
         },
     }
