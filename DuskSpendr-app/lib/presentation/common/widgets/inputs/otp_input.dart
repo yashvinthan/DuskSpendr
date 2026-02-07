@@ -132,11 +132,6 @@ class _OTPInputState extends State<OTPInput>
     }
   }
 
-  // ignore: unused_element
-  String get _currentValue {
-    return _controllers.map((c) => c.text).join();
-  }
-
   void clear() {
     for (var controller in _controllers) {
       controller.clear();
