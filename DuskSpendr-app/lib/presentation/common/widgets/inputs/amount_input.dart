@@ -8,6 +8,7 @@ import '../../../../core/theme/typography.dart';
 class AmountInput extends StatefulWidget {
   final double initialValue;
   final ValueChanged<double> onChanged;
+  @Deprecated('Use system keyboard instead')
   final bool showNumpad;
   final bool autoFocus;
   final String currencySymbol;
@@ -16,7 +17,7 @@ class AmountInput extends StatefulWidget {
     super.key,
     this.initialValue = 0,
     required this.onChanged,
-    this.showNumpad = true,
+    @Deprecated('Use system keyboard instead') this.showNumpad = true,
     this.autoFocus = true,
     this.currencySymbol = '₹',
   });
@@ -26,62 +27,62 @@ class AmountInput extends StatefulWidget {
 }
 
 class _AmountInputState extends State<AmountInput> {
-  String _amountString = '';
-  bool _hasDecimal = false;
+  late TextEditingController _controller;
+  late FocusNode _focusNode;
+  double _inputWidth = 100;
+  late TextStyle _currentStyle;
 
   @override
   void initState() {
     super.initState();
+    _controller = TextEditingController();
+    _focusNode = FocusNode();
+
     if (widget.initialValue > 0) {
-      _amountString = widget.initialValue.toString();
-      _hasDecimal = _amountString.contains('.');
+      String text = widget.initialValue.toString();
+      if (text.endsWith('.0')) {
+        text = text.substring(0, text.length - 2);
+      }
+      _controller.text = text;
+    }
+
+    _updateWidth(_controller.text);
+
+    if (widget.autoFocus) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _focusNode.requestFocus();
+      });
     }
   }
 
-  double get _amount {
-    if (_amountString.isEmpty) return 0;
-    return double.tryParse(_amountString) ?? 0;
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
   }
 
-  String get _displayAmount {
-    if (_amountString.isEmpty) return '0';
-    return _amountString;
-  }
+  void _updateWidth(String text) {
+    final fontSize = text.length > 7 ? 36.0 : 48.0;
 
-  void _onKeyPress(String key) {
-    HapticFeedback.lightImpact();
-    
+    _currentStyle = AppTypography.displayLarge.copyWith(
+      color: AppColors.textPrimary,
+      fontSize: fontSize,
+    );
+
+    final textPainter = TextPainter(
+      text: TextSpan(text: text.isEmpty ? '0' : text, style: _currentStyle),
+      maxLines: 1,
+      textDirection: TextDirection.ltr,
+    );
+
+    textPainter.layout();
+
     setState(() {
-      if (key == '⌫') {
-        if (_amountString.isNotEmpty) {
-          final lastChar = _amountString[_amountString.length - 1];
-          _amountString = _amountString.substring(0, _amountString.length - 1);
-          if (lastChar == '.') {
-            _hasDecimal = false;
-          }
-        }
-      } else if (key == '.') {
-        if (!_hasDecimal && _amountString.isNotEmpty) {
-          _amountString += '.';
-          _hasDecimal = true;
-        }
-      } else {
-        // Limit decimal places to 2
-        if (_hasDecimal) {
-          final parts = _amountString.split('.');
-          if (parts.length > 1 && parts[1].length >= 2) {
-            return;
-          }
-        }
-        // Limit total length
-        if (_amountString.length < 10) {
-          _amountString += key;
-        }
-      }
+      _inputWidth = textPainter.width + 24;
     });
-
-    widget.onChanged(_amount);
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -104,93 +105,46 @@ class _AmountInputState extends State<AmountInput> {
                 ),
               ),
               const SizedBox(width: AppSpacing.xs),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 150),
-                transitionBuilder: (child, animation) => ScaleTransition(
-                  scale: animation,
-                  child: child,
-                ),
-                child: Text(
-                  _displayAmount,
-                  key: ValueKey(_displayAmount),
-                  style: AppTypography.displayLarge.copyWith(
-                    color: AppColors.textPrimary,
-                    fontSize: _displayAmount.length > 7 ? 36 : 48,
+              SizedBox(
+                width: _inputWidth,
+                child: TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(10),
+                    TextInputFormatter.withFunction((oldValue, newValue) {
+                      final text = newValue.text;
+                      if (text.isEmpty) return newValue;
+                      if (RegExp(r'^\d*\.?\d{0,2}$').hasMatch(text)) {
+                        return newValue;
+                      }
+                      return oldValue;
+                    }),
+                  ],
+                  textAlign: TextAlign.center,
+                  style: _currentStyle,
+                  cursorColor: AppColors.textPrimary,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                    hintText: '0',
+                    hintStyle:
+                        _currentStyle.copyWith(color: AppColors.textSecondary),
                   ),
+                  onChanged: (value) {
+                    _updateWidth(value);
+                    final amount = double.tryParse(value) ?? 0;
+                    widget.onChanged(amount);
+                  },
                 ),
               ),
             ],
           ),
         ),
-        // Numpad
-        if (widget.showNumpad) _buildNumpad(),
       ],
-    );
-  }
-
-  Widget _buildNumpad() {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        children: [
-          _buildNumRow(['7', '8', '9']),
-          const SizedBox(height: AppSpacing.sm),
-          _buildNumRow(['4', '5', '6']),
-          const SizedBox(height: AppSpacing.sm),
-          _buildNumRow(['1', '2', '3']),
-          const SizedBox(height: AppSpacing.sm),
-          _buildNumRow(['.', '0', '⌫']),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNumRow(List<String> keys) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: keys.map((key) => _buildNumKey(key)).toList(),
-    );
-  }
-
-  Widget _buildNumKey(String key) {
-    final isBackspace = key == '⌫';
-    final isDecimal = key == '.';
-
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () => _onKeyPress(key),
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            child: Container(
-              height: 64,
-              decoration: BoxDecoration(
-                color: AppColors.darkSurface,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-              child: Center(
-                child: isBackspace
-                    ? const Icon(
-                        Icons.backspace_outlined,
-                        color: AppColors.textSecondary,
-                        size: 24,
-                      )
-                    : Text(
-                        key,
-                        style: TextStyle(
-                          fontFamily: 'SpaceMono',
-                          fontSize: isDecimal ? 32 : 28,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
