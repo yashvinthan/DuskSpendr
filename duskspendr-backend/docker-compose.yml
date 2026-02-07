@@ -140,6 +140,7 @@ services:
       ENV: development
       DATABASE_URL: postgresql://dusk:dusk@db:5432/duskspendr
       REDIS_URL: redis://redis:6379/3
+      CORS_ORIGINS: http://localhost:3000,http://localhost:8080
     depends_on:
       db:
         condition: service_healthy
