@@ -1,6 +1,19 @@
 """Application configuration using pydantic-settings."""
 from functools import lru_cache
+from typing import Annotated, Any
+
+from pydantic import BeforeValidator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def parse_cors(v: Any) -> list[str] | str:
+    if isinstance(v, str) and not v.startswith("["):
+        return [i.strip() for i in v.split(",")]
+    elif isinstance(v, list):
+        return v
+    elif isinstance(v, str) and v.startswith("["):
+        return v
+    return v
 
 
 class Settings(BaseSettings):
@@ -29,7 +42,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/1"
 
     # CORS
-    cors_origins: list[str] = ["*"]
+    cors_origins: Annotated[list[str] | str, BeforeValidator(parse_cors)] = []
 
     # Logging
     log_level: str = "INFO"
