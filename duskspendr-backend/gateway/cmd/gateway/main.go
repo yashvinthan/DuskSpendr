@@ -55,7 +55,13 @@ func main() {
 	}()
 
 	// Initialize services
-	jwtService := services.NewJWTService(cfg.JWTSecret, cfg.JWTRefreshSecret)
+	var tokenStore services.TokenStore
+	if redisClient != nil {
+		tokenStore = redisClient
+	} else {
+		tokenStore = &noOpTokenStore{}
+	}
+	jwtService := services.NewJWTService(cfg.JWTSecret, cfg.JWTRefreshSecret, tokenStore)
 	notificationService := services.NewNotificationService(mqConn)
 
 	// Fiber app configuration
@@ -215,4 +221,22 @@ func main() {
 		log.Printf("Server shutdown error: %v", err)
 	}
 	log.Println("Server stopped")
+}
+
+type noOpTokenStore struct{}
+
+func (n *noOpTokenStore) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
+	return nil
+}
+
+func (n *noOpTokenStore) Get(ctx context.Context, key string) (string, error) {
+	return "", nil
+}
+
+func (n *noOpTokenStore) Exists(ctx context.Context, keys ...string) (int64, error) {
+	return 0, nil
+}
+
+func (n *noOpTokenStore) TTL(ctx context.Context, key string) (time.Duration, error) {
+	return 0, nil
 }

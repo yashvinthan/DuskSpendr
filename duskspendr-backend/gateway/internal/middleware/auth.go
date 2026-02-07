@@ -39,7 +39,7 @@ func Auth(jwtService *services.JWTService) fiber.Handler {
 		tokenString := parts[1]
 
 		// Validate token
-		claims, err := jwtService.ValidateAccessToken(tokenString)
+		claims, err := jwtService.ValidateAccessToken(c.Context(), tokenString)
 		if err != nil {
 			switch err {
 			case services.ErrExpiredToken:
@@ -48,6 +48,14 @@ func Auth(jwtService *services.JWTService) fiber.Handler {
 					"error": fiber.Map{
 						"code":    "TOKEN_EXPIRED",
 						"message": "Access token has expired",
+					},
+				})
+			case services.ErrTokenBlacklisted:
+				return c.Status(401).JSON(fiber.Map{
+					"success": false,
+					"error": fiber.Map{
+						"code":    "TOKEN_BLACKLISTED",
+						"message": "Token has been revoked",
 					},
 				})
 			default:
