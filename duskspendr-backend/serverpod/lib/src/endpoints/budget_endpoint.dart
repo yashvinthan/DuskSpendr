@@ -224,22 +224,8 @@ class BudgetEndpoint extends Endpoint {
 
     final budget = _mapBudget(result.first);
 
-    // Check if alert threshold is reached
-    final percentUsed = spent / (budget['amount'] as double);
-    if (percentUsed >= (budget['alertThreshold'] as double)) {
-      // Send alert notification
-      session.messages.postMessage(
-        'budget-alert',
-        JsonMessage({
-          'userId': userId,
-          'budgetId': budgetId,
-          'budgetName': budget['name'],
-          'percentUsed': percentUsed,
-          'spent': spent,
-          'amount': budget['amount'],
-        }),
-      );
-    }
+    // Check for alerts
+    _checkAndSendAlert(session, budget);
 
     return budget;
   }
@@ -251,79 +237,65 @@ class BudgetEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    // Get all active budgets
-    final budgets = await getBudgets(session);
-    final updatedBudgets = <Map<String, dynamic>>[];
+    // Update spent amount for all active budgets in a single query
+    // This optimization replaces N+1 queries (select budgets + select transactions for each + update for each)
+    // with a single UPDATE query that calculates sums via a correlated subquery.
+    final result = await session.query(
+      '''
+      UPDATE budgets b
+      SET spent = (
+        SELECT COALESCE(SUM(ABS(t.amount)), 0)
+        FROM transactions t
+        WHERE t.user_id = b.user_id
+          AND t.amount < 0
+          AND t.date >= b.start_date
+          AND t.date <= b.end_date
+          AND (
+            (b.category_id IS NOT NULL AND t.category_id = b.category_id)
+            OR
+            (b.category_id IS NULL)
+          )
+      ), updated_at = NOW()
+      WHERE b.user_id = @userId AND b.is_active = true
+      RETURNING id, user_id, name, category_id, amount, spent, period,
+                start_date, end_date, alert_threshold, is_active, rollover,
+                created_at, updated_at
+      ''',
+      parameters: {'userId': userId},
+    );
 
-    for (final budget in budgets) {
-      final budgetId = budget['id'] as int;
-      final categoryId = budget['categoryId'] as int?;
-      final startDate = budget['startDate'] as DateTime;
-      final endDate = budget['endDate'] as DateTime;
+    final updatedBudgets = result.map((row) => _mapBudget(row)).toList();
 
-      // Calculate spent amount from transactions
-      final spent = await _calculateSpent(
-        session,
-        userId,
-        categoryId,
-        startDate,
-        endDate,
-      );
-
-      // Update the budget
-      final updated = await updateBudgetSpent(session, budgetId, spent);
-      if (updated != null) {
-        updatedBudgets.add(updated);
-      }
+    for (final budget in updatedBudgets) {
+      _checkAndSendAlert(session, budget);
     }
 
     return updatedBudgets;
   }
 
-  Future<double> _calculateSpent(
-    Session session,
-    int userId,
-    int? categoryId,
-    DateTime startDate,
-    DateTime endDate,
-  ) async {
-    String query;
-    Map<String, dynamic> params;
+  void _checkAndSendAlert(Session session, Map<String, dynamic> budget) {
+    final spent = budget['spent'] as double;
+    final amount = budget['amount'] as double;
+    final threshold = budget['alertThreshold'] as double;
+    final userId = budget['userId'] as int;
+    final budgetId = budget['id'] as int;
 
-    if (categoryId != null) {
-      query = '''
-        SELECT COALESCE(SUM(ABS(amount)), 0)
-        FROM transactions
-        WHERE user_id = @userId
-          AND category_id = @categoryId
-          AND amount < 0
-          AND date >= @startDate
-          AND date <= @endDate
-      ''';
-      params = {
-        'userId': userId,
-        'categoryId': categoryId,
-        'startDate': startDate,
-        'endDate': endDate,
-      };
-    } else {
-      query = '''
-        SELECT COALESCE(SUM(ABS(amount)), 0)
-        FROM transactions
-        WHERE user_id = @userId
-          AND amount < 0
-          AND date >= @startDate
-          AND date <= @endDate
-      ''';
-      params = {
-        'userId': userId,
-        'startDate': startDate,
-        'endDate': endDate,
-      };
+    // Check if alert threshold is reached
+    final percentUsed = amount > 0 ? spent / amount : 0.0;
+    if (percentUsed >= threshold) {
+      // Send alert notification
+      session.messages.postMessage(
+        'budget-alert',
+        JsonMessage({
+          'userId': userId,
+          'budgetId': budgetId,
+          'budgetName': budget['name'],
+          'percentUsed': percentUsed,
+          'spent': spent,
+          'amount': amount,
+        }),
+      );
     }
-
-    final result = await session.query(query, parameters: params);
-    return (result.first[0] as num?)?.toDouble() ?? 0.0;
   }
 
   DateTime _getPeriodStart(DateTime now, String period) {
