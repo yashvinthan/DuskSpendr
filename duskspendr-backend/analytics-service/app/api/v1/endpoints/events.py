@@ -1,4 +1,5 @@
 """Event tracking endpoints for analytics."""
+from collections import deque
 from datetime import datetime
 from typing import Any
 from uuid import uuid4
@@ -42,7 +43,8 @@ class BatchEventResponse(BaseModel):
 
 
 # In-memory storage for demo (replace with database)
-events_store: list[dict[str, Any]] = []
+# Limited to 10000 events to prevent unbounded memory growth
+events_store: deque = deque(maxlen=10000)
 
 
 @router.post("", response_model=EventResponse, status_code=status.HTTP_201_CREATED)
