@@ -60,9 +60,11 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     final toDelete =
         pageItems.where((tx) => _selectedIds.contains(tx.id)).toList();
 
-    for (final tx in toDelete) {
-      await ref.read(transactionsApiProvider).delete(token: token, id: tx.id);
-    }
+    await ref.read(transactionsApiProvider).bulkDelete(
+          token: token,
+          ids: toDelete.map((e) => e.id).toList(),
+        );
+
     setState(() => _selectedIds.clear());
     ref.invalidate(transactionPageProvider);
     if (!context.mounted) return;
