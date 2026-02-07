@@ -237,6 +237,12 @@ abstract class BankLinker implements AccountLinker {
 class SbiBankLinker extends BankLinker {
   static const _aaBaseUrl = String.fromEnvironment('AA_SBI_BASE_URL');
   static const _fipId = String.fromEnvironment('AA_SBI_FIP_ID');
+  final bool isMockMode;
+
+  SbiBankLinker({
+    this.isMockMode = const bool.fromEnvironment('use_mock_linking', defaultValue: false),
+  });
+
   @override
   AccountProviderType get providerType => AccountProviderType.sbi;
 
@@ -251,6 +257,91 @@ class SbiBankLinker extends BankLinker {
 
   @override
   String get fipId => _fipId;
+
+  @override
+  Future<AuthorizationResult> initiateAuthorization() async {
+    if (isMockMode) {
+      return AuthorizationResult.success(
+        authorizationUrl: 'https://duskspendr.mock/sbi/auth?state=mock_state',
+        codeVerifier: 'mock_verifier',
+        state: 'mock_state',
+      );
+    }
+    return super.initiateAuthorization();
+  }
+
+  @override
+  Future<TokenResult> exchangeAuthorizationCode(
+      String code, String? verifier) async {
+    if (isMockMode) {
+      return TokenResult.success(
+        accessToken: 'mock_sbi_access_token',
+        refreshToken: 'mock_sbi_refresh_token',
+        expiresAt: DateTime.now().add(const Duration(days: 30)),
+        metadata: {'consent_id': 'mock_consent_id'},
+      );
+    }
+    return super.exchangeAuthorizationCode(code, verifier);
+  }
+
+  @override
+  Future<BalanceResult> fetchBalance(String accessToken) async {
+    if (isMockMode) {
+      return BalanceResult.success(
+        balancePaisa: 2545000, // ₹25,450.00
+        updatedAt: DateTime.now(),
+        accountNumber: 'XXXX1234',
+      );
+    }
+    return super.fetchBalance(accessToken);
+  }
+
+  @override
+  Future<TransactionFetchResult> fetchTransactions({
+    required String accessToken,
+    DateTime? from,
+    DateTime? to,
+    String? cursor,
+  }) async {
+    if (isMockMode) {
+      final now = DateTime.now();
+      return TransactionFetchResult.success(
+        transactions: [
+          ProviderTransaction(
+            providerId: 'tx1',
+            amountPaisa: 15000, // ₹150.00
+            isDebit: true,
+            timestamp: now.subtract(const Duration(hours: 2)),
+            merchantName: 'Starbucks',
+            description: 'Coffee',
+          ),
+          ProviderTransaction(
+            providerId: 'tx2',
+            amountPaisa: 5000000, // ₹50,000.00
+            isDebit: false,
+            timestamp: now.subtract(const Duration(days: 1)),
+            merchantName: 'Salary',
+            description: 'Monthly Salary',
+          ),
+          ProviderTransaction(
+            providerId: 'tx3',
+            amountPaisa: 45000, // ₹450.00
+            isDebit: true,
+            timestamp: now.subtract(const Duration(days: 2)),
+            merchantName: 'Amazon',
+            description: 'Shopping',
+          ),
+        ],
+        hasMore: false,
+      );
+    }
+    return super.fetchTransactions(
+      accessToken: accessToken,
+      from: from,
+      to: to,
+      cursor: cursor,
+    );
+  }
 }
 
 /// SS-013: HDFC Bank Linking
@@ -315,10 +406,15 @@ class AxisBankLinker extends BankLinker {
 
 /// Factory for creating bank linkers
 class BankLinkerFactory {
+  /// Test hook to force mock mode
+  static bool? forceMockMode;
+
   static AccountLinker? create(AccountProviderType type) {
     switch (type) {
       case AccountProviderType.sbi:
-        return SbiBankLinker();
+        return forceMockMode != null
+            ? SbiBankLinker(isMockMode: forceMockMode!)
+            : SbiBankLinker();
       case AccountProviderType.hdfc:
         return HdfcBankLinker();
       case AccountProviderType.icici:
@@ -331,7 +427,9 @@ class BankLinkerFactory {
   }
 
   static List<AccountLinker> getAllBankLinkers() => [
-        SbiBankLinker(),
+        forceMockMode != null
+            ? SbiBankLinker(isMockMode: forceMockMode!)
+            : SbiBankLinker(),
         HdfcBankLinker(),
         IciciBankLinker(),
         AxisBankLinker(),
