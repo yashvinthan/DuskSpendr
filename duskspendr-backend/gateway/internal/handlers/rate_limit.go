@@ -6,7 +6,7 @@ import (
   "sync"
   "time"
 
-  "duskspendr-gateway/internal/config"
+  "duskspendr/gateway/internal/config"
 )
 
 type tokenBucket struct {
