@@ -197,14 +197,33 @@ async def get_spending_trends(
             "transaction_count": value // 55,
         })
 
+    total_amount = 0
+    min_amount = float('inf')
+    max_amount = float('-inf')
+
+    for t in trends:
+        amt = t["amount"]
+        total_amount += amt
+        if amt < min_amount:
+            min_amount = amt
+        if amt > max_amount:
+            max_amount = amt
+
+    count = len(trends)
+    average_amount = total_amount / count if count > 0 else 0.0
+
+    if count == 0:
+        min_amount = 0
+        max_amount = 0
+
     return {
         "period": period,
         "data": trends,
         "summary": {
-            "total": sum(t["amount"] for t in trends),
-            "average": sum(t["amount"] for t in trends) / len(trends),
-            "min": min(t["amount"] for t in trends),
-            "max": max(t["amount"] for t in trends),
+            "total": total_amount,
+            "average": average_amount,
+            "min": min_amount,
+            "max": max_amount,
         },
     }
 
