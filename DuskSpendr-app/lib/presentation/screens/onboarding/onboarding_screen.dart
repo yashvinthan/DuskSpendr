@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/theme/typography.dart';
 import '../../common/widgets/gradient_button.dart';
-import '../auth/login_screen.dart';
+import '../../navigation/app_router.dart';
+import '../../../providers/onboarding_provider.dart';
 
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _controller = PageController();
   int _index = 0;
 
@@ -45,6 +49,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
   ];
 
+  Future<void> _completeOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_completed_onboarding', true);
+    ref.read(onboardingStatusProvider.notifier).state = true;
+    if (!mounted) return;
+    context.go(AppRoutes.login);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,11 +87,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           : 'Continue',
                       onPressed: () {
                         if (_index == _pages.length - 1) {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
-                          );
+                          _completeOnboarding();
                           return;
                         }
                         _controller.nextPage(
@@ -91,24 +99,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     const SizedBox(height: AppSpacing.md),
                     if (_index == _pages.length - 1)
                       TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
-                          );
-                        },
+                        onPressed: () => _completeOnboarding(),
                         child: const Text('I already have an account'),
                       )
                     else
                       TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
-                          );
-                        },
+                        onPressed: () => _completeOnboarding(),
                         child: const Text('Skip'),
                       ),
                   ],
@@ -211,4 +207,3 @@ class _OnboardingData {
   final String subtitle;
   final IconData icon;
 }
-
