@@ -40,9 +40,10 @@ class _AppIconButtonState extends State<AppIconButton>
       duration: const Duration(milliseconds: 100),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.9).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.9,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
   }
 
   @override
@@ -69,10 +70,8 @@ class _AppIconButtonState extends State<AppIconButton>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _scaleAnimation,
-      builder: (context, child) => Transform.scale(
-        scale: _scaleAnimation.value,
-        child: child,
-      ),
+      builder: (context, child) =>
+          Transform.scale(scale: _scaleAnimation.value, child: child),
       child: GestureDetector(
         onTapDown: _handleTapDown,
         onTapUp: _handleTapUp,
@@ -85,7 +84,8 @@ class _AppIconButtonState extends State<AppIconButton>
               width: widget.size,
               height: widget.size,
               decoration: BoxDecoration(
-                color: widget.backgroundColor ??
+                color:
+                    widget.backgroundColor ??
                     AppColors.darkSurface.withValues(alpha: 0.8),
                 shape: BoxShape.circle,
               ),
@@ -167,22 +167,14 @@ class _AppFABState extends State<AppFAB> with SingleTickerProviderStateMixin {
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.92).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.92,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
     _bounceAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween(begin: 1.0, end: 0.92),
-        weight: 50,
-      ),
-      TweenSequenceItem(
-        tween: Tween(begin: 0.92, end: 1.05),
-        weight: 25,
-      ),
-      TweenSequenceItem(
-        tween: Tween(begin: 1.05, end: 1.0),
-        weight: 25,
-      ),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.92), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 0.92, end: 1.05), weight: 25),
+      TweenSequenceItem(tween: Tween(begin: 1.05, end: 1.0), weight: 25),
     ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
@@ -203,10 +195,8 @@ class _AppFABState extends State<AppFAB> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _bounceAnimation,
-      builder: (context, child) => Transform.scale(
-        scale: _bounceAnimation.value,
-        child: child,
-      ),
+      builder: (context, child) =>
+          Transform.scale(scale: _bounceAnimation.value, child: child),
       child: GestureDetector(
         onTap: widget.isLoading ? null : _handleTap,
         child: Container(
@@ -214,9 +204,7 @@ class _AppFABState extends State<AppFAB> with SingleTickerProviderStateMixin {
           padding: EdgeInsets.symmetric(
             horizontal: widget.isExtended ? AppSpacing.lg : 0,
           ),
-          constraints: BoxConstraints(
-            minWidth: widget.isExtended ? 100 : 56,
-          ),
+          constraints: BoxConstraints(minWidth: widget.isExtended ? 100 : 56),
           decoration: BoxDecoration(
             gradient: AppColors.gradientDusk,
             borderRadius: BorderRadius.circular(
@@ -245,11 +233,7 @@ class _AppFABState extends State<AppFAB> with SingleTickerProviderStateMixin {
                 : Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        widget.icon,
-                        color: AppColors.textPrimary,
-                        size: 24,
-                      ),
+                      Icon(widget.icon, color: AppColors.textPrimary, size: 24),
                       if (widget.isExtended && widget.label != null) ...[
                         const SizedBox(width: AppSpacing.sm),
                         Text(

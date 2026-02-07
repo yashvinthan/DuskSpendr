@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/spacing.dart';
-import 'primary_button.dart';
+import 'button_types.dart';
 
 /// Ghost button with text only, used for tertiary actions.
 class GhostButton extends StatefulWidget {
@@ -98,9 +98,7 @@ class _GhostButtonState extends State<GhostButton> {
                     if (widget.icon != null) ...[
                       Icon(
                         widget.icon,
-                        color: isDisabled
-                            ? AppColors.textMuted
-                            : color,
+                        color: isDisabled ? AppColors.textMuted : color,
                         size: _fontSize + 2,
                       ),
                       const SizedBox(width: AppSpacing.xs),
