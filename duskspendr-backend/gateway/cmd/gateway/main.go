@@ -116,7 +116,7 @@ func main() {
 	v1 := app.Group("/api/v1")
 
 	// Auth routes (mostly unauthenticated)
-	authHandler := handlers.NewAuthHandler(pool, cfg, jwtService)
+	authHandler := handlers.NewFiberAuthHandler(pool, cfg, jwtService, notificationService)
 	auth := v1.Group("/auth")
 	auth.Post("/start", authHandler.Start)
 	auth.Post("/verify", authHandler.Verify)

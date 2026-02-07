@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
@@ -21,20 +22,37 @@ import (
 	"duskspendr/gateway/internal/services"
 )
 
-// AuthHandler handles authentication endpoints
-type AuthHandler struct {
-	Pool       *pgxpool.Pool
-	Config     config.Config
-	JWTService *services.JWTService
+// NotificationSender defines the interface for sending notifications
+type NotificationSender interface {
+	SendNotification(ctx context.Context, notif *services.Notification) error
 }
 
-// NewAuthHandler creates a new auth handler
-func NewAuthHandler(pool *pgxpool.Pool, cfg config.Config, jwtSvc *services.JWTService) *AuthHandler {
-	return &AuthHandler{
-		Pool:       pool,
-		Config:     cfg,
-		JWTService: jwtSvc,
+// FiberAuthHandler handles authentication endpoints
+type FiberAuthHandler struct {
+	Pool                *pgxpool.Pool
+	Config              config.Config
+	JWTService          *services.JWTService
+	NotificationService NotificationSender
+}
+
+// NewFiberAuthHandler creates a new auth handler
+func NewFiberAuthHandler(pool *pgxpool.Pool, cfg config.Config, jwtSvc *services.JWTService, notifSvc NotificationSender) *FiberAuthHandler {
+	if notifSvc == nil {
+		// Ensure we don't panic later
+		notifSvc = &noopNotificationSender{}
 	}
+	return &FiberAuthHandler{
+		Pool:                pool,
+		Config:              cfg,
+		JWTService:          jwtSvc,
+		NotificationService: notifSvc,
+	}
+}
+
+type noopNotificationSender struct{}
+
+func (n *noopNotificationSender) SendNotification(ctx context.Context, notif *services.Notification) error {
+	return nil
 }
 
 // AuthStartRequest represents the OTP start request
@@ -77,7 +95,7 @@ type RefreshResponse struct {
 }
 
 // Start initiates OTP authentication
-func (h *AuthHandler) Start(c *fiber.Ctx) error {
+func (h *FiberAuthHandler) Start(c *fiber.Ctx) error {
 	var req AuthStartRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
@@ -87,7 +105,7 @@ func (h *AuthHandler) Start(c *fiber.Ctx) error {
 	}
 
 	req.Phone = strings.TrimSpace(req.Phone)
-	if !validatePhoneE164(req.Phone) {
+	if !validatePhoneE164Fiber(req.Phone) {
 		return c.Status(400).JSON(fiber.Map{
 			"success": false,
 			"error":   fiber.Map{"code": "INVALID_PHONE", "message": "Phone must be in E.164 format"},
@@ -119,7 +137,7 @@ func (h *AuthHandler) Start(c *fiber.Ctx) error {
 	}
 
 	// Generate OTP
-	code, err := generateOTP(6)
+	code, err := generateOTPFiber(6)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"success": false,
@@ -138,7 +156,7 @@ func (h *AuthHandler) Start(c *fiber.Ctx) error {
 	`, now, req.Phone)
 
 	// Hash the OTP
-	codeHash := hashOTP(h.Config.AuthPepper, otpID, code)
+	codeHash := hashOTPFiber(h.Config.AuthPepper, otpID, code)
 
 	// Store new OTP
 	_, err = h.Pool.Exec(c.Context(), `
@@ -158,7 +176,23 @@ func (h *AuthHandler) Start(c *fiber.Ctx) error {
 		devCode = code
 	}
 
-	// TODO: Send OTP via SMS service
+	// Send OTP via SMS service
+	err = h.NotificationService.SendNotification(c.Context(), &services.Notification{
+		UserID:   userID.String(),
+		Type:     services.NotificationTypeSMS,
+		Priority: services.PriorityHigh,
+		Title:    "DuskSpendr Verification Code",
+		Body:     fmt.Sprintf("Your verification code is: %s", code),
+		Data: map[string]any{
+			"code":  code,
+			"phone": req.Phone,
+		},
+		CreatedAt: time.Now(),
+	})
+	if err != nil {
+		// Log error but continue
+		fmt.Printf("Failed to send OTP SMS: %v\n", err)
+	}
 
 	return c.JSON(fiber.Map{
 		"success": true,
@@ -171,7 +205,7 @@ func (h *AuthHandler) Start(c *fiber.Ctx) error {
 }
 
 // Verify validates OTP and returns tokens
-func (h *AuthHandler) Verify(c *fiber.Ctx) error {
+func (h *FiberAuthHandler) Verify(c *fiber.Ctx) error {
 	var req AuthVerifyRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
@@ -183,7 +217,7 @@ func (h *AuthHandler) Verify(c *fiber.Ctx) error {
 	req.Phone = strings.TrimSpace(req.Phone)
 	req.Code = strings.TrimSpace(req.Code)
 
-	if !validatePhoneE164(req.Phone) || req.Code == "" {
+	if !validatePhoneE164Fiber(req.Phone) || req.Code == "" {
 		return c.Status(400).JSON(fiber.Map{
 			"success": false,
 			"error":   fiber.Map{"code": "INVALID_INPUT", "message": "Phone and code are required"},
@@ -227,8 +261,8 @@ func (h *AuthHandler) Verify(c *fiber.Ctx) error {
 	}
 
 	// Verify the code
-	expectedHash := hashOTP(h.Config.AuthPepper, otpID, req.Code)
-	if !safeCompare(codeHash, expectedHash) {
+	expectedHash := hashOTPFiber(h.Config.AuthPepper, otpID, req.Code)
+	if !safeCompareFiber(codeHash, expectedHash) {
 		// Decrement attempts
 		_, _ = h.Pool.Exec(c.Context(), `
 			UPDATE auth_otps SET attempts_remaining = GREATEST(attempts_remaining - 1, 0) WHERE id = $1
@@ -269,14 +303,14 @@ func (h *AuthHandler) Verify(c *fiber.Ctx) error {
 			AccessToken:  tokenPair.AccessToken,
 			RefreshToken: tokenPair.RefreshToken,
 			UserID:       userID.String(),
-			ExpiresIn:    int(tokenPair.ExpiresIn.Seconds()),
-			ExpiresAt:    tokenPair.ExpiresAt,
+			ExpiresIn:    int(tokenPair.ExpiresIn),
+			ExpiresAt:    time.Now().UTC().Add(time.Duration(tokenPair.ExpiresIn) * time.Second),
 		},
 	})
 }
 
 // Refresh exchanges a refresh token for new tokens
-func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
+func (h *FiberAuthHandler) Refresh(c *fiber.Ctx) error {
 	var req RefreshRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
@@ -306,13 +340,13 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 		"data": RefreshResponse{
 			AccessToken:  tokenPair.AccessToken,
 			RefreshToken: tokenPair.RefreshToken,
-			ExpiresIn:    int(tokenPair.ExpiresIn.Seconds()),
+			ExpiresIn:    int(tokenPair.ExpiresIn),
 		},
 	})
 }
 
 // Logout invalidates the user's session
-func (h *AuthHandler) Logout(c *fiber.Ctx) error {
+func (h *FiberAuthHandler) Logout(c *fiber.Ctx) error {
 	// Get user ID from context (set by auth middleware)
 	userID := c.Locals("user_id")
 	if userID == nil {
@@ -331,7 +365,7 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 }
 
 // ensureUser creates or retrieves a user by phone
-func (h *AuthHandler) ensureUser(c *fiber.Ctx, phone string) (uuid.UUID, error) {
+func (h *FiberAuthHandler) ensureUser(c *fiber.Ctx, phone string) (uuid.UUID, error) {
 	id := uuid.New()
 	var userID uuid.UUID
 	err := h.Pool.QueryRow(c.Context(), `
@@ -344,7 +378,7 @@ func (h *AuthHandler) ensureUser(c *fiber.Ctx, phone string) (uuid.UUID, error) 
 }
 
 // enforceOTPSendLimits checks rate limits for OTP sending
-func (h *AuthHandler) enforceOTPSendLimits(c *fiber.Ctx, phone string) error {
+func (h *FiberAuthHandler) enforceOTPSendLimits(c *fiber.Ctx, phone string) error {
 	// Check per-phone limit
 	var recentCount int
 	err := h.Pool.QueryRow(c.Context(), `
@@ -385,7 +419,7 @@ func (h *AuthHandler) enforceOTPSendLimits(c *fiber.Ctx, phone string) error {
 
 // Helper functions
 
-func generateOTP(length int) (string, error) {
+func generateOTPFiber(length int) (string, error) {
 	if length <= 0 {
 		return "", fmt.Errorf("invalid OTP length")
 	}
@@ -401,33 +435,33 @@ func generateOTP(length int) (string, error) {
 	return string(buf), nil
 }
 
-func validatePhoneE164(phone string) bool {
+func validatePhoneE164Fiber(phone string) bool {
 	re := regexp.MustCompile(`^\+[1-9]\d{7,14}$`)
 	return re.MatchString(phone)
 }
 
-func hashOTP(pepper, otpID, code string) string {
+func hashOTPFiber(pepper, otpID, code string) string {
 	sum := sha256.Sum256([]byte(pepper + ":" + otpID + ":" + code))
 	return hex.EncodeToString(sum[:])
 }
 
-func safeCompare(a, b string) bool {
+func safeCompareFiber(a, b string) bool {
 	if len(a) != len(b) {
 		return false
 	}
 	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
 }
 
-func hashToken(token string) string {
+func hashTokenFiber(token string) string {
 	sum := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(sum[:])
 }
 
-func generateToken() (string, string, error) {
+func generateTokenFiber() (string, string, error) {
 	raw := make([]byte, 32)
 	if _, err := rand.Read(raw); err != nil {
 		return "", "", err
 	}
 	token := base64.RawURLEncoding.EncodeToString(raw)
-	return token, hashToken(token), nil
+	return token, hashTokenFiber(token), nil
 }
