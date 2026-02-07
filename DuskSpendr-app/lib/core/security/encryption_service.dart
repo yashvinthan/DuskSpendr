@@ -137,8 +137,8 @@ class EncryptionService {
     await _storage.deleteAll();
   }
 
-  /// Simple hash for PIN (use proper password hashing in production)
-  String hashPin(String pin) {
+  /// Simple hash for PIN (legacy)
+  String _weakHashPin(String pin) {
     final bytes = utf8.encode(pin);
     var hash = 0;
     for (var byte in bytes) {
@@ -148,10 +148,75 @@ class EncryptionService {
     return hash.toRadixString(16);
   }
 
+  /// Secure hash for PIN using PBKDF2
+  Future<String> hashPin(String pin) async {
+    final algorithm = Pbkdf2(
+      macAlgorithm: Hmac.sha256(),
+      iterations: 100000,
+      bits: 256,
+    );
+
+    final random = Random.secure();
+    final salt = Uint8List(16);
+    for (var i = 0; i < salt.length; i++) {
+      salt[i] = random.nextInt(256);
+    }
+
+    final secretKey = SecretKey(utf8.encode(pin));
+
+    final newSecretKey = await algorithm.deriveKey(
+      secretKey: secretKey,
+      nonce: salt,
+    );
+    final newKeyBytes = await newSecretKey.extractBytes();
+
+    final saltB64 = base64Encode(salt);
+    final hashB64 = base64Encode(newKeyBytes);
+
+    return 'v1:$saltB64:$hashB64';
+  }
+
   /// Verify PIN
   Future<bool> verifyPin(String pin) async {
     final storedHash = await getPinHash();
     if (storedHash == null) return false;
-    return hashPin(pin) == storedHash;
+
+    if (storedHash.startsWith('v1:')) {
+      final parts = storedHash.split(':');
+      if (parts.length != 3) return false;
+
+      final salt = base64Decode(parts[1]);
+      final expectedHashBytes = base64Decode(parts[2]);
+
+      final algorithm = Pbkdf2(
+        macAlgorithm: Hmac.sha256(),
+        iterations: 100000,
+        bits: 256,
+      );
+
+      final secretKey = SecretKey(utf8.encode(pin));
+      final derivedKey = await algorithm.deriveKey(
+        secretKey: secretKey,
+        nonce: salt,
+      );
+      final derivedBytes = await derivedKey.extractBytes();
+
+      if (derivedBytes.length != expectedHashBytes.length) return false;
+
+      var result = 0;
+      for (var i = 0; i < derivedBytes.length; i++) {
+        result |= derivedBytes[i] ^ expectedHashBytes[i];
+      }
+      return result == 0;
+    } else {
+      // Legacy check
+      if (_weakHashPin(pin) == storedHash) {
+        // Upgrade to secure hash
+        final newHash = await hashPin(pin);
+        await storePinHash(newHash);
+        return true;
+      }
+      return false;
+    }
   }
 }
