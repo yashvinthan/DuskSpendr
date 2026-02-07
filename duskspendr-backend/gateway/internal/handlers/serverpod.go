@@ -3,7 +3,7 @@ package handlers
 import (
   "net/http"
 
-  "duskspendr-gateway/internal/serverpod"
+  "duskspendr/gateway/internal/serverpod"
 )
 
 type ServerpodHandler struct {
