@@ -7,14 +7,14 @@ import (
   "time"
 
   "github.com/google/uuid"
-  "github.com/jackc/pgx/v5/pgxpool"
+  "github.com/jackc/pgx/v5"
 
-  "duskspendr-gateway/internal/models"
-  "duskspendr-gateway/internal/serverpod"
+  "duskspendr/gateway/internal/models"
+  "duskspendr/gateway/internal/serverpod"
 )
 
 type SyncHandler struct {
-  Pool   *pgxpool.Pool
+  Pool   DBPool
   Client *serverpod.Client
 }
 
@@ -80,6 +80,8 @@ func (h *SyncHandler) IngestTransactions(w http.ResponseWriter, r *http.Request)
     }
   }
 
+  batch := &pgx.Batch{}
+
   for _, item := range input.Items {
     tagsBytes, _ := json.Marshal(normalizeTags(item.Tags))
 
@@ -93,7 +95,7 @@ func (h *SyncHandler) IngestTransactions(w http.ResponseWriter, r *http.Request)
       linkedAccountID = &val
     }
 
-    cmd, err := h.Pool.Exec(r.Context(), `
+    batch.Queue(`
       INSERT INTO transactions (
         id, user_id, amount_paisa, type, category, merchant_name, description,
         timestamp, source, payment_method, linked_account_id, reference_id,
@@ -141,6 +143,13 @@ func (h *SyncHandler) IngestTransactions(w http.ResponseWriter, r *http.Request)
       now,
       now,
     )
+  }
+
+  br := h.Pool.SendBatch(r.Context(), batch)
+  defer br.Close()
+
+  for range input.Items {
+    cmd, err := br.Exec()
     if err != nil {
       writeError(w, http.StatusInternalServerError, "insert failed")
       return
