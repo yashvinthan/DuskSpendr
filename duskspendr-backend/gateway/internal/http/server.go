@@ -8,10 +8,10 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"duskspendr-gateway/internal/config"
-	"duskspendr-gateway/internal/handlers"
-	mw "duskspendr-gateway/internal/middleware"
-	"duskspendr-gateway/internal/serverpod"
+	"duskspendr/gateway/internal/config"
+	"duskspendr/gateway/internal/handlers"
+	mw "duskspendr/gateway/internal/middleware"
+	"duskspendr/gateway/internal/serverpod"
 )
 
 func NewServer(pool *pgxpool.Pool, serverpodClient *serverpod.Client, cfg config.Config) http.Handler {
@@ -27,7 +27,7 @@ func NewServer(pool *pgxpool.Pool, serverpodClient *serverpod.Client, cfg config
 	r.Get("/health", handlers.Health)
 
 	userHandler := &handlers.UserHandler{Pool: pool}
-	authHandler := &handlers.AuthHandler{Pool: pool, Config: cfg}
+	authHandler := &handlers.HTTPAuthHandler{Pool: pool, Config: cfg}
 	txHandler := &handlers.TransactionHandler{Pool: pool}
 	accountHandler := &handlers.AccountHandler{Pool: pool}
 	budgetHandler := &handlers.BudgetHandler{Pool: pool}
