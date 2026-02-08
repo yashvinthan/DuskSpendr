@@ -130,6 +130,11 @@ func main() {
 	auth.Post("/refresh", authHandler.Refresh)
 	auth.Post("/logout", middleware.Auth(jwtService), authHandler.Logout)
 
+	// Integration routes
+	integrationsHandler := handlers.NewIntegrationsHandler(cfg)
+	integrations := v1.Group("/integrations")
+	integrations.Post("/upstox/token", integrationsHandler.UpstoxTokenExchange)
+
 	// Protected routes - require JWT
 	protected := v1.Group("", middleware.Auth(jwtService))
 
