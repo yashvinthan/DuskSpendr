@@ -173,6 +173,11 @@ func main() {
 	accounts.Delete("/:id", accountHandler.Unlink)
 	accounts.Post("/:id/sync", accountHandler.Sync)
 
+	// Investment routes (public for linking flow)
+	investmentHandler := handlers.NewInvestmentHandler(cfg)
+	investments := v1.Group("/investments")
+	investments.Post("/zerodha/exchange", investmentHandler.ZerodhaExchange)
+
 	// Analytics routes (proxy to Python service)
 	analytics := protected.Group("/analytics")
 	analytics.Get("/spending-summary", handlers.ProxyTo(cfg.AnalyticsServiceURL))
