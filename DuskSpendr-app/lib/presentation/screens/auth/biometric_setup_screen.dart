@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/theme/typography.dart';
 import '../../common/widgets/gradient_button.dart';
-import '../home/home_screen.dart';
+import '../../navigation/app_router.dart';
 
 class BiometricSetupScreen extends StatelessWidget {
   const BiometricSetupScreen({super.key});
@@ -41,21 +42,14 @@ class BiometricSetupScreen extends StatelessWidget {
                 GradientButton(
                   label: 'Enable Biometric',
                   onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => const HomeScreen(),
-                      ),
-                    );
+                    // Logic to enable biometric would go here
+                    context.go(AppRoutes.home);
                   },
                 ),
                 const SizedBox(height: AppSpacing.md),
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => const HomeScreen(),
-                      ),
-                    );
+                    context.go(AppRoutes.home);
                   },
                   child: const Text('Maybe Later'),
                 ),

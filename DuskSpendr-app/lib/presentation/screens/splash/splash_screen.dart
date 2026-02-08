@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/security/auth_service.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/theme/typography.dart';
+import '../../navigation/app_router.dart';
 import '../../../providers/auth_providers.dart';
 import '../auth/lock_screen.dart';
 import '../onboarding/onboarding_screen.dart';
@@ -50,6 +52,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
+      // Navigate to home, let router redirect based on auth/onboarding state
+      context.go(AppRoutes.home);
+    });
       _checkAuthAndNavigate();
     });
   }
@@ -197,4 +202,3 @@ class _ProgressDots extends StatelessWidget {
     );
   }
 }
-

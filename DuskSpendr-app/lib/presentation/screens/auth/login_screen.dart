@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/spacing.dart';
@@ -7,7 +8,7 @@ import '../../../core/theme/typography.dart';
 import '../../../providers/auth_providers.dart';
 import '../../common/widgets/gradient_button.dart';
 import '../../common/widgets/phone_input.dart';
-import 'otp_screen.dart';
+import '../../navigation/app_router.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -65,14 +66,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         .read(authControllerProvider.notifier)
                         .startOtp(phone);
                     if (res == null || !context.mounted) return;
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => OTPScreen(
-                          phone: phone,
-                          devCode: res.devCode,
-                        ),
-                      ),
-                    );
+
+                    // We only pass phone for now as AppRouter expects a String extra
+                    context.pushNamed('otp', extra: phone);
                   },
                 ),
                 const SizedBox(height: AppSpacing.md),
