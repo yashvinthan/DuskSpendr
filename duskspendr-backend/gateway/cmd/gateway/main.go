@@ -17,12 +17,12 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 
-	"duskspendr/gateway/internal/config"
-	"duskspendr/gateway/internal/db"
-	"duskspendr/gateway/internal/handlers"
-	"duskspendr/gateway/internal/middleware"
-	"duskspendr/gateway/internal/queue"
-	"duskspendr/gateway/internal/services"
+	"duskspendr-gateway/internal/config"
+	"duskspendr-gateway/internal/db"
+	"duskspendr-gateway/internal/handlers"
+	"duskspendr-gateway/internal/middleware"
+	"duskspendr-gateway/internal/queue"
+	"duskspendr-gateway/internal/services"
 )
 
 func main() {
@@ -57,6 +57,13 @@ func main() {
 	// Initialize services
 	jwtService := services.NewJWTService(cfg.JWTSecret, cfg.JWTRefreshSecret)
 	notificationService := services.NewNotificationService(mqConn)
+
+	var smsSender services.SMSSender
+	if cfg.TwilioAccountSID != "" && cfg.TwilioAuthToken != "" && cfg.TwilioFromNumber != "" {
+		smsSender = services.NewTwilioSender(cfg.TwilioAccountSID, cfg.TwilioAuthToken, cfg.TwilioFromNumber)
+	} else {
+		smsSender = services.NewLogSender()
+	}
 
 	// Fiber app configuration
 	app := fiber.New(fiber.Config{
@@ -116,7 +123,7 @@ func main() {
 	v1 := app.Group("/api/v1")
 
 	// Auth routes (mostly unauthenticated)
-	authHandler := handlers.NewAuthHandler(pool, cfg, jwtService)
+	authHandler := handlers.NewAuthHandler(pool, cfg, jwtService, smsSender)
 	auth := v1.Group("/auth")
 	auth.Post("/start", authHandler.Start)
 	auth.Post("/verify", authHandler.Verify)

@@ -38,6 +38,11 @@ type Config struct {
 	OTPMaxAttempts       int
 	OTPMaxPerIPPerHour   int
 
+	// Twilio
+	TwilioAccountSID string
+	TwilioAuthToken  string
+	TwilioFromNumber string
+
 	// Services
 	AIServiceURL        string
 	AnalyticsServiceURL string
@@ -74,7 +79,7 @@ func Load() Config {
 
 		// JWT
 		JWTSecret:        getEnv("JWT_SECRET", "your-super-secret-key-change-in-production"),
-		JWTRefreshSecret: getEnv("JWT_REFRESH_SECRET", "your-super-refresh-key-change-in-production"),
+		JWTRefreshSecret: getEnv("JWT_REFRESH_SECRET", "your-refresh-secret-key-change-in-production"),
 		JWTAccessExpiry:  getDurationEnv("JWT_ACCESS_EXPIRY", 15*time.Minute),
 		JWTRefreshExpiry: getDurationEnv("JWT_REFRESH_EXPIRY", 7*24*time.Hour),
 		AllowedOrigins:   getEnv("ALLOWED_ORIGINS", "*"),
@@ -85,6 +90,11 @@ func Load() Config {
 		OTPMinSecondsBetween: getEnvInt("OTP_MIN_SECONDS_BETWEEN", 60),
 		OTPMaxAttempts:       getEnvInt("OTP_MAX_ATTEMPTS", 5),
 		OTPMaxPerIPPerHour:   getEnvInt("OTP_MAX_PER_IP_PER_HOUR", 30),
+
+		// Twilio
+		TwilioAccountSID: getEnv("TWILIO_ACCOUNT_SID", ""),
+		TwilioAuthToken:  getEnv("TWILIO_AUTH_TOKEN", ""),
+		TwilioFromNumber: getEnv("TWILIO_FROM_NUMBER", ""),
 
 		// Services
 		AIServiceURL:        getEnv("AI_SERVICE_URL", "http://localhost:8001"),

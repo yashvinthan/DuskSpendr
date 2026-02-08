@@ -1,11 +1,13 @@
 // Package handlers provides Fiber HTTP handlers for the gateway
+//go:build fiber
+
 package handlers
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
-	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -26,14 +28,16 @@ type AuthHandler struct {
 	Pool       *pgxpool.Pool
 	Config     config.Config
 	JWTService *services.JWTService
+	SMSSender  services.SMSSender
 }
 
 // NewAuthHandler creates a new auth handler
-func NewAuthHandler(pool *pgxpool.Pool, cfg config.Config, jwtSvc *services.JWTService) *AuthHandler {
+func NewAuthHandler(pool *pgxpool.Pool, cfg config.Config, jwtSvc *services.JWTService, smsSender services.SMSSender) *AuthHandler {
 	return &AuthHandler{
 		Pool:       pool,
 		Config:     cfg,
 		JWTService: jwtSvc,
+		SMSSender:  smsSender,
 	}
 }
 
@@ -151,7 +155,22 @@ func (h *AuthHandler) Start(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO: Send OTP via SMS service
+	// In dev mode, return the code
+	var devCode string
+	if h.Config.Env == "local" || h.Config.Env == "development" {
+		devCode = code
+	}
+
+	// Send OTP via SMS
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		msg := fmt.Sprintf("Your DuskSpendr code is: %s", code)
+		if err := h.SMSSender.SendSMS(ctx, req.Phone, msg); err != nil {
+			fmt.Printf("Failed to send SMS to %s: %v\n", req.Phone, err)
+		}
+	}()
 
 	return c.JSON(fiber.Map{
 		"success": true,
@@ -262,7 +281,7 @@ func (h *AuthHandler) Verify(c *fiber.Ctx) error {
 			RefreshToken: tokenPair.RefreshToken,
 			UserID:       userID.String(),
 			ExpiresIn:    int(tokenPair.ExpiresIn),
-			ExpiresAt:    time.Now().Add(time.Duration(tokenPair.ExpiresIn) * time.Second),
+			ExpiresAt:    tokenPair.ExpiresAt,
 		},
 	})
 }
@@ -410,16 +429,3 @@ func safeCompare_Fiber(a, b string) bool {
 	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
 }
 
-func hashTokenFiber(token string) string {
-	sum := sha256.Sum256([]byte(token))
-	return hex.EncodeToString(sum[:])
-}
-
-func generateTokenFiber() (string, string, error) {
-	raw := make([]byte, 32)
-	if _, err := rand.Read(raw); err != nil {
-		return "", "", err
-	}
-	token := base64.RawURLEncoding.EncodeToString(raw)
-	return token, hashTokenFiber(token), nil
-}
