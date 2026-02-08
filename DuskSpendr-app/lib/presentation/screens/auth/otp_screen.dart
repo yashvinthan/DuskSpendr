@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/theme/typography.dart';
 import '../../../providers/auth_providers.dart';
 import '../../common/widgets/gradient_button.dart';
-import 'biometric_setup_screen.dart';
+import '../../navigation/app_router.dart';
 
 class OTPScreen extends ConsumerStatefulWidget {
   const OTPScreen({super.key, required this.phone, this.devCode});
@@ -43,7 +44,7 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => context.pop(),
                   icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -91,11 +92,8 @@ class _OTPScreenState extends ConsumerState<OTPScreen> {
                           code: _controller.text.trim(),
                         );
                     if (!ok || !context.mounted) return;
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => const BiometricSetupScreen(),
-                      ),
-                    );
+
+                    context.go(AppRoutes.biometricSetup);
                   },
                 ),
                 const SizedBox(height: AppSpacing.md),

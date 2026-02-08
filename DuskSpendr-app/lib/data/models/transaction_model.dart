@@ -19,6 +19,9 @@ class TransactionModel {
   final String? merchantName;
   final String? description;
 
+  late final String lowerCategory = category.toLowerCase();
+  late final String? lowerMerchantName = merchantName?.toLowerCase();
+
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
       id: json['id'] as String,

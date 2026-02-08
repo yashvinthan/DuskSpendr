@@ -269,73 +269,78 @@ class AppRouter {
 }
 
 /// Main shell with bottom navigation
-class MainShell extends StatefulWidget {
+class MainShell extends StatelessWidget {
   final Widget child;
 
   const MainShell({super.key, required this.child});
 
   @override
-  State<MainShell> createState() => _MainShellState();
-}
-
-class _MainShellState extends State<MainShell> {
-  int _currentIndex = 0;
-
-  @override
   Widget build(BuildContext context) {
+    final selectedIndex = _calculateSelectedIndex(context);
+
     return Scaffold(
-      body: widget.child,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() => _currentIndex = index);
-          switch (index) {
-            case 0:
-              context.go(AppRoutes.home);
-              break;
-            case 1:
-              context.go(AppRoutes.transactions);
-              break;
-            case 2:
-              context.go(AppRoutes.budgets);
-              break;
-            case 3:
-              context.go(AppRoutes.stats);
-              break;
-            case 4:
-              context.go(AppRoutes.profile);
-              break;
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
+      body: child,
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (index) => _onItemTapped(index, context),
+        destinations: const [
+          NavigationDestination(
             icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
+            selectedIcon: Icon(Icons.home),
             label: 'Home',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.swap_horiz),
-            activeIcon: Icon(Icons.swap_horiz),
-            label: 'Log',
+          NavigationDestination(
+            icon: Icon(Icons.receipt_long_outlined),
+            selectedIcon: Icon(Icons.receipt_long),
+            label: 'Activity',
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Icons.account_balance_wallet_outlined),
-            activeIcon: Icon(Icons.account_balance_wallet),
+            selectedIcon: Icon(Icons.account_balance_wallet),
             label: 'Budget',
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Icons.pie_chart_outline),
-            activeIcon: Icon(Icons.pie_chart),
+            selectedIcon: Icon(Icons.pie_chart),
             label: 'Stats',
           ),
-          BottomNavigationBarItem(
+          NavigationDestination(
             icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
+            selectedIcon: Icon(Icons.person),
             label: 'Profile',
           ),
         ],
       ),
     );
+  }
+
+  int _calculateSelectedIndex(BuildContext context) {
+    final String location = GoRouterState.of(context).uri.toString();
+    if (location.startsWith(AppRoutes.home)) return 0;
+    if (location.startsWith(AppRoutes.transactions)) return 1;
+    if (location.startsWith(AppRoutes.budgets)) return 2;
+    if (location.startsWith(AppRoutes.stats)) return 3;
+    if (location.startsWith(AppRoutes.profile)) return 4;
+    return 0;
+  }
+
+  void _onItemTapped(int index, BuildContext context) {
+    switch (index) {
+      case 0:
+        context.go(AppRoutes.home);
+        break;
+      case 1:
+        context.go(AppRoutes.transactions);
+        break;
+      case 2:
+        context.go(AppRoutes.budgets);
+        break;
+      case 3:
+        context.go(AppRoutes.stats);
+        break;
+      case 4:
+        context.go(AppRoutes.profile);
+        break;
+    }
   }
 }

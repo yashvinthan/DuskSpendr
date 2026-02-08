@@ -8,8 +8,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"duskspendr/gateway/internal/db"
-	"duskspendr/gateway/internal/queue"
+	"duskspendr-gateway/internal/db"
+	"duskspendr-gateway/internal/queue"
 )
 
 // HealthHandler handles health check endpoints

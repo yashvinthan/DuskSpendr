@@ -9,7 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"duskspendr/gateway/internal/db"
+	"duskspendr-gateway/internal/db"
 )
 
 // RateLimiter provides rate limiting functionality

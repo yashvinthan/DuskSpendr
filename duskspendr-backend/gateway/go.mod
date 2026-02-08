@@ -1,4 +1,4 @@
-module duskspendr/gateway
+module duskspendr-gateway
 
 go 1.21
 

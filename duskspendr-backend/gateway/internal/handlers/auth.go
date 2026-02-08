@@ -18,53 +18,53 @@ import (
   "github.com/google/uuid"
   "github.com/jackc/pgx/v5/pgxpool"
 
-  "duskspendr-gateway/internal/config"
-  "duskspendr-gateway/internal/models"
+  "duskspendr/gateway/internal/config"
+  "duskspendr/gateway/internal/models"
 )
 
-type AuthHandler struct {
+type HTTPAuthHandler struct {
   Pool *pgxpool.Pool
   Config config.Config
 }
 
-func (h *AuthHandler) Start(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPAuthHandler) Start(w http.ResponseWriter, r *http.Request) {
   var input models.AuthStartInput
   decoder := json.NewDecoder(r.Body)
   decoder.DisallowUnknownFields()
   if err := decoder.Decode(&input); err != nil {
-    writeError(w, http.StatusBadRequest, "invalid json")
+    writeError_HTTP(w, http.StatusBadRequest, "invalid json")
     return
   }
   input.Phone = strings.TrimSpace(input.Phone)
-  if !validatePhoneE164(input.Phone) {
-    writeError(w, http.StatusBadRequest, "invalid phone")
+  if !validatePhoneE164_HTTP(input.Phone) {
+    writeError_HTTP(w, http.StatusBadRequest, "invalid phone")
     return
   }
   if h.Config.AuthPepper == "" {
-    writeError(w, http.StatusInternalServerError, "auth not configured")
+    writeError_HTTP(w, http.StatusInternalServerError, "auth not configured")
     return
   }
 
   if err := h.enforceOTPSendLimits(r, input.Phone); err != nil {
-    writeError(w, http.StatusTooManyRequests, err.Error())
+    writeError_HTTP(w, http.StatusTooManyRequests, err.Error())
     return
   }
 
   userID, err := h.ensureUser(r, input.Phone)
   if err != nil {
-    writeError(w, http.StatusInternalServerError, "user lookup failed")
+    writeError_HTTP(w, http.StatusInternalServerError, "user lookup failed")
     return
   }
 
-  code, err := generateOTP(6)
+  code, err := generateOTP_HTTP(6)
   if err != nil {
-    writeError(w, http.StatusInternalServerError, "otp generation failed")
+    writeError_HTTP(w, http.StatusInternalServerError, "otp generation failed")
     return
   }
   otpID := uuid.New().String()
   expiresAt := time.Now().UTC().Add(5 * time.Minute)
   now := time.Now().UTC()
-  sendIP := clientIP(r)
+  sendIP := clientIP_HTTP(r)
 
   _, _ = h.Pool.Exec(r.Context(), `
     UPDATE auth_otps
@@ -72,14 +72,14 @@ func (h *AuthHandler) Start(w http.ResponseWriter, r *http.Request) {
      WHERE phone = $2 AND consumed_at IS NULL
   `, now, input.Phone)
 
-  codeHash := hashOTP(h.Config.AuthPepper, otpID, code)
+  codeHash := hashOTP_HTTP(h.Config.AuthPepper, otpID, code)
 
   _, err = h.Pool.Exec(r.Context(), `
     INSERT INTO auth_otps (id, user_id, phone, code, code_hash, expires_at, created_at, attempts_remaining, send_ip)
     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
   `, otpID, userID, input.Phone, nil, codeHash, expiresAt, now, h.Config.OTPMaxAttempts, sendIP)
   if err != nil {
-    writeError(w, http.StatusInternalServerError, "otp insert failed")
+    writeError_HTTP(w, http.StatusInternalServerError, "otp insert failed")
     return
   }
 
@@ -87,29 +87,28 @@ func (h *AuthHandler) Start(w http.ResponseWriter, r *http.Request) {
   if h.Config.Env == "local" {
     devCode = code
   }
-  writeJSON(w, http.StatusOK, models.AuthStartResponse{
+  writeJSON_HTTP(w, http.StatusOK, models.AuthStartResponse{
     OTPID:     otpID,
     ExpiresAt: expiresAt,
-    DevCode:   devCode,
   })
 }
 
-func (h *AuthHandler) Verify(w http.ResponseWriter, r *http.Request) {
+func (h *HTTPAuthHandler) Verify(w http.ResponseWriter, r *http.Request) {
   var input models.AuthVerifyInput
   decoder := json.NewDecoder(r.Body)
   decoder.DisallowUnknownFields()
   if err := decoder.Decode(&input); err != nil {
-    writeError(w, http.StatusBadRequest, "invalid json")
+    writeError_HTTP(w, http.StatusBadRequest, "invalid json")
     return
   }
   input.Phone = strings.TrimSpace(input.Phone)
   input.Code = strings.TrimSpace(input.Code)
-  if !validatePhoneE164(input.Phone) || input.Code == "" {
-    writeError(w, http.StatusBadRequest, "phone and code are required")
+  if !validatePhoneE164_HTTP(input.Phone) || input.Code == "" {
+    writeError_HTTP(w, http.StatusBadRequest, "phone and code are required")
     return
   }
   if h.Config.AuthPepper == "" {
-    writeError(w, http.StatusInternalServerError, "auth not configured")
+    writeError_HTTP(w, http.StatusInternalServerError, "auth not configured")
     return
   }
 
@@ -126,32 +125,32 @@ func (h *AuthHandler) Verify(w http.ResponseWriter, r *http.Request) {
       LIMIT 1
   `, input.Phone).Scan(&otpID, &userID, &expiresAt, &codeHash, &attemptsRemaining)
   if err != nil {
-    writeError(w, http.StatusUnauthorized, "invalid code")
+    writeError_HTTP(w, http.StatusUnauthorized, "invalid code")
     return
   }
   if time.Now().UTC().After(expiresAt) {
-    writeError(w, http.StatusUnauthorized, "code expired")
+    writeError_HTTP(w, http.StatusUnauthorized, "code expired")
     return
   }
   if attemptsRemaining <= 0 {
-    writeError(w, http.StatusUnauthorized, "too many attempts")
+    writeError_HTTP(w, http.StatusUnauthorized, "too many attempts")
     return
   }
 
-  expectedHash := hashOTP(h.Config.AuthPepper, otpID, input.Code)
-  if !safeCompare(codeHash, expectedHash) {
+  expectedHash := hashOTP_HTTP(h.Config.AuthPepper, otpID, input.Code)
+  if !safeCompare_HTTP(codeHash, expectedHash) {
     _, _ = h.Pool.Exec(r.Context(), `
       UPDATE auth_otps
          SET attempts_remaining = GREATEST(attempts_remaining - 1, 0)
        WHERE id = $1
     `, otpID)
-    writeError(w, http.StatusUnauthorized, "invalid code")
+    writeError_HTTP(w, http.StatusUnauthorized, "invalid code")
     return
   }
 
-  token, tokenHash, err := generateToken()
+  token, tokenHash, err := generateToken_HTTP()
   if err != nil {
-    writeError(w, http.StatusInternalServerError, "token generation failed")
+    writeError_HTTP(w, http.StatusInternalServerError, "token generation failed")
     return
   }
 
@@ -163,7 +162,7 @@ func (h *AuthHandler) Verify(w http.ResponseWriter, r *http.Request) {
     VALUES ($1,$2,$3,$4,$5)
   `, sessionID, userID, tokenHash, sessionExpires, time.Now().UTC())
   if err != nil {
-    writeError(w, http.StatusInternalServerError, "session insert failed")
+    writeError_HTTP(w, http.StatusInternalServerError, "session insert failed")
     return
   }
 
@@ -171,16 +170,16 @@ func (h *AuthHandler) Verify(w http.ResponseWriter, r *http.Request) {
     UPDATE auth_otps
        SET consumed_at = $1, verify_ip = $2
      WHERE id = $3
-  `, time.Now().UTC(), clientIP(r), otpID)
+  `, time.Now().UTC(), clientIP_HTTP(r), otpID)
 
-  writeJSON(w, http.StatusOK, models.AuthVerifyResponse{
+  writeJSON_HTTP(w, http.StatusOK, models.AuthVerifyResponse{
     Token:     token,
     UserID:    userID.String(),
     ExpiresAt: sessionExpires,
   })
 }
 
-func (h *AuthHandler) ensureUser(r *http.Request, phone string) (uuid.UUID, error) {
+func (h *HTTPAuthHandler) ensureUser(r *http.Request, phone string) (uuid.UUID, error) {
   id := uuid.New()
   var userID uuid.UUID
   err := h.Pool.QueryRow(r.Context(), `
@@ -193,7 +192,7 @@ func (h *AuthHandler) ensureUser(r *http.Request, phone string) (uuid.UUID, erro
   return userID, err
 }
 
-func (h *AuthHandler) enforceOTPSendLimits(r *http.Request, phone string) error {
+func (h *HTTPAuthHandler) enforceOTPSendLimits(r *http.Request, phone string) error {
   var recentCount int
   err := h.Pool.QueryRow(r.Context(), `
     SELECT COUNT(*)
@@ -207,7 +206,7 @@ func (h *AuthHandler) enforceOTPSendLimits(r *http.Request, phone string) error 
     return fmt.Errorf("too many otp requests")
   }
 
-  ip := clientIP(r)
+  ip := clientIP_HTTP(r)
   if ip != "" {
     var ipCount int
     err = h.Pool.QueryRow(r.Context(), `
@@ -236,7 +235,7 @@ func (h *AuthHandler) enforceOTPSendLimits(r *http.Request, phone string) error 
   return nil
 }
 
-func generateOTP(length int) (string, error) {
+func generateOTP_HTTP(length int) (string, error) {
   if length <= 0 {
     return "", fmt.Errorf("invalid otp length")
   }
@@ -252,33 +251,33 @@ func generateOTP(length int) (string, error) {
   return string(buf), nil
 }
 
-func generateToken() (string, string, error) {
+func generateToken_HTTP() (string, string, error) {
   raw := make([]byte, 32)
   if _, err := rand.Read(raw); err != nil {
     return "", "", err
   }
   token := base64.RawURLEncoding.EncodeToString(raw)
-  return token, hashToken(token), nil
+  return token, hashToken_HTTP(token), nil
 }
 
-func validatePhoneE164(phone string) bool {
+func validatePhoneE164_HTTP(phone string) bool {
   re := regexp.MustCompile(`^\+[1-9]\d{7,14}$`)
   return re.MatchString(phone)
 }
 
-func hashOTP(pepper, otpID, code string) string {
+func hashOTP_HTTP(pepper, otpID, code string) string {
   sum := sha256.Sum256([]byte(pepper + ":" + otpID + ":" + code))
   return hex.EncodeToString(sum[:])
 }
 
-func safeCompare(a, b string) bool {
+func safeCompare_HTTP(a, b string) bool {
   if len(a) != len(b) {
     return false
   }
   return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
 }
 
-func clientIP(r *http.Request) string {
+func clientIP_HTTP(r *http.Request) string {
   if r.RemoteAddr == "" {
     return ""
   }
@@ -287,4 +286,19 @@ func clientIP(r *http.Request) string {
     return host
   }
   return r.RemoteAddr
+}
+
+func writeError_HTTP(w http.ResponseWriter, status int, message string) {
+  w.WriteHeader(status)
+  json.NewEncoder(w).Encode(map[string]string{"error": message})
+}
+
+func writeJSON_HTTP(w http.ResponseWriter, status int, data interface{}) {
+  w.WriteHeader(status)
+  json.NewEncoder(w).Encode(data)
+}
+
+func hashToken_HTTP(token string) string {
+  sum := sha256.Sum256([]byte(token))
+  return hex.EncodeToString(sum[:])
 }
