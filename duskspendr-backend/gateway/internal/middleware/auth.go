@@ -6,7 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"duskspendr/gateway/internal/services"
+	"duskspendr-gateway/internal/services"
 )
 
 // Auth middleware validates JWT tokens and sets user context

@@ -60,9 +60,11 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     final toDelete =
         pageItems.where((tx) => _selectedIds.contains(tx.id)).toList();
 
-    for (final tx in toDelete) {
-      await ref.read(transactionsApiProvider).delete(token: token, id: tx.id);
-    }
+    await ref.read(transactionsApiProvider).bulkDelete(
+          token: token,
+          ids: toDelete.map((e) => e.id).toList(),
+        );
+
     setState(() => _selectedIds.clear());
     ref.invalidate(transactionPageProvider);
     if (!context.mounted) return;
@@ -319,7 +321,9 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                           title: _HighlightedText(
                                             text: tx.merchantName ??
                                                 'Transaction',
-                                            query: query,
+                                            lowerText: tx.lowerMerchantName ??
+                                                'transaction',
+                                            lowerQuery: query,
                                             baseStyle: AppTypography.bodyLarge
                                                 .copyWith(
                                               color: AppColors.textPrimary,
@@ -328,7 +332,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                           ),
                                           subtitle: _HighlightedText(
                                             text: tx.category,
-                                            query: query,
+                                            lowerText: tx.lowerCategory,
+                                            lowerQuery: query,
                                             baseStyle: AppTypography.bodyMedium
                                                 .copyWith(
                                               color: AppColors.textSecondary,
@@ -583,24 +588,25 @@ class _RecentSearches extends ConsumerWidget {
 class _HighlightedText extends StatelessWidget {
   const _HighlightedText({
     required this.text,
-    required this.query,
+    this.lowerText,
+    required this.lowerQuery,
     required this.baseStyle,
     required this.highlightColor,
   });
 
   final String text;
-  final String query;
+  final String? lowerText;
+  final String lowerQuery;
   final TextStyle baseStyle;
   final Color highlightColor;
 
   @override
   Widget build(BuildContext context) {
-    if (query.isEmpty) {
+    if (lowerQuery.isEmpty) {
       return Text(text, style: baseStyle);
     }
-    final lowerText = text.toLowerCase();
-    final lowerQuery = query.toLowerCase();
-    final matchIndex = lowerText.indexOf(lowerQuery);
+    final actualLowerText = lowerText ?? text.toLowerCase();
+    final matchIndex = actualLowerText.indexOf(lowerQuery);
     if (matchIndex == -1) {
       return Text(text, style: baseStyle);
     }

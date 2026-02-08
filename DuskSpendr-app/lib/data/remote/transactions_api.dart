@@ -100,4 +100,12 @@ class TransactionsApi {
       headers: {'Authorization': 'Bearer $token'},
     );
   }
+
+  Future<void> bulkDelete({required String token, required List<String> ids}) async {
+    await _client.postJson(
+      '/v1/transactions/bulk-delete',
+      headers: {'Authorization': 'Bearer $token'},
+      body: {'ids': ids},
+    );
+  }
 }

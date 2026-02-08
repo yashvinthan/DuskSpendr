@@ -17,12 +17,12 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 
-	"duskspendr/gateway/internal/config"
-	"duskspendr/gateway/internal/db"
-	"duskspendr/gateway/internal/handlers"
-	"duskspendr/gateway/internal/middleware"
-	"duskspendr/gateway/internal/queue"
-	"duskspendr/gateway/internal/services"
+	"duskspendr-gateway/internal/config"
+	"duskspendr-gateway/internal/db"
+	"duskspendr-gateway/internal/handlers"
+	"duskspendr-gateway/internal/middleware"
+	"duskspendr-gateway/internal/queue"
+	"duskspendr-gateway/internal/services"
 )
 
 func main() {
