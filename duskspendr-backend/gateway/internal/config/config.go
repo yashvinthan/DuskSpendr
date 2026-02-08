@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"strconv"
 	"time"
@@ -26,6 +27,7 @@ type Config struct {
 
 	// JWT
 	JWTSecret            string
+	JWTRefreshSecret     string
 	JWTAccessExpiry      time.Duration
 	JWTRefreshExpiry     time.Duration
 
@@ -49,10 +51,13 @@ type Config struct {
 	SyncIngestRPM    int
 	SyncIngestBurst  int
 	SyncIngestIPRPM  int
+
+	// CORS
+	AllowedOrigins string
 }
 
-func Load() Config {
-	return Config{
+func Load() (Config, error) {
+	cfg := Config{
 		// Environment
 		Env:      getEnv("APP_ENV", "local"),
 		HTTPAddr: getEnv("HTTP_ADDR", ":8000"),
@@ -71,7 +76,8 @@ func Load() Config {
 		ServerpodURL: getEnv("SERVERPOD_URL", "http://localhost:8090"),
 
 		// JWT
-		JWTSecret:        getEnv("JWT_SECRET", "your-super-secret-key-change-in-production"),
+		JWTSecret:        getEnv("JWT_SECRET", ""),
+		JWTRefreshSecret: getEnv("JWT_REFRESH_SECRET", ""),
 		JWTAccessExpiry:  getDurationEnv("JWT_ACCESS_EXPIRY", 15*time.Minute),
 		JWTRefreshExpiry: getDurationEnv("JWT_REFRESH_EXPIRY", 7*24*time.Hour),
 
@@ -95,7 +101,20 @@ func Load() Config {
 		SyncIngestRPM:    getEnvInt("SYNC_INGEST_RPM", 120),
 		SyncIngestBurst:  getEnvInt("SYNC_INGEST_BURST", 60),
 		SyncIngestIPRPM:  getEnvInt("SYNC_INGEST_IP_RPM", 600),
+
+		// CORS
+		AllowedOrigins: getEnv("ALLOWED_ORIGINS", "*"),
 	}
+
+	// Validation
+	if cfg.JWTSecret == "" {
+		return cfg, errors.New("JWT_SECRET environment variable is required")
+	}
+	if cfg.JWTSecret == "your-super-secret-key-change-in-production" {
+		return cfg, errors.New("JWT_SECRET is using an insecure default value; please change it")
+	}
+
+	return cfg, nil
 }
 
 func getEnv(key, def string) string {
