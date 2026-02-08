@@ -8,9 +8,8 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/redis/go-redis/v9"
 
-	"duskspendr/gateway/internal/db"
+	"duskspendr-gateway/internal/db"
 )
 
 // RateLimiter provides rate limiting functionality
@@ -89,7 +88,7 @@ func (rl *RateLimiter) Handler() fiber.Handler {
 
 		// Set rate limit headers
 		c.Set("X-RateLimit-Limit", strconv.Itoa(rl.max))
-		c.Set("X-RateLimit-Remaining", strconv.Itoa(max(0, rl.max-int(count))))
+		c.Set("X-RateLimit-Remaining", strconv.Itoa(maxInt(0, rl.max-int(count))))
 		c.Set("X-RateLimit-Reset", strconv.FormatInt(time.Now().Add(ttl).Unix(), 10))
 
 		// Check if over limit
@@ -126,7 +125,7 @@ func (rl *RateLimiter) increment(ctx context.Context, key string) (int64, error)
 
 // RateLimit returns a simple rate limiting middleware using in-memory storage
 // Use this when Redis is not available
-func RateLimit(max int, window time.Duration) fiber.Handler {
+func RateLimit(limit int, window time.Duration) fiber.Handler {
 	// Simple in-memory rate limiter (not suitable for distributed systems)
 	store := make(map[string]*rateLimitEntry)
 
@@ -145,14 +144,14 @@ func RateLimit(max int, window time.Duration) fiber.Handler {
 		}
 
 		entry = store[key]
-		remaining := max(0, max-entry.count)
+		remaining := maxInt(0, limit-entry.count)
 
 		// Set headers
-		c.Set("X-RateLimit-Limit", strconv.Itoa(max))
+		c.Set("X-RateLimit-Limit", strconv.Itoa(limit))
 		c.Set("X-RateLimit-Remaining", strconv.Itoa(remaining))
 		c.Set("X-RateLimit-Reset", strconv.FormatInt(entry.expiry.Unix(), 10))
 
-		if entry.count > max {
+		if entry.count > limit {
 			retryAfter := int(time.Until(entry.expiry).Seconds())
 			c.Set("Retry-After", strconv.Itoa(retryAfter))
 			
@@ -171,8 +170,8 @@ type rateLimitEntry struct {
 	expiry time.Time
 }
 
-// max returns the larger of two integers
-func max(a, b int) int {
+// maxInt returns the larger of two integers
+func maxInt(a, b int) int {
 	if a > b {
 		return a
 	}

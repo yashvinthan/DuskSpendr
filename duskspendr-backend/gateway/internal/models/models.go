@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-type Transaction struct {
+type RawTransaction struct {
   ID                 string    `json:"id"`
   UserID             string    `json:"user_id"`
   AmountPaisa        int64     `json:"amount_paisa"`
@@ -43,16 +43,20 @@ type TransactionInput struct {
 }
 
 type LinkedAccount struct {
-  ID              string    `json:"id"`
-  UserID          string    `json:"user_id"`
-  Provider        string    `json:"provider"`
-  AccountNumber   *string   `json:"account_number,omitempty"`
-  AccountName     *string   `json:"account_name,omitempty"`
-  UpiID           *string   `json:"upi_id,omitempty"`
-  BalancePaisa    *int64    `json:"balance_paisa,omitempty"`
-  Status          string    `json:"status"`
-  LastSyncedAt    time.Time `json:"last_synced_at"`
-  LinkedAt        time.Time `json:"linked_at"`
+  ID                string    `json:"id"`
+  UserID            string    `json:"user_id"`
+  Provider          string    `json:"provider"`
+  AccountNumber     *string   `json:"account_number,omitempty"`
+  AccountName       *string   `json:"account_name,omitempty"`
+  UpiID             *string   `json:"upi_id,omitempty"`
+  BalancePaisa      *int64    `json:"balance_paisa,omitempty"`
+  Status            string    `json:"status"`
+  LastSyncedAt      time.Time `json:"last_synced_at"`
+  LinkedAt          time.Time `json:"linked_at"`
+  AccessTokenEnc    string    `json:"-"`
+  RefreshTokenEnc   string    `json:"-"`
+  TokenExpiry       time.Time `json:"-"`
+  ProviderAccountID string    `json:"provider_account_id"`
 }
 
 type LinkedAccountInput struct {

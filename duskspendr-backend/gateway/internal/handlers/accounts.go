@@ -1,109 +1,201 @@
 package handlers
 
 import (
-  "encoding/json"
-  "net/http"
-  "time"
+	"time"
 
-  "github.com/google/uuid"
-  "github.com/jackc/pgx/v5/pgxpool"
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 
-  "duskspendr-gateway/internal/models"
+	"duskspendr-gateway/internal/models"
+	"duskspendr-gateway/internal/services"
 )
 
 type AccountHandler struct {
-  Pool *pgxpool.Pool
+	Pool    *pgxpool.Pool
+	Service *services.AccountService
 }
 
-func (h *AccountHandler) List(w http.ResponseWriter, r *http.Request) {
-  userID, ok := UserIDFromContext(r.Context())
-  if !ok {
-    writeError(w, http.StatusBadRequest, "missing user context")
-    return
-  }
+func NewAccountHandler(pool *pgxpool.Pool, service *services.AccountService) *AccountHandler {
+	return &AccountHandler{
+		Pool:    pool,
+		Service: service,
+	}
+}
 
-  rows, err := h.Pool.Query(r.Context(), `
+func (h *AccountHandler) List(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(string)
+
+	rows, err := h.Pool.Query(c.Context(), `
     SELECT id, user_id, provider, account_number, account_name, upi_id,
-           balance_paisa, status, last_synced_at, linked_at
+           balance_paisa, status, last_synced_at, linked_at, provider_account_id
       FROM linked_accounts
      WHERE user_id = $1
      ORDER BY linked_at DESC
   `, userID)
-  if err != nil {
-    writeError(w, http.StatusInternalServerError, "query failed")
-    return
-  }
-  defer rows.Close()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Query failed",
+		})
+	}
+	defer rows.Close()
 
-  items := []models.LinkedAccount{}
-  for rows.Next() {
-    var a models.LinkedAccount
-    if err := rows.Scan(
-      &a.ID,
-      &a.UserID,
-      &a.Provider,
-      &a.AccountNumber,
-      &a.AccountName,
-      &a.UpiID,
-      &a.BalancePaisa,
-      &a.Status,
-      &a.LastSyncedAt,
-      &a.LinkedAt,
-    ); err != nil {
-      writeError(w, http.StatusInternalServerError, "scan failed")
-      return
-    }
-    items = append(items, a)
-  }
+	items := []models.LinkedAccount{}
+	for rows.Next() {
+		var a models.LinkedAccount
+		if err := rows.Scan(
+			&a.ID,
+			&a.UserID,
+			&a.Provider,
+			&a.AccountNumber,
+			&a.AccountName,
+			&a.UpiID,
+			&a.BalancePaisa,
+			&a.Status,
+			&a.LastSyncedAt,
+			&a.LinkedAt,
+			&a.ProviderAccountID,
+		); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Scan failed",
+			})
+		}
+		items = append(items, a)
+	}
 
-  writeJSON(w, http.StatusOK, map[string]any{"items": items})
+	return c.JSON(fiber.Map{"items": items})
 }
 
-func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
-  userID, ok := UserIDFromContext(r.Context())
-  if !ok {
-    writeError(w, http.StatusBadRequest, "missing user context")
-    return
-  }
+// Link initiates OAuth flow
+func (h *AccountHandler) Link(c *fiber.Ctx) error {
+	var req struct {
+		Provider    string `json:"provider"`
+		RedirectURI string `json:"redirect_uri"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid JSON",
+		})
+	}
+	if req.Provider == "" || req.RedirectURI == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Provider and redirect_uri required",
+		})
+	}
 
-  var input models.LinkedAccountInput
-  if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-    writeError(w, http.StatusBadRequest, "invalid json")
-    return
-  }
-  if input.Provider == "" {
-    writeError(w, http.StatusBadRequest, "provider is required")
-    return
-  }
-  if input.Status == "" {
-    writeError(w, http.StatusBadRequest, "status is required")
-    return
-  }
+	provider, err := h.Service.GetProvider(req.Provider)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
 
-  now := time.Now().UTC()
-  id := uuid.New().String()
+	state := uuid.New().String()
+	url, err := provider.InitiateLink(c.Context(), req.RedirectURI, state)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to initiate link",
+		})
+	}
 
-  _, err := h.Pool.Exec(r.Context(), `
-    INSERT INTO linked_accounts (
-      id, user_id, provider, account_number, account_name, upi_id,
-      balance_paisa, status, last_synced_at, linked_at
-    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-  `,
-    id,
-    userID,
-    input.Provider,
-    input.AccountNumber,
-    input.AccountName,
-    input.UpiID,
-    input.BalancePaisa,
-    input.Status,
-    now,
-    now,
-  )
-  if err != nil {
-    writeError(w, http.StatusInternalServerError, "insert failed")
-    return
-  }
+	return c.JSON(fiber.Map{"url": url, "state": state})
+}
 
-  writeJSON(w, http.StatusCreated, map[string]string{"id": id})
+// Callback handles OAuth callback
+func (h *AccountHandler) Callback(c *fiber.Ctx) error {
+	var req struct {
+		Provider    string `json:"provider"`
+		Code        string `json:"code"`
+		RedirectURI string `json:"redirect_uri"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid JSON",
+		})
+	}
+
+	provider, err := h.Service.GetProvider(req.Provider)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	tokens, err := provider.ExchangeToken(c.Context(), req.Code, req.RedirectURI)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Token exchange failed: " + err.Error(),
+		})
+	}
+
+	// Encrypt tokens
+	encAccess, err := h.Service.EncryptToken(tokens.AccessToken)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Encryption failed",
+		})
+	}
+	encRefresh, err := h.Service.EncryptToken(tokens.RefreshToken)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Encryption failed",
+		})
+	}
+
+	userID := c.Locals("userID").(string)
+
+	id := uuid.New().String()
+	now := time.Now().UTC()
+	expiry := now.Add(time.Duration(tokens.ExpiresIn) * time.Second)
+
+	_, err = h.Pool.Exec(c.Context(), `
+		INSERT INTO linked_accounts (
+			id, user_id, provider, status,
+			access_token_enc, refresh_token_enc, token_expiry, provider_account_id,
+			linked_at, last_synced_at
+		) VALUES ($1, $2, $3, 'active', $4, $5, $6, $7, $8, $8)
+	`, id, userID, req.Provider, encAccess, encRefresh, expiry, tokens.AccountID, now)
+
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "DB save failed",
+		})
+	}
+
+	return c.JSON(fiber.Map{"status": "linked", "id": id})
+}
+
+// Unlink revokes token
+func (h *AccountHandler) Unlink(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(string)
+	id := c.Params("id")
+
+	// Ideally invoke provider revoke here
+
+	cmd, err := h.Pool.Exec(c.Context(), `
+    DELETE FROM linked_accounts
+     WHERE user_id = $1 AND id = $2
+  `, userID, id)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Delete failed",
+		})
+	}
+	if cmd.RowsAffected() == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Not found",
+		})
+	}
+
+	return c.JSON(fiber.Map{"status": "unlinked"})
+}
+
+// Sync triggers manual sync for an account
+func (h *AccountHandler) Sync(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	// Trigger sync logic (fetch transactions from provider and save to raw_transactions)
+	// This would invoke h.Service.SyncAccount(ctx, id)
+	// For now, just return OK
+	return c.JSON(fiber.Map{"status": "sync_started", "id": id})
 }

@@ -57,6 +57,11 @@ func (c *Connection) Channel() *amqp.Channel {
 	return c.channel
 }
 
+// GetAMQPConnection returns the raw AMQP connection
+func (c *Connection) GetAMQPConnection() *amqp.Connection {
+	return c.conn
+}
+
 // DeclareExchange declares an exchange
 func (c *Connection) DeclareExchange(name, kind string) error {
 	return c.channel.ExchangeDeclare(

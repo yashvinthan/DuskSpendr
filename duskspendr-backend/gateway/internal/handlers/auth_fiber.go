@@ -17,20 +17,21 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"duskspendr/gateway/internal/config"
-	"duskspendr/gateway/internal/services"
+	"duskspendr-gateway/internal/config"
+	"duskspendr-gateway/internal/services"
 )
 
-// AuthHandler handles authentication endpoints
-type AuthHandler struct {
+
+// FiberAuthHandler handles authentication endpoints
+type FiberAuthHandler struct {
 	Pool       *pgxpool.Pool
 	Config     config.Config
 	JWTService *services.JWTService
 }
 
-// NewAuthHandler creates a new auth handler
-func NewAuthHandler(pool *pgxpool.Pool, cfg config.Config, jwtSvc *services.JWTService) *AuthHandler {
-	return &AuthHandler{
+// NewFiberAuthHandler creates a new auth handler
+func NewFiberAuthHandler(pool *pgxpool.Pool, cfg config.Config, jwtSvc *services.JWTService) *FiberAuthHandler {
+	return &FiberAuthHandler{
 		Pool:       pool,
 		Config:     cfg,
 		JWTService: jwtSvc,
@@ -77,7 +78,7 @@ type RefreshResponse struct {
 }
 
 // Start initiates OTP authentication
-func (h *AuthHandler) Start(c *fiber.Ctx) error {
+func (h *FiberAuthHandler) Start(c *fiber.Ctx) error {
 	var req AuthStartRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
@@ -171,7 +172,7 @@ func (h *AuthHandler) Start(c *fiber.Ctx) error {
 }
 
 // Verify validates OTP and returns tokens
-func (h *AuthHandler) Verify(c *fiber.Ctx) error {
+func (h *FiberAuthHandler) Verify(c *fiber.Ctx) error {
 	var req AuthVerifyRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
@@ -269,14 +270,14 @@ func (h *AuthHandler) Verify(c *fiber.Ctx) error {
 			AccessToken:  tokenPair.AccessToken,
 			RefreshToken: tokenPair.RefreshToken,
 			UserID:       userID.String(),
-			ExpiresIn:    int(tokenPair.ExpiresIn.Seconds()),
+			ExpiresIn:    int(tokenPair.ExpiresIn),
 			ExpiresAt:    tokenPair.ExpiresAt,
 		},
 	})
 }
 
 // Refresh exchanges a refresh token for new tokens
-func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
+func (h *FiberAuthHandler) Refresh(c *fiber.Ctx) error {
 	var req RefreshRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{
@@ -306,13 +307,13 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 		"data": RefreshResponse{
 			AccessToken:  tokenPair.AccessToken,
 			RefreshToken: tokenPair.RefreshToken,
-			ExpiresIn:    int(tokenPair.ExpiresIn.Seconds()),
+			ExpiresIn:    int(tokenPair.ExpiresIn),
 		},
 	})
 }
 
 // Logout invalidates the user's session
-func (h *AuthHandler) Logout(c *fiber.Ctx) error {
+func (h *FiberAuthHandler) Logout(c *fiber.Ctx) error {
 	// Get user ID from context (set by auth middleware)
 	userID := c.Locals("user_id")
 	if userID == nil {
@@ -331,7 +332,7 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 }
 
 // ensureUser creates or retrieves a user by phone
-func (h *AuthHandler) ensureUser(c *fiber.Ctx, phone string) (uuid.UUID, error) {
+func (h *FiberAuthHandler) ensureUser(c *fiber.Ctx, phone string) (uuid.UUID, error) {
 	id := uuid.New()
 	var userID uuid.UUID
 	err := h.Pool.QueryRow(c.Context(), `
@@ -344,7 +345,7 @@ func (h *AuthHandler) ensureUser(c *fiber.Ctx, phone string) (uuid.UUID, error) 
 }
 
 // enforceOTPSendLimits checks rate limits for OTP sending
-func (h *AuthHandler) enforceOTPSendLimits(c *fiber.Ctx, phone string) error {
+func (h *FiberAuthHandler) enforceOTPSendLimits(c *fiber.Ctx, phone string) error {
 	// Check per-phone limit
 	var recentCount int
 	err := h.Pool.QueryRow(c.Context(), `
@@ -418,7 +419,7 @@ func safeCompare(a, b string) bool {
 	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
 }
 
-func hashToken(token string) string {
+func hashTokenFiber(token string) string {
 	sum := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(sum[:])
 }
@@ -429,5 +430,5 @@ func generateToken() (string, string, error) {
 		return "", "", err
 	}
 	token := base64.RawURLEncoding.EncodeToString(raw)
-	return token, hashToken(token), nil
+	return token, hashTokenFiber(token), nil
 }

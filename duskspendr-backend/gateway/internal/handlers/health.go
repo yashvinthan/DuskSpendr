@@ -8,8 +8,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"duskspendr/gateway/internal/db"
-	"duskspendr/gateway/internal/queue"
+	"duskspendr-gateway/internal/db"
+	"duskspendr-gateway/internal/queue"
 )
 
 // HealthHandler handles health check endpoints
@@ -43,8 +43,8 @@ func NewHealthHandler(redis *db.RedisClient, rabbitmq *queue.Connection) *Health
 	}
 }
 
-// Health performs a basic health check
-func (h *HealthHandler) Health(c *fiber.Ctx) error {
+// Check performs a basic health check
+func (h *HealthHandler) Check(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status":    "ok",
 		"timestamp": time.Now().UTC().Format(time.RFC3339),

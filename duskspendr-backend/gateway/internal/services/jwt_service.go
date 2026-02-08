@@ -3,7 +3,9 @@ package services
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"time"
 
@@ -18,10 +20,11 @@ var (
 
 // TokenPair represents access and refresh tokens
 type TokenPair struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-	ExpiresIn    int64  `json:"expires_in"`
-	TokenType    string `json:"token_type"`
+	AccessToken  string    `json:"access_token"`
+	RefreshToken string    `json:"refresh_token"`
+	ExpiresIn    int64     `json:"expires_in"`
+	ExpiresAt    time.Time `json:"expires_at"`
+	TokenType    string    `json:"token_type"`
 }
 
 // Claims represents JWT claims
@@ -35,10 +38,10 @@ type Claims struct {
 
 // JWTService handles JWT token operations
 type JWTService struct {
-	accessSecret       []byte
-	refreshSecret      []byte
-	accessExpiration   time.Duration
-	refreshExpiration  time.Duration
+	accessSecret      []byte
+	refreshSecret     []byte
+	accessExpiration  time.Duration
+	refreshExpiration time.Duration
 }
 
 // NewJWTService creates a new JWT service
@@ -59,8 +62,10 @@ func (s *JWTService) GenerateTokenPair(userID, email, phone string) (*TokenPair,
 		return nil, err
 	}
 
+	expiresAt := now.Add(s.accessExpiration)
+
 	// Access token
-	accessClaims := Claims{
+	accessClaims := &Claims{
 		UserID:    userID,
 		Email:     email,
 		Phone:     phone,
@@ -68,7 +73,7 @@ func (s *JWTService) GenerateTokenPair(userID, email, phone string) (*TokenPair,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   userID,
 			IssuedAt:  jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(now.Add(s.accessExpiration)),
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			ID:        jti,
 			Issuer:    "duskspendr",
 		},
@@ -86,7 +91,7 @@ func (s *JWTService) GenerateTokenPair(userID, email, phone string) (*TokenPair,
 		return nil, err
 	}
 
-	refreshClaims := Claims{
+	refreshClaims := &Claims{
 		UserID:    userID,
 		TokenType: "refresh",
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -108,6 +113,7 @@ func (s *JWTService) GenerateTokenPair(userID, email, phone string) (*TokenPair,
 		AccessToken:  accessTokenString,
 		RefreshToken: refreshTokenString,
 		ExpiresIn:    int64(s.accessExpiration.Seconds()),
+		ExpiresAt:    expiresAt,
 		TokenType:    "Bearer",
 	}, nil
 }
@@ -167,4 +173,9 @@ func generateJTI() (string, error) {
 		return "", err
 	}
 	return base64.RawURLEncoding.EncodeToString(b), nil
+}
+
+func hashToken(token string) string {
+	sum := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(sum[:])
 }

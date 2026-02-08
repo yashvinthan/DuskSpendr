@@ -39,7 +39,7 @@ func RequireUserID(pool *pgxpool.Pool) func(http.Handler) http.Handler {
         return
       }
 
-      tokenHash := hashToken(token)
+      tokenHash := hashTokenMiddleware(token)
       var userID uuid.UUID
       err := pool.QueryRow(r.Context(), `
         SELECT user_id
@@ -57,7 +57,7 @@ func RequireUserID(pool *pgxpool.Pool) func(http.Handler) http.Handler {
   }
 }
 
-func hashToken(token string) string {
+func hashTokenMiddleware(token string) string {
   sum := sha256.Sum256([]byte(token))
   return hex.EncodeToString(sum[:])
 }

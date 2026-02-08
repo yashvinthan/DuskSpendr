@@ -16,13 +16,14 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+	amqp "github.com/rabbitmq/amqp091-go"
 
-	"duskspendr/gateway/internal/config"
-	"duskspendr/gateway/internal/db"
-	"duskspendr/gateway/internal/handlers"
-	"duskspendr/gateway/internal/middleware"
-	"duskspendr/gateway/internal/queue"
-	"duskspendr/gateway/internal/services"
+	"duskspendr-gateway/internal/config"
+	"duskspendr-gateway/internal/db"
+	"duskspendr-gateway/internal/handlers"
+	"duskspendr-gateway/internal/middleware"
+	"duskspendr-gateway/internal/queue"
+	"duskspendr-gateway/internal/services"
 )
 
 func main() {
@@ -56,7 +57,15 @@ func main() {
 
 	// Initialize services
 	jwtService := services.NewJWTService(cfg.JWTSecret, cfg.JWTRefreshSecret)
-	notificationService := services.NewNotificationService(mqConn)
+
+	// Handle case where mqConn is nil (optional services)
+	var amqpConn *amqp.Connection
+	if mqConn != nil {
+		amqpConn = mqConn.GetAMQPConnection()
+	}
+	notificationService := services.NewNotificationService(amqpConn)
+
+	accountService := services.NewAccountService(pool, cfg)
 
 	// Fiber app configuration
 	app := fiber.New(fiber.Config{
@@ -109,14 +118,14 @@ func main() {
 	}
 
 	// Health check (unauthenticated)
-	app.Get("/health", handlers.NewHealthHandler(pool, redisClient).Check)
-	app.Get("/ready", handlers.NewHealthHandler(pool, redisClient).Ready)
+	app.Get("/health", handlers.NewHealthHandler(redisClient, mqConn).Check)
+	app.Get("/ready", handlers.NewHealthHandler(redisClient, mqConn).Ready)
 
 	// API v1 routes
 	v1 := app.Group("/api/v1")
 
 	// Auth routes (mostly unauthenticated)
-	authHandler := handlers.NewAuthHandler(pool, cfg, jwtService)
+	authHandler := handlers.NewFiberAuthHandler(pool, cfg, jwtService)
 	auth := v1.Group("/auth")
 	auth.Post("/start", authHandler.Start)
 	auth.Post("/verify", authHandler.Verify)
@@ -154,10 +163,11 @@ func main() {
 	budgets.Delete("/:id", budgetHandler.Delete)
 
 	// Account linking routes
-	accountHandler := handlers.NewAccountHandler(pool)
+	accountHandler := handlers.NewAccountHandler(pool, accountService)
 	accounts := protected.Group("/accounts")
 	accounts.Get("/", accountHandler.List)
 	accounts.Post("/link", accountHandler.Link)
+	accounts.Post("/link/callback", accountHandler.Callback)
 	accounts.Delete("/:id", accountHandler.Unlink)
 	accounts.Post("/:id/sync", accountHandler.Sync)
 
