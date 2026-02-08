@@ -29,6 +29,7 @@ type Config struct {
 	JWTRefreshSecret     string
 	JWTAccessExpiry      time.Duration
 	JWTRefreshExpiry     time.Duration
+	AllowedOrigins       string
 
 	// Auth
 	AuthPepper           string
@@ -86,6 +87,7 @@ func Load() Config {
 		JWTRefreshSecret: getEnv("JWT_REFRESH_SECRET", "your-refresh-secret-key-change-in-production"),
 		JWTAccessExpiry:  getDurationEnv("JWT_ACCESS_EXPIRY", 15*time.Minute),
 		JWTRefreshExpiry: getDurationEnv("JWT_REFRESH_EXPIRY", 7*24*time.Hour),
+		AllowedOrigins:   getEnv("ALLOWED_ORIGINS", "*"),
 
 		// Auth
 		AuthPepper:           getEnv("AUTH_PEPPER", ""),

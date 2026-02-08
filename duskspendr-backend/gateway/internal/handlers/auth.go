@@ -64,7 +64,7 @@ func (h *HTTPAuthHandler) Start(w http.ResponseWriter, r *http.Request) {
   otpID := uuid.New().String()
   expiresAt := time.Now().UTC().Add(5 * time.Minute)
   now := time.Now().UTC()
-  sendIP := clientIP(r)
+  sendIP := clientIP_HTTP(r)
 
   _, _ = h.Pool.Exec(r.Context(), `
     UPDATE auth_otps
@@ -90,7 +90,6 @@ func (h *HTTPAuthHandler) Start(w http.ResponseWriter, r *http.Request) {
   writeJSON_HTTP(w, http.StatusOK, models.AuthStartResponse{
     OTPID:     otpID,
     ExpiresAt: expiresAt,
-    DevCode:   devCode,
   })
 }
 
@@ -171,7 +170,7 @@ func (h *HTTPAuthHandler) Verify(w http.ResponseWriter, r *http.Request) {
     UPDATE auth_otps
        SET consumed_at = $1, verify_ip = $2
      WHERE id = $3
-  `, time.Now().UTC(), clientIP(r), otpID)
+  `, time.Now().UTC(), clientIP_HTTP(r), otpID)
 
   writeJSON_HTTP(w, http.StatusOK, models.AuthVerifyResponse{
     Token:     token,
@@ -207,7 +206,7 @@ func (h *HTTPAuthHandler) enforceOTPSendLimits(r *http.Request, phone string) er
     return fmt.Errorf("too many otp requests")
   }
 
-  ip := clientIP(r)
+  ip := clientIP_HTTP(r)
   if ip != "" {
     var ipCount int
     err = h.Pool.QueryRow(r.Context(), `
@@ -278,7 +277,7 @@ func safeCompare_HTTP(a, b string) bool {
   return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
 }
 
-func clientIP(r *http.Request) string {
+func clientIP_HTTP(r *http.Request) string {
   if r.RemoteAddr == "" {
     return ""
   }
