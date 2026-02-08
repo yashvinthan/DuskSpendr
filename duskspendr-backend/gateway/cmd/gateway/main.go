@@ -58,6 +58,13 @@ func main() {
 	jwtService := services.NewJWTService(cfg.JWTSecret, cfg.JWTRefreshSecret)
 	notificationService := services.NewNotificationService(mqConn)
 
+	var smsSender services.SMSSender
+	if cfg.TwilioAccountSID != "" && cfg.TwilioAuthToken != "" && cfg.TwilioFromNumber != "" {
+		smsSender = services.NewTwilioSender(cfg.TwilioAccountSID, cfg.TwilioAuthToken, cfg.TwilioFromNumber)
+	} else {
+		smsSender = services.NewLogSender()
+	}
+
 	// Fiber app configuration
 	app := fiber.New(fiber.Config{
 		Prefork:               cfg.Env == "production",
@@ -116,7 +123,7 @@ func main() {
 	v1 := app.Group("/api/v1")
 
 	// Auth routes (mostly unauthenticated)
-	authHandler := handlers.NewAuthHandler(pool, cfg, jwtService)
+	authHandler := handlers.NewAuthHandler(pool, cfg, jwtService, smsSender)
 	auth := v1.Group("/auth")
 	auth.Post("/start", authHandler.Start)
 	auth.Post("/verify", authHandler.Verify)

@@ -4,10 +4,10 @@
 package handlers
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
-	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -28,14 +28,16 @@ type AuthHandler struct {
 	Pool       *pgxpool.Pool
 	Config     config.Config
 	JWTService *services.JWTService
+	SMSSender  services.SMSSender
 }
 
 // NewAuthHandler creates a new auth handler
-func NewAuthHandler(pool *pgxpool.Pool, cfg config.Config, jwtSvc *services.JWTService) *AuthHandler {
+func NewAuthHandler(pool *pgxpool.Pool, cfg config.Config, jwtSvc *services.JWTService, smsSender services.SMSSender) *AuthHandler {
 	return &AuthHandler{
 		Pool:       pool,
 		Config:     cfg,
 		JWTService: jwtSvc,
+		SMSSender:  smsSender,
 	}
 }
 
@@ -160,7 +162,16 @@ func (h *AuthHandler) Start(c *fiber.Ctx) error {
 		devCode = code
 	}
 
-	// TODO: Send OTP via SMS service
+	// Send OTP via SMS
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		msg := fmt.Sprintf("Your DuskSpendr code is: %s", code)
+		if err := h.SMSSender.SendSMS(ctx, req.Phone, msg); err != nil {
+			fmt.Printf("Failed to send SMS to %s: %v\n", req.Phone, err)
+		}
+	}()
 
 	return c.JSON(fiber.Map{
 		"success": true,
@@ -271,7 +282,7 @@ func (h *AuthHandler) Verify(c *fiber.Ctx) error {
 			AccessToken:  tokenPair.AccessToken,
 			RefreshToken: tokenPair.RefreshToken,
 			UserID:       userID.String(),
-			ExpiresIn:    int(tokenPair.ExpiresIn.Seconds()),
+			ExpiresIn:    int(tokenPair.ExpiresIn),
 			ExpiresAt:    tokenPair.ExpiresAt,
 		},
 	})
@@ -308,7 +319,7 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 		"data": RefreshResponse{
 			AccessToken:  tokenPair.AccessToken,
 			RefreshToken: tokenPair.RefreshToken,
-			ExpiresIn:    int(tokenPair.ExpiresIn.Seconds()),
+			ExpiresIn:    int(tokenPair.ExpiresIn),
 		},
 	})
 }
@@ -420,16 +431,3 @@ func safeCompare(a, b string) bool {
 	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
 }
 
-func hashToken(token string) string {
-	sum := sha256.Sum256([]byte(token))
-	return hex.EncodeToString(sum[:])
-}
-
-func generateToken() (string, string, error) {
-	raw := make([]byte, 32)
-	if _, err := rand.Read(raw); err != nil {
-		return "", "", err
-	}
-	token := base64.RawURLEncoding.EncodeToString(raw)
-	return token, hashToken(token), nil
-}
