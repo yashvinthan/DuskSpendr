@@ -137,21 +137,74 @@ class EncryptionService {
     await _storage.deleteAll();
   }
 
-  /// Simple hash for PIN (use proper password hashing in production)
-  String hashPin(String pin) {
-    final bytes = utf8.encode(pin);
-    var hash = 0;
-    for (var byte in bytes) {
-      hash = ((hash << 5) - hash) + byte;
-      hash = hash & 0xffffffff;
-    }
-    return hash.toRadixString(16);
+  /// Secure hash for PIN using PBKDF2
+  Future<String> hashPin(String pin) async {
+    final pbkdf2 = Pbkdf2(
+      macAlgorithm: Hmac.sha256(),
+      iterations: 100000,
+      bits: 256,
+    );
+
+    final salt = List<int>.generate(16, (_) => Random.secure().nextInt(256));
+    final secretKey = SecretKey(utf8.encode(pin));
+
+    final newSecretKey = await pbkdf2.deriveKey(
+      secretKey: secretKey,
+      nonce: salt,
+    );
+    final hashBytes = await newSecretKey.extractBytes();
+
+    final saltB64 = base64.encode(salt);
+    final hashB64 = base64.encode(hashBytes);
+
+    return '$saltB64\$$hashB64';
   }
 
-  /// Verify PIN
+  /// Verify PIN against stored hash
   Future<bool> verifyPin(String pin) async {
     final storedHash = await getPinHash();
     if (storedHash == null) return false;
-    return hashPin(pin) == storedHash;
+
+    final parts = storedHash.split('\$');
+    if (parts.length != 2) {
+      // Handle legacy hash (if any) or corrupted data
+      // For new app, we treat it as invalid
+      return false;
+    }
+
+    final saltB64 = parts[0];
+    final hashB64 = parts[1];
+
+    List<int> salt;
+    List<int> storedHashBytes;
+
+    try {
+      salt = base64.decode(saltB64);
+      storedHashBytes = base64.decode(hashB64);
+    } catch (e) {
+      return false;
+    }
+
+    final pbkdf2 = Pbkdf2(
+      macAlgorithm: Hmac.sha256(),
+      iterations: 100000,
+      bits: 256,
+    );
+
+    final secretKey = SecretKey(utf8.encode(pin));
+    final newSecretKey = await pbkdf2.deriveKey(
+      secretKey: secretKey,
+      nonce: salt,
+    );
+    final newHashBytes = await newSecretKey.extractBytes();
+
+    // Constant-time comparison to prevent timing attacks
+    if (storedHashBytes.length != newHashBytes.length) return false;
+
+    var result = 0;
+    for (var i = 0; i < storedHashBytes.length; i++) {
+      result |= storedHashBytes[i] ^ newHashBytes[i];
+    }
+    return result == 0;
   }
 }

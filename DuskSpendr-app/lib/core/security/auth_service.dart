@@ -92,7 +92,7 @@ class AuthService {
 
   /// Set up new PIN
   Future<void> setupPin(String pin) async {
-    final hash = _encryptionService.hashPin(pin);
+    final hash = await _encryptionService.hashPin(pin);
     await _encryptionService.storePinHash(hash);
   }
 

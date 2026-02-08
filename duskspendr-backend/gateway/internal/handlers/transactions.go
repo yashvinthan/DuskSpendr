@@ -8,13 +8,14 @@ import (
   "time"
 
   "github.com/go-chi/chi/v5"
+  "github.com/google/uuid"
   "github.com/jackc/pgx/v5/pgxpool"
 
-  "duskspendr-gateway/internal/models"
+  "duskspendr/gateway/internal/models"
 )
 
 type TransactionHandler struct {
-  Pool *pgxpool.Pool
+  Pool DBPool
 }
 
 func (h *TransactionHandler) List(w http.ResponseWriter, r *http.Request) {
@@ -335,6 +336,41 @@ func (h *TransactionHandler) Delete(w http.ResponseWriter, r *http.Request) {
   }
 
   writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
+}
+
+func (h *TransactionHandler) BulkDelete(w http.ResponseWriter, r *http.Request) {
+  userID, ok := UserIDFromContext(r.Context())
+  if !ok {
+    writeError(w, http.StatusBadRequest, "missing user context")
+    return
+  }
+
+  var input struct {
+    IDs []string `json:"ids"`
+  }
+  if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+    writeError(w, http.StatusBadRequest, "invalid json")
+    return
+  }
+  if len(input.IDs) == 0 {
+    writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
+    return
+  }
+
+  cmd, err := h.Pool.Exec(r.Context(), `
+    DELETE FROM transactions
+     WHERE user_id = $1 AND id = ANY($2)
+  `, userID, input.IDs)
+
+  if err != nil {
+    writeError(w, http.StatusInternalServerError, "delete failed")
+    return
+  }
+
+  writeJSON(w, http.StatusOK, map[string]any{
+    "status": "deleted",
+    "count":  cmd.RowsAffected(),
+  })
 }
 
 func validateTransactionInput(input models.TransactionInput) error {
