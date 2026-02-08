@@ -1,4 +1,6 @@
 // Package handlers provides Fiber HTTP handlers for the gateway
+//go:build fiber
+
 package handlers
 
 import (

@@ -48,6 +48,7 @@ func NewServer(pool *pgxpool.Pool, serverpodClient *serverpod.Client, cfg config
       auth.Get("/transactions/{id}", txHandler.Get)
       auth.Put("/transactions/{id}", txHandler.Update)
       auth.Delete("/transactions/{id}", txHandler.Delete)
+      auth.Post("/transactions/bulk-delete", txHandler.BulkDelete)
 
       auth.Post("/sync/transactions", syncHandler.SyncTransactions)
       auth.With(handlers.SyncIngestRateLimit(cfg)).Post(
