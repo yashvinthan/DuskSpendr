@@ -104,7 +104,6 @@ type AuthStartInput struct {
 type AuthStartResponse struct {
   OTPID     string    `json:"otp_id"`
   ExpiresAt time.Time `json:"expires_at"`
-  DevCode   string    `json:"dev_code,omitempty"`
 }
 
 type AuthVerifyInput struct {

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/config/app_config.dart';
+import '../core/security/auth_service.dart';
 import '../data/local/session_store.dart';
 import '../data/remote/api_client.dart';
 import '../data/remote/auth_api.dart';
@@ -16,6 +17,10 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 final authApiProvider = Provider<AuthApi>((ref) {
   final client = ref.watch(apiClientProvider);
   return AuthApi(client);
+});
+
+final localAuthServiceProvider = Provider<AuthService>((ref) {
+  return AuthService();
 });
 
 final sessionStoreProvider = Provider<SessionStore>((ref) {

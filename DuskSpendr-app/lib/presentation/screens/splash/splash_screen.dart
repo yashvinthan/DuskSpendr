@@ -1,20 +1,26 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/security/auth_service.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/theme/typography.dart';
+import '../../navigation/app_router.dart';
+import '../../../providers/auth_providers.dart';
+import '../auth/lock_screen.dart';
 import '../onboarding/onboarding_screen.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _logoScale;
@@ -46,10 +52,28 @@ class _SplashScreenState extends State<SplashScreen>
 
     Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
+      // Navigate to home, let router redirect based on auth/onboarding state
+      context.go(AppRoutes.home);
+    });
+      _checkAuthAndNavigate();
+    });
+  }
+
+  Future<void> _checkAuthAndNavigate() async {
+    final authService = ref.read(localAuthServiceProvider);
+    final isPinSet = await authService.isPinSetUp();
+
+    if (!mounted) return;
+
+    if (isPinSet) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const LockScreen()),
+      );
+    } else {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const OnboardingScreen()),
       );
-    });
+    }
   }
 
   @override
@@ -178,4 +202,3 @@ class _ProgressDots extends StatelessWidget {
     );
   }
 }
-

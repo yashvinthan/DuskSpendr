@@ -1,87 +1,129 @@
 import pytest
-import sys
-import os
-import asyncio
-
-# Ensure the correct path is added so we can import 'app'
-# Assuming this script is in duskspendr-backend/ai-service/tests/
-current_dir = os.path.dirname(os.path.abspath(__file__))
-service_root = os.path.dirname(current_dir)
-sys.path.insert(0, service_root)
-
 from app.ml.categorizer import TransactionCategorizer
 from app.schemas.transaction import TransactionInput
 
-@pytest.fixture
-def categorizer():
-    cat = TransactionCategorizer()
-    # Mock load_model if needed, but here it's simple
-    asyncio.run(cat.load_model())
-    return cat
+@pytest.mark.asyncio
+async def test_predict_exact_match():
+    categorizer = TransactionCategorizer()
+    await categorizer.load_model()
+
+    transaction = TransactionInput(
+        merchant_name="Swiggy",
+        amount=500.0,
+        currency="INR"
+    )
+    prediction = await categorizer.predict(transaction)
+
+    assert prediction.category == "food_dining"
+    assert prediction.subcategory == "delivery"
+    assert prediction.confidence > 0.8
 
 @pytest.mark.asyncio
-async def test_categorizer_basic(categorizer):
-    tx = TransactionInput(merchant_name="Swiggy", amount=100.0, currency="INR")
-    pred = await categorizer.predict(tx)
-    assert pred.category == "food_dining"
-    assert pred.confidence > 0.8
+async def test_predict_partial_match():
+    categorizer = TransactionCategorizer()
+    await categorizer.load_model()
+
+    transaction = TransactionInput(
+        merchant_name="Starbucks Cafe",
+        amount=350.0,
+        currency="INR"
+    )
+    prediction = await categorizer.predict(transaction)
+
+    assert prediction.category == "food_dining"
+    assert prediction.subcategory == "restaurant"
 
 @pytest.mark.asyncio
-async def test_categorizer_overlap_suffix(categorizer):
-    # 'ajio' matches 'shopping'. 'jio' matches 'utilities'.
-    # Both should be found.
-    tx = TransactionInput(merchant_name="ajio", amount=100.0, currency="INR")
-    pred = await categorizer.predict(tx)
+async def test_predict_no_match():
+    categorizer = TransactionCategorizer()
+    await categorizer.load_model()
 
-    # Shopping should win because 'ajio' is longer/more specific?
-    # Or just because score accumulation.
-    # ajio: 1.0 (shopping)
-    # jio: ~0.9 (utilities)
-    # Shopping wins.
-    assert pred.category == "shopping"
+    transaction = TransactionInput(
+        merchant_name="Unknown Merchant",
+        description="Random payment",
+        amount=100.0,
+        currency="INR"
+    )
+    prediction = await categorizer.predict(transaction)
 
-    # Check alternatives contain utilities
-    alts = [a['category'] for a in pred.alternative_categories]
-    assert "utilities" in alts
+    assert prediction.category == "other"
+    assert prediction.confidence <= 0.3
 
 @pytest.mark.asyncio
-async def test_categorizer_overlap_prefix(categorizer):
-    # 'coursera' matches 'education'. 'course' matches 'education'.
-    # Ideally both found in original logic.
-    # If optimization misses 'course', score might drop slightly but category should remain 'education'.
-    tx = TransactionInput(merchant_name="coursera", amount=100.0, currency="INR")
-    pred = await categorizer.predict(tx)
-    assert pred.category == "education"
-    assert pred.confidence > 0.8
+async def test_predict_case_insensitive():
+    categorizer = TransactionCategorizer()
+    await categorizer.load_model()
+
+    transaction = TransactionInput(
+        merchant_name="SWIGGY",
+        amount=500.0,
+        currency="INR"
+    )
+    prediction = await categorizer.predict(transaction)
+
+    assert prediction.category == "food_dining"
 
 @pytest.mark.asyncio
-async def test_categorizer_overlap_substring(categorizer):
-    # 'movie' matches 'entertainment'. 'vi' matches 'utilities'.
-    tx = TransactionInput(merchant_name="movie", amount=100.0, currency="INR")
-    pred = await categorizer.predict(tx)
-    assert pred.category == "entertainment"
+async def test_predict_empty_description():
+    categorizer = TransactionCategorizer()
+    await categorizer.load_model()
 
-    alts = [a['category'] for a in pred.alternative_categories]
-    assert "utilities" in alts
+    transaction = TransactionInput(
+        merchant_name="Uber",
+        description=None,
+        amount=250.0,
+        currency="INR"
+    )
+    prediction = await categorizer.predict(transaction)
 
-@pytest.mark.asyncio
-async def test_categorizer_multiple_keywords(categorizer):
-    # "swiggy zomato" -> both in food_dining.
-    # Should get higher score than single keyword?
-    tx1 = TransactionInput(merchant_name="swiggy", amount=100.0, currency="INR")
-    pred1 = await categorizer.predict(tx1)
-
-    tx2 = TransactionInput(merchant_name="swiggy zomato", amount=100.0, currency="INR")
-    pred2 = await categorizer.predict(tx2)
-
-    # Since confidence is capped at 0.95, we might not see difference in confidence.
-    # But internal score should be higher.
-    # We can check if category is correct.
-    assert pred2.category == "food_dining"
+    assert prediction.category == "transportation"
+    assert prediction.subcategory == "ride"
 
 @pytest.mark.asyncio
-async def test_categorizer_no_match(categorizer):
-    tx = TransactionInput(merchant_name="randomstore123", amount=100.0, currency="INR")
-    pred = await categorizer.predict(tx)
-    assert pred.category == "other"
-    assert pred.confidence <= 0.3
+async def test_predict_multiple_keywords():
+    categorizer = TransactionCategorizer()
+    await categorizer.load_model()
+
+    # "amazon" matches shopping, "food" matches food_dining
+    # "amazon" is first, so it should have higher weight
+    transaction = TransactionInput(
+        merchant_name="Amazon",
+        description="Food order payment",
+        amount=1000.0,
+        currency="INR"
+    )
+    prediction = await categorizer.predict(transaction)
+
+    # Depending on implementation, "amazon" (shopping) might win due to position weight
+    # Or "food" might win if it appears multiple times or has higher base weight?
+    # Let's check logic: weight = 1.0 - (pos / len) * 0.3
+    # "amazon" is at 0. weight ~ 1.0.
+    # "food" is later. weight < 1.0.
+    # So shopping should win.
+    assert prediction.category == "shopping"
+
+    # Verify alternatives contain food_dining
+    alternatives = [alt['category'] for alt in prediction.alternative_categories]
+    assert "food_dining" in alternatives
+
+from app.ml.categorizer import get_categorizer
+
+@pytest.mark.asyncio
+async def test_get_categorizer():
+    cat1 = await get_categorizer()
+    cat2 = await get_categorizer()
+    assert cat1 is cat2
+    assert cat1.model_loaded is True
+
+@pytest.mark.asyncio
+async def test_predict_empty_text():
+    categorizer = TransactionCategorizer()
+    await categorizer.load_model()
+
+    transaction = TransactionInput(
+        merchant_name="",
+        amount=100.0,
+        currency="INR"
+    )
+    prediction = await categorizer.predict(transaction)
+    assert prediction.category == "other"

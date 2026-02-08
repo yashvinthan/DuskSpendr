@@ -18,10 +18,11 @@ var (
 
 // TokenPair represents access and refresh tokens
 type TokenPair struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-	ExpiresIn    int64  `json:"expires_in"`
-	TokenType    string `json:"token_type"`
+	AccessToken  string    `json:"access_token"`
+	RefreshToken string    `json:"refresh_token"`
+	ExpiresIn    int64     `json:"expires_in"`
+	ExpiresAt    time.Time `json:"expires_at"`
+	TokenType    string    `json:"token_type"`
 }
 
 // Claims represents JWT claims
@@ -108,6 +109,7 @@ func (s *JWTService) GenerateTokenPair(userID, email, phone string) (*TokenPair,
 		AccessToken:  accessTokenString,
 		RefreshToken: refreshTokenString,
 		ExpiresIn:    int64(s.accessExpiration.Seconds()),
+		ExpiresAt:    now.Add(s.accessExpiration),
 		TokenType:    "Bearer",
 	}, nil
 }

@@ -1,11 +1,13 @@
 // Package handlers provides Fiber HTTP handlers for the gateway
+//go:build fiber
+
 package handlers
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
-	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -26,14 +28,16 @@ type AuthHandler struct {
 	Pool       *pgxpool.Pool
 	Config     config.Config
 	JWTService *services.JWTService
+	SMSSender  services.SMSSender
 }
 
 // NewAuthHandler creates a new auth handler
-func NewAuthHandler(pool *pgxpool.Pool, cfg config.Config, jwtSvc *services.JWTService) *AuthHandler {
+func NewAuthHandler(pool *pgxpool.Pool, cfg config.Config, jwtSvc *services.JWTService, smsSender services.SMSSender) *AuthHandler {
 	return &AuthHandler{
 		Pool:       pool,
 		Config:     cfg,
 		JWTService: jwtSvc,
+		SMSSender:  smsSender,
 	}
 }
 
@@ -46,7 +50,6 @@ type AuthStartRequest struct {
 type AuthStartResponse struct {
 	OTPID     string    `json:"otp_id"`
 	ExpiresAt time.Time `json:"expires_at"`
-	DevCode   string    `json:"dev_code,omitempty"` // Only in development
 }
 
 // AuthVerifyRequest represents the OTP verify request
@@ -87,7 +90,7 @@ func (h *AuthHandler) Start(c *fiber.Ctx) error {
 	}
 
 	req.Phone = strings.TrimSpace(req.Phone)
-	if !validatePhoneE164(req.Phone) {
+	if !validatePhoneE164_Fiber(req.Phone) {
 		return c.Status(400).JSON(fiber.Map{
 			"success": false,
 			"error":   fiber.Map{"code": "INVALID_PHONE", "message": "Phone must be in E.164 format"},
@@ -119,7 +122,7 @@ func (h *AuthHandler) Start(c *fiber.Ctx) error {
 	}
 
 	// Generate OTP
-	code, err := generateOTP(6)
+	code, err := generateOTP_Fiber(6)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"success": false,
@@ -138,7 +141,7 @@ func (h *AuthHandler) Start(c *fiber.Ctx) error {
 	`, now, req.Phone)
 
 	// Hash the OTP
-	codeHash := hashOTP(h.Config.AuthPepper, otpID, code)
+	codeHash := hashOTP_Fiber(h.Config.AuthPepper, otpID, code)
 
 	// Store new OTP
 	_, err = h.Pool.Exec(c.Context(), `
@@ -158,14 +161,22 @@ func (h *AuthHandler) Start(c *fiber.Ctx) error {
 		devCode = code
 	}
 
-	// TODO: Send OTP via SMS service
+	// Send OTP via SMS
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		msg := fmt.Sprintf("Your DuskSpendr code is: %s", code)
+		if err := h.SMSSender.SendSMS(ctx, req.Phone, msg); err != nil {
+			fmt.Printf("Failed to send SMS to %s: %v\n", req.Phone, err)
+		}
+	}()
 
 	return c.JSON(fiber.Map{
 		"success": true,
 		"data": AuthStartResponse{
 			OTPID:     otpID,
 			ExpiresAt: expiresAt,
-			DevCode:   devCode,
 		},
 	})
 }
@@ -183,7 +194,7 @@ func (h *AuthHandler) Verify(c *fiber.Ctx) error {
 	req.Phone = strings.TrimSpace(req.Phone)
 	req.Code = strings.TrimSpace(req.Code)
 
-	if !validatePhoneE164(req.Phone) || req.Code == "" {
+	if !validatePhoneE164_Fiber(req.Phone) || req.Code == "" {
 		return c.Status(400).JSON(fiber.Map{
 			"success": false,
 			"error":   fiber.Map{"code": "INVALID_INPUT", "message": "Phone and code are required"},
@@ -227,8 +238,8 @@ func (h *AuthHandler) Verify(c *fiber.Ctx) error {
 	}
 
 	// Verify the code
-	expectedHash := hashOTP(h.Config.AuthPepper, otpID, req.Code)
-	if !safeCompare(codeHash, expectedHash) {
+	expectedHash := hashOTP_Fiber(h.Config.AuthPepper, otpID, req.Code)
+	if !safeCompare_Fiber(codeHash, expectedHash) {
 		// Decrement attempts
 		_, _ = h.Pool.Exec(c.Context(), `
 			UPDATE auth_otps SET attempts_remaining = GREATEST(attempts_remaining - 1, 0) WHERE id = $1
@@ -269,7 +280,7 @@ func (h *AuthHandler) Verify(c *fiber.Ctx) error {
 			AccessToken:  tokenPair.AccessToken,
 			RefreshToken: tokenPair.RefreshToken,
 			UserID:       userID.String(),
-			ExpiresIn:    int(tokenPair.ExpiresIn.Seconds()),
+			ExpiresIn:    int(tokenPair.ExpiresIn),
 			ExpiresAt:    tokenPair.ExpiresAt,
 		},
 	})
@@ -306,7 +317,7 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 		"data": RefreshResponse{
 			AccessToken:  tokenPair.AccessToken,
 			RefreshToken: tokenPair.RefreshToken,
-			ExpiresIn:    int(tokenPair.ExpiresIn.Seconds()),
+			ExpiresIn:    int(tokenPair.ExpiresIn),
 		},
 	})
 }
@@ -385,7 +396,7 @@ func (h *AuthHandler) enforceOTPSendLimits(c *fiber.Ctx, phone string) error {
 
 // Helper functions
 
-func generateOTP(length int) (string, error) {
+func generateOTP_Fiber(length int) (string, error) {
 	if length <= 0 {
 		return "", fmt.Errorf("invalid OTP length")
 	}
@@ -401,33 +412,20 @@ func generateOTP(length int) (string, error) {
 	return string(buf), nil
 }
 
-func validatePhoneE164(phone string) bool {
+func validatePhoneE164_Fiber(phone string) bool {
 	re := regexp.MustCompile(`^\+[1-9]\d{7,14}$`)
 	return re.MatchString(phone)
 }
 
-func hashOTP(pepper, otpID, code string) string {
+func hashOTP_Fiber(pepper, otpID, code string) string {
 	sum := sha256.Sum256([]byte(pepper + ":" + otpID + ":" + code))
 	return hex.EncodeToString(sum[:])
 }
 
-func safeCompare(a, b string) bool {
+func safeCompare_Fiber(a, b string) bool {
 	if len(a) != len(b) {
 		return false
 	}
 	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
 }
 
-func hashToken(token string) string {
-	sum := sha256.Sum256([]byte(token))
-	return hex.EncodeToString(sum[:])
-}
-
-func generateToken() (string, string, error) {
-	raw := make([]byte, 32)
-	if _, err := rand.Read(raw); err != nil {
-		return "", "", err
-	}
-	token := base64.RawURLEncoding.EncodeToString(raw)
-	return token, hashToken(token), nil
-}

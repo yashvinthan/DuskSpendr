@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/spacing.dart';
 import '../../../core/theme/typography.dart';
+import '../../../providers/theme_provider.dart';
 import '../../common/widgets/navigation/top_app_bar.dart';
 import '../../navigation/navigation.dart';
 
 /// Settings screen (SS-088)
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDarkMode = ref.watch(isDarkModeProvider);
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: AppColors.darkBackground,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: const AppTopBar(title: 'Settings'),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -57,10 +62,12 @@ class SettingsScreen extends StatelessWidget {
                 onChanged: (value) {},
               ),
               _SettingsToggle(
-                icon: Icons.dark_mode_outlined,
-                title: 'Dark Mode',
-                value: true,
-                onChanged: (value) {},
+                icon: isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                title: isDarkMode ? 'Dark Mode' : 'Light Mode',
+                value: isDarkMode,
+                onChanged: (value) {
+                  ref.read(themeModeProvider.notifier).toggleDarkMode();
+                },
               ),
               _SettingsTile(
                 icon: Icons.language,
@@ -169,7 +176,7 @@ class SettingsScreen extends StatelessWidget {
             child: Text(
               'DuskSpendr v1.0.0',
               style: AppTypography.caption.copyWith(
-                color: AppColors.textMuted,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -191,6 +198,7 @@ class _SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -202,14 +210,22 @@ class _SettingsSection extends StatelessWidget {
           child: Text(
             title,
             style: AppTypography.labelLarge.copyWith(
-              color: AppColors.textSecondary,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.darkCard,
+            color: theme.cardTheme.color ?? theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(AppRadius.lg),
+             // Add border for better separation in light mode if needed, or rely on shadow
+             boxShadow: [
+               BoxShadow(
+                 color: Colors.black.withValues(alpha: 0.05),
+                 blurRadius: 4,
+                 offset: const Offset(0, 2),
+               )
+             ]
           ),
           child: Column(
             children: children,
@@ -237,6 +253,9 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = textColor ?? theme.colorScheme.onSurface;
+
     return InkWell(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -251,7 +270,7 @@ class _SettingsTile extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: textColor ?? AppColors.textSecondary,
+              color: textColor ?? theme.colorScheme.onSurface.withValues(alpha: 0.7),
               size: 22,
             ),
             const SizedBox(width: AppSpacing.md),
@@ -259,7 +278,7 @@ class _SettingsTile extends StatelessWidget {
               child: Text(
                 title,
                 style: AppTypography.bodyMedium.copyWith(
-                  color: textColor ?? AppColors.textPrimary,
+                  color: color,
                 ),
               ),
             ),
@@ -267,13 +286,13 @@ class _SettingsTile extends StatelessWidget {
               Text(
                 trailing!,
                 style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
             const SizedBox(width: AppSpacing.xs),
             Icon(
               Icons.chevron_right,
-              color: textColor ?? AppColors.textMuted,
+              color: textColor ?? theme.colorScheme.onSurface.withValues(alpha: 0.3),
               size: 20,
             ),
           ],
@@ -298,6 +317,8 @@ class _SettingsToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
@@ -307,7 +328,7 @@ class _SettingsToggle extends StatelessWidget {
         children: [
           Icon(
             icon,
-            color: AppColors.textSecondary,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
             size: 22,
           ),
           const SizedBox(width: AppSpacing.md),
@@ -315,7 +336,7 @@ class _SettingsToggle extends StatelessWidget {
             child: Text(
               title,
               style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.textPrimary,
+                color: theme.colorScheme.onSurface,
               ),
             ),
           ),
@@ -325,7 +346,7 @@ class _SettingsToggle extends StatelessWidget {
               HapticFeedback.lightImpact();
               onChanged(newValue);
             },
-            activeThumbColor: AppColors.dusk500,
+            activeColor: AppColors.primary,
           ),
         ],
       ),
@@ -336,26 +357,28 @@ class _SettingsToggle extends StatelessWidget {
 class _SignOutButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.mediumImpact();
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            backgroundColor: AppColors.darkSurface,
+            backgroundColor: theme.colorScheme.surface,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
             title: Text(
               'Sign Out',
               style: AppTypography.titleLarge.copyWith(
-                color: AppColors.textPrimary,
+                color: theme.colorScheme.onSurface,
               ),
             ),
             content: Text(
               'Are you sure you want to sign out?',
               style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
             actions: [
@@ -364,7 +387,7 @@ class _SignOutButton extends StatelessWidget {
                 child: Text(
                   'Cancel',
                   style: AppTypography.labelLarge.copyWith(
-                    color: AppColors.textSecondary,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ),
@@ -408,4 +431,3 @@ class _SignOutButton extends StatelessWidget {
     );
   }
 }
-

@@ -17,7 +17,15 @@ class SecureStoragePrivacyStore implements PrivacyStore {
     List<Map<String, dynamic>> entries = [];
 
     if (entriesJson != null) {
-      entries = List<Map<String, dynamic>>.from(jsonDecode(entriesJson));
+      try {
+        final decoded = jsonDecode(entriesJson);
+        if (decoded is List) {
+          entries = List<Map<String, dynamic>>.from(decoded);
+        }
+      } catch (e) {
+        // Fallback to empty list on corruption
+        entries = [];
+      }
     }
 
     entries.add(entry.toJson());
@@ -38,9 +46,17 @@ class SecureStoragePrivacyStore implements PrivacyStore {
     final entriesJson = await _storage.read(key: _auditLogKey);
     if (entriesJson == null) return [];
 
-    final entries = List<Map<String, dynamic>>.from(jsonDecode(entriesJson))
-        .map((e) => AuditEntry.fromJson(e))
-        .toList();
+    List<AuditEntry> entries;
+    try {
+      final decoded = jsonDecode(entriesJson);
+      if (decoded is! List) return [];
+
+      entries = List<Map<String, dynamic>>.from(decoded)
+          .map((e) => AuditEntry.fromJson(e))
+          .toList();
+    } catch (e) {
+      return [];
+    }
 
     return entries.where((entry) {
       if (from != null && entry.timestamp.isBefore(from)) return false;
@@ -73,7 +89,15 @@ class SecureStoragePrivacyStore implements PrivacyStore {
   Future<PrivacyReport?> getLatestPrivacyReport() async {
     final reportJson = await _storage.read(key: _reportKey);
     if (reportJson == null) return null;
-    return _reportFromJson(jsonDecode(reportJson) as Map<String, dynamic>);
+    try {
+      final decoded = jsonDecode(reportJson);
+      if (decoded is Map<String, dynamic>) {
+        return _reportFromJson(decoded);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
 
   Map<String, dynamic> _reportToJson(PrivacyReport report) => {

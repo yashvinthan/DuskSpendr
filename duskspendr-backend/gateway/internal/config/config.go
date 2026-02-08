@@ -26,8 +26,10 @@ type Config struct {
 
 	// JWT
 	JWTSecret            string
+	JWTRefreshSecret     string
 	JWTAccessExpiry      time.Duration
 	JWTRefreshExpiry     time.Duration
+	AllowedOrigins       string
 
 	// Auth
 	AuthPepper           string
@@ -35,6 +37,11 @@ type Config struct {
 	OTPMinSecondsBetween int
 	OTPMaxAttempts       int
 	OTPMaxPerIPPerHour   int
+
+	// Twilio
+	TwilioAccountSID string
+	TwilioAuthToken  string
+	TwilioFromNumber string
 
 	// Services
 	AIServiceURL        string
@@ -49,6 +56,11 @@ type Config struct {
 	SyncIngestRPM    int
 	SyncIngestBurst  int
 	SyncIngestIPRPM  int
+
+	// Integrations
+	UpstoxClientID     string
+	UpstoxClientSecret string
+	UpstoxRedirectURI  string
 }
 
 func Load() Config {
@@ -72,8 +84,10 @@ func Load() Config {
 
 		// JWT
 		JWTSecret:        getEnv("JWT_SECRET", "your-super-secret-key-change-in-production"),
+		JWTRefreshSecret: getEnv("JWT_REFRESH_SECRET", "your-refresh-secret-key-change-in-production"),
 		JWTAccessExpiry:  getDurationEnv("JWT_ACCESS_EXPIRY", 15*time.Minute),
 		JWTRefreshExpiry: getDurationEnv("JWT_REFRESH_EXPIRY", 7*24*time.Hour),
+		AllowedOrigins:   getEnv("ALLOWED_ORIGINS", "*"),
 
 		// Auth
 		AuthPepper:           getEnv("AUTH_PEPPER", ""),
@@ -81,6 +95,11 @@ func Load() Config {
 		OTPMinSecondsBetween: getEnvInt("OTP_MIN_SECONDS_BETWEEN", 60),
 		OTPMaxAttempts:       getEnvInt("OTP_MAX_ATTEMPTS", 5),
 		OTPMaxPerIPPerHour:   getEnvInt("OTP_MAX_PER_IP_PER_HOUR", 30),
+
+		// Twilio
+		TwilioAccountSID: getEnv("TWILIO_ACCOUNT_SID", ""),
+		TwilioAuthToken:  getEnv("TWILIO_AUTH_TOKEN", ""),
+		TwilioFromNumber: getEnv("TWILIO_FROM_NUMBER", ""),
 
 		// Services
 		AIServiceURL:        getEnv("AI_SERVICE_URL", "http://localhost:8001"),
@@ -95,6 +114,11 @@ func Load() Config {
 		SyncIngestRPM:    getEnvInt("SYNC_INGEST_RPM", 120),
 		SyncIngestBurst:  getEnvInt("SYNC_INGEST_BURST", 60),
 		SyncIngestIPRPM:  getEnvInt("SYNC_INGEST_IP_RPM", 600),
+
+		// Integrations
+		UpstoxClientID:     getEnv("UPSTOX_CLIENT_ID", ""),
+		UpstoxClientSecret: getEnv("UPSTOX_CLIENT_SECRET", ""),
+		UpstoxRedirectURI:  getEnv("UPSTOX_REDIRECT_URI", ""),
 	}
 }
 

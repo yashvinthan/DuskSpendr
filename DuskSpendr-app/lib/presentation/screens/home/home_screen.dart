@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/spacing.dart';
@@ -12,14 +13,8 @@ import '../../../providers/gamification_provider.dart';
 import '../../../providers/transaction_provider.dart';
 import '../../../providers/sync_providers.dart';
 import '../../../core/sync/sync_metrics_service.dart';
-import 'package:go_router/go_router.dart';
-
-import '../profile/profile_screen.dart';
-import '../settings/settings_screen.dart';
-import '../stats/stats_screen.dart';
-import '../transactions/add_transaction_screen.dart';
-import '../transactions/transactions_screen.dart';
 import '../../navigation/navigation.dart';
+import '../settings/settings_screen.dart';
 
 /// SS-081: Student Dashboard wired with real providers
 
@@ -31,41 +26,12 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int _index = 0;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       floatingActionButton: _buildSpeedDialFab(),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _index,
-        onTap: (value) => setState(() => _index = value),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor:
-            Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.receipt_long), label: 'Trans'),
-          BottomNavigationBarItem(icon: Icon(Icons.add_circle), label: 'Add'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.pie_chart), label: 'Budgets'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-      ),
-      body: IndexedStack(
-        index: _index,
-        children: const [
-          _HomeDashboard(),
-          TransactionsScreen(),
-          AddTransactionScreen(),
-          StatsScreen(),
-          ProfileScreen(),
-        ],
-      ),
+      body: const _HomeDashboard(),
     );
   }
 
@@ -116,7 +82,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   color: AppColors.danger,
                   onTap: () {
                     Navigator.pop(context);
-                    setState(() => _index = 2);
+                    context.push(AppRoutes.addTransaction);
                   },
                 ),
                 _QuickAddOption(
@@ -126,7 +92,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   onTap: () {
                     Navigator.pop(context);
                     // Reuse existing add-transaction flow (credit/income)
-                    setState(() => _index = 2);
+                    // You might want to pass a query param or extra to pre-select income
+                    context.push(AppRoutes.addTransaction);
                   },
                 ),
                 _QuickAddOption(
@@ -136,7 +103,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   onTap: () {
                     Navigator.pop(context);
                     // Transfer UI not yet implemented; route to transactions for now
-                    setState(() => _index = 3);
+                    context.push(AppRoutes.addTransaction);
                   },
                 ),
               ],
@@ -434,9 +401,7 @@ class _Header extends ConsumerWidget {
         ),
         IconButton(
           onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
-            );
+            context.push(AppRoutes.settings);
           },
           icon: Icon(Icons.settings, color: theme.colorScheme.onSurface),
         ),
@@ -824,7 +789,7 @@ class _TransactionsCard extends ConsumerWidget {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: () {
-                // Navigate to transactions screen
+                context.goNamed('transactions');
               },
               child: const Text('See All Transactions →'),
             ),
@@ -936,17 +901,23 @@ class _QuickActions extends StatelessWidget {
             _QuickActionItem(
               icon: Icons.add,
               label: 'Add',
-              onTap: () {},
+              onTap: () {
+                 context.push(AppRoutes.addTransaction);
+              },
             ),
             _QuickActionItem(
               icon: Icons.pie_chart,
               label: 'Stats',
-              onTap: () {},
+              onTap: () {
+                 context.go(AppRoutes.stats);
+              },
             ),
             _QuickActionItem(
               icon: Icons.group,
               label: 'Split',
-              onTap: () {},
+              onTap: () {
+                 context.push(AppRoutes.splitBills);
+              },
             ),
             _QuickActionItem(
               icon: Icons.lightbulb,
