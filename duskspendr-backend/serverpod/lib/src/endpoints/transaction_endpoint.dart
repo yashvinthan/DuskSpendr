@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:serverpod/serverpod.dart';
 
 import '../util/serverpod_helpers.dart';
@@ -279,24 +281,82 @@ class TransactionEndpoint extends Endpoint {
       throw Exception('Not authenticated');
     }
 
-    final results = <Map<String, dynamic>>[];
+    if (transactions.isEmpty) {
+      return [];
+    }
 
-    for (final tx in transactions) {
-      try {
-        final result = await createTransaction(
-          session,
-          amount: tx['amount'] as double,
-          date: DateTime.parse(tx['date'] as String),
-          source: tx['source'] as String? ?? 'sync',
-          merchantName: tx['merchantName'] as String?,
-          categoryId: tx['categoryId'] as int?,
-          description: tx['description'] as String?,
-          smsHash: tx['smsHash'] as String?,
-        );
-        results.add(result);
-      } catch (e) {
-        // Skip duplicates (sms_hash conflict)
-        continue;
+    final results = <Map<String, dynamic>>[];
+    const chunkSize = 500;
+
+    for (var i = 0; i < transactions.length; i += chunkSize) {
+      final end = min(i + chunkSize, transactions.length);
+      final chunk = transactions.sublist(i, end);
+
+      final values = <String>[];
+      final params = <String, dynamic>{'userId': userId};
+
+      for (var j = 0; j < chunk.length; j++) {
+        final tx = chunk[j];
+        final idx = j;
+
+        values.add(
+            '(@userId, @amount_$idx, @merchantName_$idx, @categoryId_$idx, @subcategoryId_$idx, '
+            '@description_$idx, @date_$idx, @source_$idx, @accountId_$idx, @isRecurring_$idx, '
+            '@recurringId_$idx, @tags_$idx, @location_$idx, @latitude_$idx, @longitude_$idx, '
+            '@smsHash_$idx, NOW())');
+
+        params['amount_$idx'] = tx['amount'] as double;
+        params['merchantName_$idx'] = tx['merchantName'] as String?;
+        params['categoryId_$idx'] = tx['categoryId'] as int?;
+        params['subcategoryId_$idx'] = tx['subcategoryId'] as int?;
+        params['description_$idx'] = tx['description'] as String?;
+        params['date_$idx'] = DateTime.parse(tx['date'] as String);
+        params['source_$idx'] = tx['source'] as String? ?? 'sync';
+        params['accountId_$idx'] = tx['accountId'] as int?;
+        params['isRecurring_$idx'] = tx['isRecurring'] as bool? ?? false;
+        params['recurringId_$idx'] = tx['recurringId'] as int?;
+        params['tags_$idx'] = tx['tags'];
+        params['location_$idx'] = tx['location'] as String?;
+        params['latitude_$idx'] = tx['latitude'] as double?;
+        params['longitude_$idx'] = tx['longitude'] as double?;
+        params['smsHash_$idx'] = tx['smsHash'] as String?;
+      }
+
+      final query = '''
+      INSERT INTO transactions (
+        user_id, amount, merchant_name, category_id, subcategory_id,
+        description, date, source, account_id, is_recurring, recurring_id,
+        tags, location, latitude, longitude, sms_hash, created_at
+      ) VALUES ${values.join(', ')}
+      ON CONFLICT (sms_hash) DO NOTHING
+      RETURNING id, user_id, amount, merchant_name, category_id, subcategory_id,
+                description, date, source, account_id, is_recurring, recurring_id,
+                tags, location, latitude, longitude, created_at, updated_at
+      ''';
+
+      final result = await session.query(
+        query,
+        parameters: params,
+      );
+
+      for (final row in result) {
+        results.add(_mapTransaction(row));
+
+        // Trigger AI categorization if no category provided
+        if (row[4] == null) {
+          final transactionId = row[0] as int;
+          final merchantName = row[3] as String?;
+          final amount = row[2] as double;
+
+          session.messages.postMessage(
+            'ai-categorization',
+            JsonMessage({
+              'transactionId': transactionId,
+              'merchantName': merchantName,
+              'amount': amount,
+            }),
+          );
+        }
       }
     }
 
