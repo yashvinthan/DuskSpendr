@@ -79,6 +79,11 @@ type RefreshResponse struct {
 	ExpiresIn    int    `json:"expires_in"`
 }
 
+// LogoutRequest represents the logout request
+type LogoutRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
 // Start initiates OTP authentication
 func (h *AuthHandler) Start(c *fiber.Ctx) error {
 	var req AuthStartRequest
@@ -304,8 +309,14 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 	}
 
 	// Validate and refresh tokens
-	tokenPair, err := h.JWTService.RefreshTokens(req.RefreshToken)
+	tokenPair, err := h.JWTService.RefreshTokens(c.Context(), req.RefreshToken)
 	if err != nil {
+		if err == services.ErrTokenBlacklisted {
+			return c.Status(401).JSON(fiber.Map{
+				"success": false,
+				"error":   fiber.Map{"code": "TOKEN_REVOKED", "message": "Refresh token has been revoked"},
+			})
+		}
 		return c.Status(401).JSON(fiber.Map{
 			"success": false,
 			"error":   fiber.Map{"code": "INVALID_TOKEN", "message": "Invalid or expired refresh token"},
@@ -333,7 +344,18 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 		})
 	}
 
-	// TODO: Invalidate refresh token in Redis/database blacklist
+	// Invalidate refresh token if provided
+	var req LogoutRequest
+	if err := c.BodyParser(&req); err == nil && req.RefreshToken != "" {
+		_ = h.JWTService.InvalidateToken(c.Context(), req.RefreshToken)
+	}
+
+	// Invalidate access token from header
+	authHeader := c.Get("Authorization")
+	parts := strings.Split(authHeader, " ")
+	if len(parts) == 2 && strings.ToLower(parts[0]) == "bearer" {
+		_ = h.JWTService.InvalidateToken(c.Context(), parts[1])
+	}
 
 	return c.JSON(fiber.Map{
 		"success": true,
