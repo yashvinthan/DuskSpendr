@@ -1,4 +1,5 @@
 """Transaction categorization endpoints."""
+import asyncio
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Depends
@@ -53,22 +54,23 @@ async def categorize_batch(
     Efficiently processes batches of transactions, useful for
     initial sync or bulk imports.
     """
-    results = []
-    for tx in request.transactions:
+    async def process_transaction(tx):
         try:
             prediction = await categorizer.predict(tx)
-            results.append({
+            return {
                 "transaction_id": tx.transaction_id,
                 "prediction": prediction,
                 "success": True,
-            })
+            }
         except Exception as e:
-            results.append({
+            return {
                 "transaction_id": tx.transaction_id,
                 "prediction": None,
                 "success": False,
                 "error": str(e),
-            })
+            }
+
+    results = await asyncio.gather(*(process_transaction(tx) for tx in request.transactions))
     
     logger.info(
         "batch_categorization_complete",
