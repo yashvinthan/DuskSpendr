@@ -192,20 +192,25 @@ async def predict_upcoming_bills(user_id: str) -> dict[str, Any]:
     # Sort by due date
     bills.sort(key=lambda b: b.due_date)
     
-    total_upcoming = sum(b.amount for b in bills)
+    limit_date = now + timedelta(days=7)
+    total_upcoming = 0.0
+    next_7_days = 0.0
+    bills_data = []
+
+    for b in bills:
+        amount = b.amount
+        total_upcoming += amount
+        if b.due_date <= limit_date:
+            next_7_days += amount
+
+        bills_data.append({**b.model_dump(), "due_date": b.due_date.isoformat()})
     
     return {
         "success": True,
         "data": {
-            "bills": [
-                {**b.model_dump(), "due_date": b.due_date.isoformat()}
-                for b in bills
-            ],
+            "bills": bills_data,
             "total_upcoming": total_upcoming,
-            "next_7_days": sum(
-                b.amount for b in bills 
-                if b.due_date <= now + timedelta(days=7)
-            ),
+            "next_7_days": next_7_days,
         },
     }
 
