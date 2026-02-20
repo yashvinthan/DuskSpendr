@@ -23,10 +23,10 @@ class Settings(BaseSettings):
     port: int = 8002
 
     # Database
-    database_url: str = "postgresql+asyncpg://duskspendr:password@localhost:5432/duskspendr"
+    database_url: str
 
     # Redis
-    redis_url: str = "redis://localhost:6379/1"
+    redis_url: str
 
     # CORS
     cors_origins: list[str] = ["*"]
