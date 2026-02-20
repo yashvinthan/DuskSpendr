@@ -1,7 +1,13 @@
-import 'package:serverpod/serverpod.dart';
+import 'package:serverpod/serverpod.dart' hide Transaction;
 import 'package:serverpod/protocol.dart' show TableDefinition;
 
 import '../util/serverpod_helpers.dart';
+import 'transaction.dart';
+
+/*   NOTE: This file was manually modified because `serverpod generate` could not be run in the current environment. */
+/*   It exports and registers the `Transaction` model. */
+
+export 'transaction.dart';
 
 class Protocol extends SerializationManagerServer {
   Protocol._();
@@ -14,7 +20,10 @@ class Protocol extends SerializationManagerServer {
   String getModuleName() => 'duskspendr';
 
   @override
-  Table? getTableForType(Type t) => null;
+  Table? getTableForType(Type t) {
+    if (t == Transaction) return Transaction.t;
+    return null;
+  }
 
   @override
   List<TableDefinition> getTargetTableDefinitions() => [];
@@ -48,6 +57,16 @@ class Protocol extends SerializationManagerServer {
       return (data == null ? null : JsonMessage.fromJson(_asMap(data), this))
           as T;
     }
+    if (t == getType<Transaction>()) {
+      return Transaction.fromJson(_asMap(data), this) as T;
+    }
+    if (t == getType<Transaction?>()) {
+      return (data == null ? null : Transaction.fromJson(_asMap(data), this))
+          as T;
+    }
+    if (t == getType<List<Transaction>>()) {
+      return (data as List).map((e) => deserialize<Transaction>(e)).toList() as T;
+    }
 
     return super.deserialize<T>(data, t);
   }
@@ -57,6 +76,9 @@ class Protocol extends SerializationManagerServer {
     if (data is JsonMessage) {
       return 'JsonMessage';
     }
+    if (data is Transaction) {
+      return 'Transaction';
+    }
     return super.getClassNameForObject(data);
   }
 
@@ -64,6 +86,9 @@ class Protocol extends SerializationManagerServer {
   dynamic deserializeByClassName(Map<String, dynamic> data) {
     if (data['className'] == 'JsonMessage') {
       return deserialize<JsonMessage>(data['data']);
+    }
+    if (data['className'] == 'Transaction') {
+      return deserialize<Transaction>(data['data']);
     }
     return super.deserializeByClassName(data);
   }
