@@ -3,3 +3,4 @@ export 'score_gauge.dart';
 export 'achievement_badge.dart';
 export 'streak_counter.dart';
 export 'leaderboard.dart';
+export 'reward_popup.dart';
